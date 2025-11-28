@@ -290,6 +290,12 @@
         const menuToggle = document.querySelector('.menu-toggle');
         const navLinks = document.querySelector('.nav-links');
         
+        // Function to close mobile menu
+        function closeMobileMenu() {
+            navLinks.classList.remove('active');
+            menuToggle.classList.remove('active');
+        }
+        
         menuToggle.addEventListener('click', () => {
             navLinks.classList.toggle('active');
             menuToggle.classList.toggle('active');
@@ -305,9 +311,7 @@
                         behavior: 'smooth',
                         block: 'start'
                     });
-                    // Close mobile menu if open
-                    navLinks.classList.remove('active');
-                    menuToggle.classList.remove('active');
+                    closeMobileMenu();
                 }
             });
         });
@@ -315,8 +319,22 @@
         // Form submission handler
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('¡Gracias por contactarnos! Nos comunicaremos con usted pronto.');
-            this.reset();
+            const form = this;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            // Show success state
+            submitBtn.textContent = '¡Mensaje Enviado!';
+            submitBtn.style.backgroundColor = '#38a169';
+            submitBtn.disabled = true;
+            
+            // Reset form and button after delay
+            setTimeout(() => {
+                form.reset();
+                submitBtn.textContent = originalText;
+                submitBtn.style.backgroundColor = '';
+                submitBtn.disabled = false;
+            }, 3000);
         });
 
         // Header scroll effect
