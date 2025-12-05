@@ -1,0 +1,503 @@
+/* 
+Paleta de colores:
+#0f1516 (Negro suave)
+#234c58 (Azul oscuro)
+#7f8c94 (Gris azulado)
+#c9c2c2 (Gris claro)
+#ffffff (Blanco)
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+/* --- Efecto Frase centra*/
+#typing-headline {
+    /* El contenedor principal no necesita mucho */
+    perspective: 400px; /* Añade un poco de profundidad a la animación */
+}
+
+/* Estilo para cada palabra que vamos a crear con JS */
+#typing-headline .word {
+    display: inline-block; /* Para que cada palabra sea un bloque y se pueda animar */
+    opacity: 0;
+    transform: translateY(100%) rotateX(-80deg); /* Empiezan abajo, rotadas y transparentes */
+    transform-origin: top center;
+    
+    /* La animación que las hará aparecer */
+    animation: reveal-word 0.7s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+}
+
+/* La animación en sí */
+@keyframes reveal-word {
+    to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+    }
+}
+
+
+:root {
+    --color-dark: #0f1516;
+    --color-primary: #234c58;
+    --color-secondary: #7f8c94;
+    --color-light-gray: #c9c2c2;
+    --color-white: #ffffff;
+    --font-main: 'Montserrat', sans-serif;
+}
+
+body {
+    font-family: var(--font-main);
+    margin: 0;
+    color: var(--color-dark);
+    background-color: var(--color-white);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header y Navegación */
+.main-header {
+    background-color: var(--color-white);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 15px 0;
+    position: sticky; 
+    top: 0;
+    z-index: 100;
+
+    /* Efecto Glassmorphism */
+    background-color: rgba(255, 255, 255, 0.6); /* Fondo blanco semitransparente */
+    backdrop-filter: blur(10px);               /* El desenfoque mágico */
+    -webkit-backdrop-filter: blur(10px);       /* Para compatibilidad con Safari */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+}
+
+.main-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.logo-container {
+    display: flex;         
+    align-items: center;  
+    gap: 15px;            
+    text-decoration: none;
+}
+
+.logo {
+    height: 65px; /*Ajustar el tamaño de la imagen*/
+    flex-shrink: 0;
+}
+.logo-text {
+    color: var(--color-secondary);
+    font-size: 11px; /* Tamaño de letra */
+    line-height: 1.3;
+    font-weight: 600;
+}
+.logo-text strong {
+    color: var(--color-primary);
+    font-size: 12px;
+}
+
+.main-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.main-nav ul li a {
+    color: var(--color-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 10px 15px;
+    transition: color 0.3s ease;
+}
+
+.main-nav ul li a:hover,
+.main-nav ul li a.active {
+    color: var(--color-primary);
+}
+
+
+.hero {
+    background: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url('../imagenes/hero-bg.jpg') no-repeat center center/cover;
+    padding: 120px 0; /* Más espacio vertical */
+    position: relative; /* Necesario para las formas */
+    overflow: hidden; /* Oculta lo que se salga de la forma */
+    text-align: left;
+    padding: 120px 0;
+    position: relative;
+    overflow: hidden; 
+}
+
+/* Forma orgánica #1 (blob) */
+.hero::before {
+    content: '';
+    position: absolute;
+    top: -150px;
+    left: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--color-primary), var(--color-secondary));
+    opacity: 0.2;
+    border-radius: 47% 53% 70% 30% / 30% 50% 50% 70%;
+    animation: blob-animate 15s infinite ease-in-out;
+}
+
+/* Forma orgánica #2 (blob) */
+.hero::after {
+    content: '';
+    position: absolute;
+    bottom: -100px;
+    right: -150px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, var(--color-secondary), var(--color-light-gray));
+    opacity: 0.2;
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    animation: blob-animate 20s infinite ease-in-out reverse;
+}
+
+/* Aseguramos que el contenido del Hero esté por encima de las formas */
+.hero .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* Animación para las formas (blobs) */
+@keyframes blob-animate {
+    0% { border-radius: 47% 53% 70% 30% / 30% 50% 50% 70%; }
+    50% { border-radius: 30% 70% 70% 30% / 50% 60% 40% 50%; }
+    100% { border-radius: 47% 53% 70% 30% / 30% 50% 50% 70%; }
+}
+
+
+/* --- 3. Tarjetas de Características Interactivas y Animadas --- */
+.feature-item {
+    /* ...tus otros estilos... */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0; /* Inicialmente invisibles */
+    transform: translateY(30px); /* Inicialmente movidas hacia abajo */
+}
+
+/* El efecto "loco" al pasar el cursor */
+.feature-item:hover {
+    transform: translateY(-10px) scale(1.03); /* Se levantan y crecen un poco */
+    box-shadow: 0 20px 40px rgba(35, 76, 88, 0.2); /* Sombra más pronunciada */
+}
+
+/* Clase que añadirá JavaScript para la animación de entrada */
+.feature-item.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Para que las tarjetas aparezcan una después de otra */
+.feature-item:nth-child(1) { transition-delay: 0.2s; }
+.feature-item:nth-child(2) { transition-delay: 0.4s; }
+.feature-item:nth-child(3) { transition-delay: 0.6s; }
+
+
+/* --- 4. Micro-interacción en Botones --- */
+.btn:hover {
+    transform: translateY(-3px); /* Se levantan un poco */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.hero-content {
+    text-align: left;
+}   
+
+.hero-content h1 {
+
+    font-size: 3rem;
+    color: var(--color-primary);
+    margin-bottom: 20px;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    color: var(--color-secondary);
+    max-width: 600px;
+
+}
+
+/* Botones */
+.btn {
+    text-decoration: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin: 5px;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.btn-primary:hover {
+    background-color: #3b7a8d; /* Un tono más claro del primario */
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* Sección de Características */
+.features {
+    padding: 80px 0;
+    background-color: #f9f9f9;
+}
+
+.features .container {
+    display: flex;
+    justify-content: space-around;
+    gap: 30px;
+    text-align: center;
+}
+
+.feature-item {
+    background: var(--color-white);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    flex: 1;
+}
+
+.feature-item h3 {
+    color: var(--color-primary);
+}
+
+/* ===== ESTILOS PARA LA SECCIÓN DE EQUIPO ===== */
+.team-section {
+    padding: 100px 0;
+    position: relative; /* Necesario para que las tarjetas se muestren por encima del fondo */
+    overflow: hidden;
+    background-color: #f9f9f9;
+     /* SE AÑADE EL ARCHIVO SVG como imagen de fondo*/
+    background-image: url('../imagenes/animated-bg.svg');
+    background-size: 400% 400%;
+    /* que el fondo cubra toda la sección */
+    background-size: cover;
+    background-position: center;
+}
+
+/* Título de la sección con animación */
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--color-primary);
+    margin-bottom: 15px;
+
+    /* Animación de entrada */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+    position: relative;
+}
+
+.section-title.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    
+}
+
+/* Subtítulo de la sección con animación (con un pequeño retraso) */
+.section-subtitle {
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--color-secondary);
+    max-width: 600px;
+    margin: 0 auto 60px;
+    
+    /* Animación de entrada */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s; /* El 0.2s es el retraso */
+    position: relative;
+}
+
+.section-subtitle.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    position: relative;
+}
+
+/* diseño tarjetas equipo*/
+.team-card {
+    background: var(--color-white); /* Fondo blanco para la tarjeta */
+    border-radius: 15px;
+    /* Sombra inicial sutil pero visible para que se destaque */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); 
+    text-align: center;
+    padding: 0 0 30px 0; 
+    /* Mantenemos la animación de entrada */
+    perspective: 1000px;
+    opacity: 0;
+    transform: rotateY(-90deg) translateX(-50px);
+    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+
+/* Estado final (visible) que se activa con JS */
+.team-card.is-visible {
+    opacity: 1;
+    transform: rotateY(0) translateX(0);
+}
+
+.team-card:hover {
+    /* Se levanta 10px y crece un 5% */
+    transform: translateY(-10px) scale(1.05) !important; 
+    box-shadow: 0 20px 40px rgba(30, 62, 77, 0.589);
+    z-index: 10;
+}
+
+.team-card:hoverflow:hidden img {
+    transform: scale(1.1); /* La foto crece un poco */
+    overflow: hidden;
+}
+
+.team-card img {
+    width: 100%; /* La imagen ocupará todo el ancho de la tarjeta */
+    height: 280px; /* Una altura fija y más grande. ¡Ajusta este valor si lo necesitas! */
+    
+    /* Bordes suaves en las esquinas superiores, pero no en las inferiores */
+    border-radius: 15px 15px 0 0; 
+    object-fit: cover; /* Súper importante: evita que la foto se deforme */
+    margin-bottom: 20px;
+    
+    /* Eliminamos el borde de color que tenía antes */
+    border: none; 
+    
+    transition: transform 0.4s ease;
+}
+
+.team-card h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.4rem;
+    color: var(--color-primary);
+    padding: 0 20px; /* Añadimos padding horizontal */
+}
+
+.team-card p {
+    margin: 0;
+    color: var(--color-secondary);
+    font-weight: 600;
+    padding: 0 20px; /* Añadimos padding horizontal */
+}
+
+/* IDEA 3: Efecto Stagger (retraso en cascada) más pronunciado */
+.team-card:nth-child(2).is-visible { transition-delay: 0.15s; }
+.team-card:nth-child(3).is-visible { transition-delay: 0.3s; }
+/* ...se puede continuar este patrón si se añaden más tarjetas... */
+
+/* Footer */
+
+.main-footer {
+    background-color: var(--color-dark);
+    color: var(--color-light-gray);
+    padding: 60px 0 20px 0; /* Más espacio para el nuevo contenido */
+}
+
+.footer-content {
+    display: flex; /* Seccion al lado de la otra */
+    justify-content: center; /* Centra las secciones en el espacio disponible */
+    gap: 80px; /* Espacio entre la sección de contacto y la de redes */
+    margin-bottom: 40px;
+    flex-wrap: wrap; /* Permite que las secciones se pongan una debajo de otra en pantallas pequeñas */
+}
+
+.footer-section {
+    max-width: 400px; /* Ancho máximo para cada sección */
+    text-align: left; /* Alineamos el texto a la izquierda dentro de cada sección */
+}
+
+.footer-section h4 {
+    color: var(--color-white);
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+/* Línea decorativa debajo de los títulos del footer */
+.footer-section h4::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 2px;
+    background-color: var(--color-primary);
+}
+
+/* Quitamos los puntos de viñeta de AMBAS listas */
+.contact-info ul,
+.social-icons {
+    list-style: none;
+    padding: 0;
+}
+
+.contact-info li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.contact-info li i {
+    color: var(--color-primary);
+    font-size: 1.2rem;
+    width: 30px;
+    margin-right: 10px;
+}
+
+.social-icons {
+    display: flex;
+    gap: 20px;
+}
+
+.social-icons a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 45px;
+    height: 45px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-white);
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.social-icons a:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    transform: translateY(-5px);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+    color: var(--color-secondary);
+}

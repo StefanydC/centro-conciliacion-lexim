@@ -1,0 +1,103 @@
+/* ===== ESTILOS PARA LA PÁGINA 'QUIÉNES SOMOS' ===== */
+
+/* --- Hero Section de esta página --- */
+.about-hero {
+    padding: 120px 0;
+    text-align: center;
+    /* Usamos el mismo fondo animado de la sección de equipo para consistencia */
+    background-color: #f9f9f9; 
+    background-image: url('../imagenes/animated-bg.svg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.about-hero .container {
+    position: relative;
+    z-index: 2;
+}
+
+.about-hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: rgba(255, 255, 255, 0.7); /* Fondo de cristal semitransparente */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Sección de Valores con Tarjetas de Cristal --- */
+.values-section {
+    padding: 100px 0;
+    background-color: var(--color-white);
+}
+
+.values-section .container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.value-card {
+    /* El efecto de cristal (Glassmorphism) */
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    
+    /* Preparación para la animación de entrada */
+    opacity: 0;
+    transform: translateY(50px) scale(0.95);
+    transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+/* Estado visible que activa la animación con JS */
+.value-card.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.value-card:hover {
+    background: rgba(255, 255, 255, 0.7);
+    transform: translateY(-10px) scale(1.02) !important;
+    box-shadow: 0 15px 40px 0 rgba(26, 44, 141, 0.432);
+}
+
+.value-icon {
+    font-size: 3rem;
+    color: var(--color-primary);
+    margin-bottom: 20px;
+    /* Efecto de gradiente para el icono */
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: transform 0.4s ease;
+}
+
+.value-card:hover .value-icon {
+    transform: scale(1.2) rotate(-10deg);
+}
+
+.value-card h3 {
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.value-card p {
+    color: var(--color-secondary);
+    line-height: 1.7;
+}
+
+/* Efecto Stagger (retraso en cascada) para las tarjetas de valores */
+.value-card:nth-child(2).is-visible { transition-delay: 0.1s; }
+.value-card:nth-child(3).is-visible { transition-delay: 0.2s; }
+.value-card:nth-child(4).is-visible { transition-delay: 0.3s; }
+.value-card:nth-child(5).is-visible { transition-delay: 0.4s; }
+.value-card:nth-child(6).is-visible { transition-delay: 0.5s; }
