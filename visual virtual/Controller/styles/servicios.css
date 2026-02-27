@@ -102,13 +102,13 @@
     transform: translateY(40px); 
     /* Define la transición suave que durará 0.8s */
     transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-
+}
 /* ===== REEMPLAZA LA REGLA ANTERIOR POR ESTA ===== */
 
 .animated-reveal.is-visible {
     opacity: 1; /* Se vuelve totalmente opaco */
     transform: translateY(0); /* Vuelve a su posición original */
-}}
+}
 
 /* --- Estilos para las otras sub-secciones --- */
 .conflict-types {

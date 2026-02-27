@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // --- Lógica para animar CUALQUIER ELEMENTO que aparezca al hacer scroll ---
     // Seleccionamos TODOS los elementos que queremos que tengan este efecto
-    const animatedItems = document.querySelectorAll('.feature-item, .team-card, .section-title, .section-subtitle, .value-card');
+    const animatedItems = document.querySelectorAll('.feature-item, .team-card, .section-title, .section-subtitle, .value-card, .animated-reveal');
 
     if (animatedItems.length > 0) {
         const observer = new IntersectionObserver(entries => {
