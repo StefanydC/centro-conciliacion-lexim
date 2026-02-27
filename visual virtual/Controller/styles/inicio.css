@@ -425,6 +425,7 @@ body {
     flex-wrap: wrap; /* Permite que las secciones se pongan una debajo de otra en pantallas pequeñas */
 }
 
+
 .footer-section {
     max-width: 400px; /* Ancho máximo para cada sección */
     text-align: left; /* Alineamos el texto a la izquierda dentro de cada sección */
@@ -458,15 +459,19 @@ body {
 
 .contact-info li {
     display: flex;
-    align-items: center;
-    margin-bottom: 15px;
+    align-items: flex-start;
 }
 
 .contact-info li i {
-    color: var(--color-primary);
-    font-size: 1.2rem;
-    width: 30px;
-    margin-right: 10px;
+    margin-right: 12px;
+}
+
+/* Teléfonos del footer en líneas, manteniendo el layout con el ícono */
+.contact-info li .phones span{
+  display: block;
+  white-space: nowrap;
+  line-height: 1.8; /* un poco más aire */
+  letter-spacing: 0.2px;
 }
 
 .social-icons {
