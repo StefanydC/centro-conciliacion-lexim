@@ -73,8 +73,10 @@
     font-size: 3rem;
     color: var(--color-primary);
     margin-bottom: 20px;
+
     /* Efecto de gradiente para el icono */
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    background-clip: text; 
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     transition: transform 0.4s ease;

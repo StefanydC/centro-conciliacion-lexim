@@ -466,7 +466,7 @@ body {
     margin-right: 12px;
 }
 
-/* Teléfonos del footer en líneas, manteniendo el layout con el ícono */
+/* Teléfonos del footer en líneas, manteniendo el con el ícono */
 .contact-info li .phones span{
   display: block;
   white-space: nowrap;
