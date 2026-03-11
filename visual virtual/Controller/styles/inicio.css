@@ -107,6 +107,7 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
+    align-items: center;
 }
 
 .main-nav ul li a {
@@ -120,6 +121,26 @@ body {
 .main-nav ul li a:hover,
 .main-nav ul li a.active {
     color: var(--color-primary);
+}
+
+.main-nav ul li a.nav-login-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    padding: 8px 6px;
+    color: var(--color-primary);
+    border-radius: 50%;
+    transition: color 0.3s ease, background 0.3s ease;
+    line-height: 1;
+}
+.main-nav ul li a.nav-login-btn i {
+    font-size: 1.2rem;
+    display: block;
+}
+.main-nav ul li a.nav-login-btn:hover {
+    color: var(--color-primary);
+    background: rgba(35, 76, 88, 0.10);
 }
 
 
