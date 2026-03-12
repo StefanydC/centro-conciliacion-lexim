@@ -126,7 +126,9 @@
     justify-content: center;
     gap: 15px;
     margin-top: 30px;
+    
 }
+
 
 .conflict-item {
     background: rgba(255, 255, 255, 0.7);
@@ -154,7 +156,7 @@
 .step-number {
     display: inline-block;
     background: var(--color-light-gray);
-    color: var(--color-secondary);
+    color: var(--color-primary);
     font-weight: 700;
     padding: 5px 10px;
     border-radius: 5px;
@@ -167,8 +169,8 @@
 }
 
 .important-notice {
-    background: #fff8e1;
-    border-left: 4px solid #ffc107;
+    background: #6ac7f96f;
+    border-left: 4px solid #0654c1;
     padding: 15px;
     margin-top: 20px;
     display: flex;
@@ -176,7 +178,161 @@
 }
 
 .important-notice i {
-    color: #ffc107;
+    color: var(--color-primary);
     margin-right: 15px;
     font-size: 1.5rem;
 }
+/* ===== Servicios de Conciliación diseño ===== */
+#servicios-conciliacion{
+  position: relative;
+  background: var(--color-white);
+  overflow: hidden;
+}
+
+/* Importante: solo afecta esta sección */
+#servicios-conciliacion .container.svc3{
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+}
+
+/* Layout 2 columnas: izquierda (título + imagen) / derecha (servicios) */
+#servicios-conciliacion .svc3-hero{
+  display: grid;
+  grid-template-columns: minmax(360px, 460px) 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+/* Asegura que el bloque derecho NO “baje” */
+#servicios-conciliacion .svc3-right{
+  align-self: start;
+  padding-top: 6px;
+}
+
+/* Texto izquierda */
+#servicios-conciliacion .svc3-left h2{
+  margin: 12px 0 12px;
+  font-size: clamp(2.1rem, 3.2vw, 3rem);
+  line-height: 1.05;
+}
+
+#servicios-conciliacion .svc3-left p{
+  margin: 0;
+  color: var(--color-secondary);
+  line-height: 1.75;
+  font-size: 1.05rem;
+  max-width: 52ch;
+}
+
+/* Pills */
+#servicios-conciliacion .svc3-highlights{
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#servicios-conciliacion .svc3-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(35,76,88,0.18);
+  background: rgba(255,255,255,0.85);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+#servicios-conciliacion .svc3-dot{
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  opacity: 0.9;
+}
+
+/* Imagen SOLO en la izquierda */
+#servicios-conciliacion .svc3-photo{
+  margin-top: 18px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.10);
+  max-width: 100%;
+}
+
+#servicios-conciliacion .svc3-photo img{
+  width: 100%;
+  height: 210px; /* ajusta 180-240 */
+  object-fit: cover;
+  display: block;
+}
+
+/* Grid derecha */
+#servicios-conciliacion .svc3-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px 34px;
+  padding-top: 8px;
+}
+
+#servicios-conciliacion .svc3-item{
+  position: relative;
+  padding-top: 10px;
+  border-top: 1px solid rgba(35,76,88,0.16);
+}
+
+#servicios-conciliacion .svc3-item h3{
+  margin: 10px 0 10px;
+  color: var(--color-primary);
+  font-size: 1.15rem;
+  letter-spacing: 0.2px;
+}
+
+#servicios-conciliacion .svc3-num{
+  font-weight: 900;
+  font-size: 2.4rem;
+  letter-spacing: 2px;
+  color: rgba(35,76,88,0.12);
+  line-height: 1;
+}
+
+/* Lista */
+#servicios-conciliacion .svc3-item ul{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+#servicios-conciliacion .svc3-item li{
+  position: relative;
+  padding-left: 18px;
+  color: var(--color-secondary);
+  line-height: 1.6;
+}
+
+#servicios-conciliacion .svc3-item li::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0.72em;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: rgba(35,76,88,0.85);
+}
+
+/* Responsive: solo se apila en móvil */
+@media (max-width: 820px){
+  #servicios-conciliacion .svc3-hero{
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  #servicios-conciliacion .svc3-grid{
+    grid-template-columns: 1fr;
+  }
+}
+

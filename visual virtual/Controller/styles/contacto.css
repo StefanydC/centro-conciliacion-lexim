@@ -1,0 +1,238 @@
+/* =========================
+   CONTACTO (base + chatbot)
+   ========================= */
+.contact-section{
+  padding: 80px 0;
+  background: var(--color-white);
+}
+
+.contact-wrap{
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* encabezado */
+.contact-head{
+  margin-bottom: 26px;
+}
+.contact-head .section-tag{ margin-bottom: 12px; }
+.contact-head h2{
+  margin: 0 0 10px;
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  line-height: 1.1;
+  color: var(--color-primary);
+}
+.contact-head p{
+  margin: 0;
+  max-width: 70ch;
+  color: var(--color-secondary);
+  line-height: 1.75;
+}
+
+/* layout general */
+.contact-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+  margin-top: 28px;
+}
+
+/* panel suave (no “tarjeta” fuerte) */
+.panel{
+  border: 1px solid rgba(35,76,88,0.14);
+  border-radius: 16px;
+  padding: 22px;
+  background: rgba(255,255,255,0.85);
+}
+
+/* CTA */
+.cta-row{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Requisitos / lista */
+.klist{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.klist li{
+  position: relative;
+  padding-left: 18px;
+  color: var(--color-secondary);
+  line-height: 1.6;
+}
+.klist li::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0.72em;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: rgba(35,76,88,0.85);
+}
+
+/* Mini-métricas */
+.mini-metrics{
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.metric{
+  padding: 12px 14px;
+  border: 1px solid rgba(35,76,88,0.12);
+  border-radius: 14px;
+  background: rgba(35,76,88,0.03);
+}
+.metric strong{
+  display: block;
+  color: var(--color-primary);
+  font-size: 1.05rem;
+}
+.metric span{
+  color: var(--color-secondary);
+  font-size: 0.92rem;
+}
+
+/* FAQ */
+.faq{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.faq details{
+  border: 1px solid rgba(35,76,88,0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.75);
+}
+.faq summary{
+  cursor: pointer;
+  color: var(--color-primary);
+  font-weight: 800;
+}
+.faq p{
+  margin: 10px 0 0;
+  color: var(--color-secondary);
+  line-height: 1.7;
+}
+
+/* Chatbot UI */
+.chatbox{
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 420px;
+}
+.chat-head{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(35,76,88,0.12);
+}
+.chat-head .title{
+  color: var(--color-primary);
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+.chat-head .hint{
+  color: var(--color-secondary);
+  font-size: 0.95rem;
+}
+
+.chat-body{
+  padding: 16px 0;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  overflow: auto;
+  max-height: 420px;
+}
+
+.msg{
+  width: fit-content;
+  max-width: 92%;
+  border-radius: 14px;
+  padding: 10px 12px;
+  line-height: 1.5;
+  border: 1px solid rgba(35,76,88,0.10);
+}
+.msg.bot{
+  background: rgba(35,76,88,0.05);
+  color: var(--color-secondary);
+}
+.msg.user{
+  margin-left: auto;
+  background: rgba(35,76,88,0.10);
+  color: var(--color-primary);
+}
+
+.chat-suggestions{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+.suggest{
+  border: 1px solid rgba(35,76,88,0.16);
+  background: rgba(255,255,255,0.85);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-weight: 700;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+
+.chat-input{
+  padding-top: 14px;
+  border-top: 1px solid rgba(35,76,88,0.12);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+.chat-input input{
+  border: 1px solid rgba(35,76,88,0.18);
+  border-radius: 12px;
+  padding: 12px 12px;
+  outline: none;
+}
+.chat-input button{
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 0;
+  background: var(--color-primary);
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.legal-note{
+  margin-top: 12px;
+  color: var(--color-secondary);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+/* responsive */
+@media (max-width: 980px){
+  .contact-grid{
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .mini-metrics{
+    grid-template-columns: 1fr;
+  }
+}
