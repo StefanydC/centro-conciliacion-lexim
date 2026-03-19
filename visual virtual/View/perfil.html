@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LEXIM — Sistema de Gestión</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ═══════════════════════════════════════
+       VARIABLES
+    ═══════════════════════════════════════ */
+    :root {
+      --dark:        #0f1516;
+      --primary:     #234c58;
+      --primary-lt:  #2f6475;
+      --primary-xlt: #3b7a8d;
+      --secondary:   #7f8c94;
+      --light-gray:  #c9c2c2;
+      --bg:          #eef1f3;
+      --white:       #ffffff;
+      --green:       #1e8449;
+      --green-lt:    #27ae60;
+      --red:         #c0392b;
+      --amber:       #d68910;
+      --sidebar-w:   200px;
+      --topbar-h:    56px;
+      --radius:      10px;
+      --radius-sm:   6px;
+      --shadow:      0 2px 12px rgba(15,21,22,0.07);
+      --shadow-md:   0 6px 24px rgba(15,21,22,0.11);
+      --font:        'Montserrat', sans-serif;
+      --trans:       0.22s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--dark);
+      min-height: 100vh;
+    }
+
+    /* ═══════════════════════════════════════
+       ROLE SWITCHER (top bar outside app)
+    ═══════════════════════════════════════ */
+    .role-switcher {
+      background: var(--dark);
+      padding: 10px 24px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 0.78rem; color: rgba(255,255,255,0.6);
+    }
+    .role-switcher span { font-weight: 600; }
+    .role-btn {
+      padding: 5px 16px; border-radius: 20px; border: none;
+      font-family: var(--font); font-size: 0.76rem; font-weight: 700;
+      cursor: pointer; transition: all var(--trans);
+    }
+    .role-btn.admin  { background: var(--primary); color: #fff; }
+    .role-btn.judic  { background: transparent; color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.2); }
+    .role-btn.active { background: var(--primary-xlt); color: #fff; border-color: transparent; }
+
+    /* ═══════════════════════════════════════
+       APP SHELL
+    ═══════════════════════════════════════ */
+    .app { display: flex; min-height: calc(100vh - 40px); }
+
+    /* ═══════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: linear-gradient(175deg, var(--primary) 0%, #1c3d48 55%, var(--dark) 100%);
+      display: flex; flex-direction: column;
+      position: sticky; top: 0;
+      height: calc(100vh - 40px);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand {
+      padding: 16px 18px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .brand-ico {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: rgba(255,255,255,0.13);
+      border: 1px solid rgba(255,255,255,0.18);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1rem; flex-shrink: 0;
+    }
+    .brand-name {
+      font-size: 0.82rem; font-weight: 700; color: #fff;
+      letter-spacing: 0.03em;
+    }
+    .brand-role {
+      font-size: 0.62rem; color: rgba(255,255,255,0.45);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    .sidebar-nav { flex: 1; padding: 10px 0; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 18px;
+      color: rgba(255,255,255,0.6);
+      text-decoration: none; font-size: 0.82rem; font-weight: 600;
+      border-left: 3px solid transparent;
+      transition: all var(--trans); cursor: pointer;
+      position: relative;
+    }
+    .nav-item i { width: 16px; text-align: center; font-size: 0.85rem; flex-shrink: 0; }
+    .nav-item:hover { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.06); border-left-color: rgba(255,255,255,0.3); }
+    .nav-item.active { color: #fff; background: rgba(255,255,255,0.11); border-left-color: #fff; }
+    .nav-item .notif-badge {
+      margin-left: auto;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--red); color: #fff;
+      font-size: 0.6rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .sidebar-sep { height: 1px; background: rgba(255,255,255,0.07); margin: 8px 18px; }
+
+    .sidebar-bottom {
+      padding: 10px 0 12px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+
+    /* ═══════════════════════════════════════
+       MAIN AREA
+    ═══════════════════════════════════════ */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── Topbar ── */
+    .topbar {
+      height: var(--topbar-h);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(201,194,194,0.3);
+      display: flex; align-items: center;
+      padding: 0 22px; gap: 10px;
+      position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 1px 8px rgba(15,21,22,0.05);
+    }
+    .topbar-title {
+      font-size: 1rem; font-weight: 700;
+      color: var(--primary); flex: 1;
+    }
+
+    .tb-icon-btn {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--bg); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--secondary); font-size: 0.9rem;
+      transition: all var(--trans); position: relative;
+    }
+    .tb-icon-btn:hover { background: var(--primary); color: #fff; }
+    .tb-icon-btn .dot {
+      position: absolute; top: 6px; right: 6px;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red); border: 2px solid #fff;
+    }
+
+    .user-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 10px 4px 4px;
+      background: var(--bg); border-radius: 8px;
+      border: 1.5px solid #dde4e8; cursor: pointer;
+      transition: background var(--trans);
+    }
+    .user-pill:hover { background: #e2e8eb; }
+    .u-avatar {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-xlt));
+      color: #fff; font-size: 0.7rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .u-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .u-name { font-size: 0.78rem; font-weight: 600; color: var(--dark); }
+
+    /* ── Content ── */
+    .content { padding: 20px 22px 36px; flex: 1; }
+
+    /* ═══════════════════════════════════════
+       STAT BANNER CARDS
+    ═══════════════════════════════════════ */
+    .stat-banner {
+      display: grid; gap: 12px;
+      margin-bottom: 18px;
+      animation: fade-up 0.5s 0.05s both;
+    }
+    .stat-banner.admin-grid { grid-template-columns: repeat(4,1fr); }
+    .stat-banner.judic-grid { grid-template-columns: repeat(3,1fr); }
+
+    .scard {
+      border-radius: var(--radius);
+      padding: 16px 18px 14px;
+      color: #fff;
+      box-shadow: var(--shadow-md);
+      transition: transform var(--trans), box-shadow var(--trans);
+    }
+    .scard:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(15,21,22,0.15); }
+    .scard.blue   { background: linear-gradient(135deg, #1a4a6e, #2471a3); }
+    .scard.teal   { background: linear-gradient(135deg, var(--primary), var(--primary-xlt)); }
+    .scard.red    { background: linear-gradient(135deg, #922b21, var(--red)); }
+    .scard.green  { background: linear-gradient(135deg, var(--green), var(--green-lt)); }
+
+    .scard-label { font-size: 0.7rem; font-weight: 600; opacity: 0.85; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .scard-value { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+    .scard-value.money { font-size: 1.35rem; }
+
+    /* Judicante próxima cita card */
+    .scard.next-cita .scard-label { margin-bottom: 8px; }
+    .scard.next-cita .cita-time { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+    .scard.next-cita .cita-name { font-size: 0.8rem; opacity: 0.82; }
+
+    /* ═══════════════════════════════════════
+       PANEL GRID
+    ═══════════════════════════════════════ */
+    .panel-grid { display: grid; gap: 14px; }
+    .panel-grid.two-col  { grid-template-columns: 1fr 1fr; }
+    .panel-grid.three-col { grid-template-columns: 1.4fr 1fr; }
+
+    /* ── White Panel ── */
+    .panel {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(201,194,194,0.18);
+      overflow: hidden;
+      animation: fade-up 0.5s both;
+    }
+    .panel:nth-child(1) { animation-delay: 0.1s; }
+    .panel:nth-child(2) { animation-delay: 0.18s; }
+    .panel:nth-child(3) { animation-delay: 0.26s; }
+    .panel:nth-child(4) { animation-delay: 0.34s; }
+
+    .panel-head {
+      padding: 13px 18px 11px;
+      border-bottom: 1px solid #f0f3f5;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-head-title { font-size: 0.85rem; font-weight: 700; color: var(--dark); }
+    .panel-head a { font-size: 0.72rem; font-weight: 600; color: var(--primary); text-decoration: none; }
+    .panel-head a:hover { text-decoration: underline; }
+
+    /* ── Agenda list ── */
+    .agenda-list { padding: 4px 0; }
+    .agenda-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 18px;
+      border-bottom: 1px solid #f4f7f8;
+      transition: background var(--trans); cursor: pointer;
+    }
+    .agenda-item:last-child { border-bottom: none; }
+    .agenda-item:hover { background: #f8fafb; }
+
+    .agenda-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: rgba(35,76,88,0.09);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary); font-size: 0.8rem; flex-shrink: 0;
+    }
+    .agenda-info { flex: 1; }
+    .agenda-title { font-size: 0.82rem; font-weight: 600; color: var(--dark); }
+    .agenda-sub { font-size: 0.7rem; color: var(--secondary); margin-top: 2px; }
+    .agenda-time { font-size: 0.72rem; font-weight: 600; color: var(--secondary); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+    .agenda-time i { font-size: 0.65rem; color: var(--primary-xlt); }
+
+    /* ── Task list ── */
+    .task-list { padding: 4px 0; }
+    .task-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 18px;
+      border-bottom: 1px solid #f4f7f8;
+      font-size: 0.82rem; font-weight: 500; color: var(--dark);
+      transition: background var(--trans);
+    }
+    .task-item:last-child { border-bottom: none; }
+    .task-item:hover { background: #f8fafb; }
+    .task-dot {
+      width: 22px; height: 22px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; flex-shrink: 0;
+    }
+    .task-dot.pending { background: rgba(214,137,16,0.13); color: var(--amber); }
+    .task-dot.done    { background: rgba(39,174,96,0.13);  color: var(--green-lt); }
+    .task-dot.urgent  { background: rgba(192,57,43,0.12);  color: var(--red); }
+
+    /* ── Notifications list ── */
+    .notif-list { padding: 4px 0; }
+    .notif-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 18px;
+      border-bottom: 1px solid #f4f7f8;
+      cursor: pointer; transition: background var(--trans);
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: #f8fafb; }
+    .notif-color {
+      width: 8px; height: 8px; border-radius: 50%;
+      margin-top: 5px; flex-shrink: 0;
+    }
+    .notif-color.red    { background: var(--red); }
+    .notif-color.amber  { background: var(--amber); }
+    .notif-color.green  { background: var(--green-lt); }
+    .notif-color.blue   { background: var(--primary); }
+    .notif-text { flex: 1; font-size: 0.79rem; color: var(--dark); font-weight: 500; line-height: 1.4; }
+    .notif-item i.notif-arr { font-size: 0.65rem; color: var(--light-gray); margin-top: 4px; }
+
+    /* ── Quick access ── */
+    .quick-wrap { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+    .quick-row { display: flex; gap: 8px; }
+
+    .quick-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid #dde4e8;
+      font-family: var(--font); font-size: 0.78rem; font-weight: 600;
+      color: var(--dark); background: #f8fafb;
+      cursor: pointer; flex: 1;
+      transition: all var(--trans); text-decoration: none;
+    }
+    .quick-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(35,76,88,0.04); }
+    .quick-btn i { font-size: 0.7rem; color: var(--light-gray); }
+
+    .quick-btn-solid {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 10px 16px; border-radius: var(--radius-sm); border: none;
+      font-family: var(--font); font-size: 0.78rem; font-weight: 700;
+      color: #fff; cursor: pointer; flex: 1;
+      transition: all var(--trans);
+    }
+    .quick-btn-solid.teal  { background: linear-gradient(135deg, var(--primary), var(--primary-xlt)); }
+    .quick-btn-solid.green { background: linear-gradient(135deg, var(--green), var(--green-lt)); }
+    .quick-btn-solid:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(35,76,88,0.25); }
+
+    /* ── Calendar mini ── */
+    .cal-wrap { padding: 12px 18px 14px; }
+    .cal-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .cal-nav-title { font-size: 0.82rem; font-weight: 700; color: var(--dark); }
+    .cal-nav-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--secondary); font-size: 0.75rem; padding: 3px 6px;
+      border-radius: 5px; transition: all var(--trans);
+    }
+    .cal-nav-btn:hover { background: var(--bg); color: var(--primary); }
+
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(6,1fr); gap: 4px;
+    }
+    .cal-day-head {
+      font-size: 0.62rem; font-weight: 700; color: var(--secondary);
+      text-align: center; padding: 4px 0; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .cal-day {
+      min-height: 52px; border-radius: 6px;
+      padding: 4px 5px; font-size: 0.68rem;
+      color: var(--secondary); font-weight: 600;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .cal-day.has-event { border-color: #e8edf0; background: #f8fafb; }
+
+    .cal-event {
+      margin-top: 4px; border-radius: 4px;
+      padding: 3px 5px; font-size: 0.6rem; font-weight: 700;
+      line-height: 1.3; color: #fff;
+    }
+    .cal-event.teal  { background: var(--primary); }
+    .cal-event.red   { background: var(--red); }
+    .cal-event.amber { background: var(--amber); }
+
+    /* ── Span full col ── */
+    .col-span-2 { grid-column: span 2; }
+
+    /* ═══════════════════════════════════════
+       VIEW TOGGLE
+    ═══════════════════════════════════════ */
+    [data-view] { display: none; }
+    [data-view].active { display: block; }
+
+    /* ═══════════════════════════════════════
+       ANIMATIONS
+    ═══════════════════════════════════════ */
+    @keyframes fade-up {
+      from { opacity:0; transform: translateY(14px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--light-gray); border-radius: 10px; }
+
+    /* ═══════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .panel-grid.two-col,
+      .panel-grid.three-col { grid-template-columns: 1fr; }
+      .stat-banner.admin-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .sidebar { display: none; }
+      .stat-banner.judic-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Role switcher -->
+<div class="role-switcher">
+  <span>Vista:</span>
+  <button class="role-btn active" id="btn-admin" onclick="switchView('admin')">Administrador</button>
+  <button class="role-btn" id="btn-judic" onclick="switchView('judic')">Judicante</button>
+</div>
+
+<div class="app">
+
+  <!-- ══════════ SIDEBAR ADMIN ══════════ -->
+  <aside class="sidebar" id="sidebar-admin" data-view="admin" style="display:flex">
+    <div class="sidebar-brand">
+      <div class="brand-ico"><i class="fas fa-balance-scale"></i></div>
+      <div>
+        <div class="brand-name">LEXIM</div>
+        <div class="brand-role">Administrador</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="#"><i class="fas fa-home"></i> Inicio</a>
+      <a class="nav-item" href="#"><i class="fas fa-tasks"></i> Tareas</a>
+      <a class="nav-item" href="#"><i class="fas fa-file-alt"></i> Documentos <span class="notif-badge">3</span></a>
+      <a class="nav-item" href="#"><i class="fas fa-dollar-sign"></i> Ingresos</a>
+      <a class="nav-item" href="#"><i class="fas fa-arrow-down"></i> Egresos</a>
+      <div class="sidebar-sep"></div>
+      <a class="nav-item" href="#"><i class="fas fa-handshake"></i> Conciliaciones</a>
+      <a class="nav-item" href="#"><i class="fas fa-calendar-alt"></i> Agenda</a>
+      <a class="nav-item" href="#"><i class="fas fa-users"></i> Usuarios</a>
+      <a class="nav-item" href="#"><i class="fas fa-chart-bar"></i> Reportes</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="#"><i class="fas fa-lock"></i> Cerrar Sesión</a>
+    </div>
+  </aside>
+
+  <!-- ══════════ SIDEBAR JUDICANTE ══════════ -->
+  <aside class="sidebar" id="sidebar-judic" data-view="judic" style="display:none">
+    <div class="sidebar-brand">
+      <div class="brand-ico"><i class="fas fa-balance-scale"></i></div>
+      <div>
+        <div class="brand-name">LEXIM</div>
+        <div class="brand-role">Judicante</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="#"><i class="fas fa-home"></i> Inicio</a>
+      <a class="nav-item" href="#"><i class="fas fa-tasks"></i> Mis Tareas</a>
+      <a class="nav-item" href="#"><i class="fas fa-file-alt"></i> Mis Documentos</a>
+      <a class="nav-item" href="#"><i class="fas fa-calendar-alt"></i> Agenda</a>
+      <a class="nav-item" href="#"><i class="fas fa-bell"></i> Notificaciones <span class="notif-badge">2</span></a>
+      <div class="sidebar-sep"></div>
+      <a class="nav-item" href="#"><i class="fas fa-question-circle"></i> Ayuda</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="#"><i class="fas fa-lock"></i> Cerrar Sesión</a>
+    </div>
+  </aside>
+
+  <!-- ══════════ MAIN ADMIN ══════════ -->
+  <div class="main" id="main-admin" data-view="admin" style="display:flex">
+    <header class="topbar">
+      <div class="topbar-title">Inicio</div>
+      <button class="tb-icon-btn"><i class="fas fa-bell"></i><span class="dot"></span></button>
+      <button class="tb-icon-btn"><i class="fas fa-sync-alt"></i></button>
+      <button class="tb-icon-btn"><i class="fas fa-bars"></i></button>
+      <div class="user-pill">
+        <div class="u-avatar">AD</div>
+        <span class="u-name">Administrador</span>
+      </div>
+    </header>
+    <div class="content">
+
+      <!-- Stat banner -->
+      <div class="stat-banner admin-grid">
+        <div class="scard blue">
+          <div class="scard-label">Casos Pendientes</div>
+          <div class="scard-value">12</div>
+        </div>
+        <div class="scard teal">
+          <div class="scard-label">Ingresos del Mes</div>
+          <div class="scard-value money">$15,200<small style="font-size:.7em;opacity:.8">.00</small></div>
+        </div>
+        <div class="scard red">
+          <div class="scard-label">Egresos del Mes</div>
+          <div class="scard-value money">$8,500<small style="font-size:.7em;opacity:.8">.00</small></div>
+        </div>
+        <div class="scard green">
+          <div class="scard-label">Documentos en Proceso</div>
+          <div class="scard-value">5</div>
+        </div>
+      </div>
+
+      <!-- Row 1: Agenda + Tareas + Notificaciones -->
+      <div class="panel-grid two-col" style="margin-bottom:14px">
+
+        <!-- Agenda -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-head-title">Agenda Próxima</span>
+          </div>
+          <div class="agenda-list">
+            <div class="agenda-item">
+              <div class="agenda-icon"><i class="fas fa-gavel"></i></div>
+              <div class="agenda-info">
+                <div class="agenda-title">Audiencia Civil</div>
+                <div class="agenda-sub">Tomino Auditiório to Nariño</div>
+              </div>
+              <div class="agenda-time"><i class="fas fa-circle" style="color:var(--green-lt)"></i> Hoy, 10:00 AM <i class="fas fa-chevron-right"></i></div>
+            </div>
+            <div class="agenda-item">
+              <div class="agenda-icon"><i class="fas fa-handshake"></i></div>
+              <div class="agenda-info">
+                <div class="agenda-title">Reunión de Conciliación</div>
+                <div class="agenda-sub">Marienteo, Onoirio</div>
+              </div>
+              <div class="agenda-time"><i class="fas fa-circle" style="color:var(--amber)"></i> Mañana, 3:00 PM <i class="fas fa-chevron-right"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tareas + Notif side by side -->
+        <div class="panel-grid two-col" style="gap:14px">
+
+          <div class="panel">
+            <div class="panel-head"><span class="panel-head-title">Tareas Recientes</span></div>
+            <div class="task-list">
+              <div class="task-item">
+                <div class="task-dot pending"><i class="fas fa-hourglass-half"></i></div>
+                Revisión de Expediente
+              </div>
+              <div class="task-item">
+                <div class="task-dot done"><i class="fas fa-check"></i></div>
+                Redacción de Informe
+              </div>
+              <div class="task-item">
+                <div class="task-dot urgent"><i class="fas fa-times"></i></div>
+                Preparación de Alegato
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><span class="panel-head-title">Notificaciones</span></div>
+            <div class="notif-list">
+              <div class="notif-item">
+                <div class="notif-color red"></div>
+                <div class="notif-text">Documento urgente por revisar</div>
+                <i class="fas fa-chevron-right notif-arr"></i>
+              </div>
+              <div class="notif-item">
+                <div class="notif-color amber"></div>
+                <div class="notif-text">Caso "126/2022" por vencer</div>
+                <i class="fas fa-chevron-right notif-arr"></i>
+              </div>
+              <div class="notif-item">
+                <div class="notif-color green"></div>
+                <div class="notif-text">Plazo para presentación mañana</div>
+                <i class="fas fa-chevron-right notif-arr"></i>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Row 2: Accesos Rápidos -->
+      <div class="panel">
+        <div class="panel-head"><span class="panel-head-title">Accesos Rápidos</span></div>
+        <div class="quick-wrap">
+          <div class="quick-row">
+            <a href="#" class="quick-btn"><span><i class="fas fa-plus" style="margin-right:6px;color:var(--primary)"></i>Nuevo Usuario</span><i class="fas fa-chevron-right"></i></a>
+            <a href="#" class="quick-btn"><span><i class="fas fa-plus" style="margin-right:6px;color:var(--primary)"></i>Asignar Tarea</span><i class="fas fa-chevron-right"></i></a>
+          </div>
+          <div class="quick-row">
+            <button class="quick-btn-solid teal"><i class="fas fa-plus"></i> Asignar Tarea</button>
+            <button class="quick-btn-solid green"><i class="fas fa-plus"></i> Agregar Documento</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content admin -->
+  </div><!-- /main admin -->
+
+
+  <!-- ══════════ MAIN JUDICANTE ══════════ -->
+  <div class="main" id="main-judic" data-view="judic" style="display:none">
+    <header class="topbar">
+      <div class="topbar-title">Inicio</div>
+      <button class="tb-icon-btn"><i class="fas fa-bell"></i><span class="dot"></span></button>
+      <button class="tb-icon-btn"><i class="fas fa-sync-alt"></i></button>
+      <button class="tb-icon-btn"><i class="fas fa-bars"></i></button>
+      <div class="user-pill">
+        <div class="u-avatar" style="background:linear-gradient(135deg,var(--green),var(--green-lt))">JU</div>
+        <span class="u-name">Judicante</span>
+      </div>
+    </header>
+    <div class="content">
+
+      <!-- Stat banner judicante -->
+      <div class="stat-banner judic-grid">
+        <div class="scard teal">
+          <div class="scard-label">Tareas Pendientes</div>
+          <div class="scard-value">8</div>
+        </div>
+        <div class="scard blue">
+          <div class="scard-label">Documentos Asignados</div>
+          <div class="scard-value">4</div>
+        </div>
+        <div class="scard green next-cita">
+          <div class="scard-label">Próxima Cita</div>
+          <div class="cita-time">Mañana, 9:00 AM</div>
+          <div class="cita-name">Audiencia Judicial</div>
+        </div>
+      </div>
+
+      <!-- Row 1: Calendario (span) -->
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-head">
+          <span class="panel-head-title">Mi Agenda</span>
+          <div style="display:flex;gap:6px">
+            <button class="cal-nav-btn"><i class="fas fa-chevron-left"></i></button>
+            <button class="cal-nav-btn"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="cal-wrap">
+          <div class="cal-grid">
+            <div class="cal-day-head">Lun 22</div>
+            <div class="cal-day-head">Mar 23</div>
+            <div class="cal-day-head">Mier 24</div>
+            <div class="cal-day-head">Jue 25</div>
+            <div class="cal-day-head">Vie 26</div>
+            <div class="cal-day-head">Sáb 27</div>
+
+            <div class="cal-day"></div>
+            <div class="cal-day has-event">
+              <div class="cal-event teal">Cita con Abogado<br>11:00 AM</div>
+            </div>
+            <div class="cal-day"></div>
+            <div class="cal-day has-event">
+              <div class="cal-event red">Audiencia Judicial<br>9:00 AM</div>
+            </div>
+            <div class="cal-day"></div>
+            <div class="cal-day"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Tareas + Notificaciones -->
+      <div class="panel-grid two-col" style="margin-bottom:14px">
+
+        <div class="panel">
+          <div class="panel-head"><span class="panel-head-title">Mis Tareas Recientes</span></div>
+          <div class="task-list">
+            <div class="task-item">
+              <div class="task-dot pending"><i class="fas fa-hourglass-half"></i></div>
+              Redacción de Informe
+            </div>
+            <div class="task-item">
+              <div class="task-dot done"><i class="fas fa-check"></i></div>
+              Revisión de Expediente
+            </div>
+            <div class="task-item">
+              <div class="task-dot urgent"><i class="fas fa-times"></i></div>
+              Preparar Alegato
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><span class="panel-head-title">Notificaciones</span></div>
+          <div class="notif-list">
+            <div class="notif-item">
+              <div class="notif-color amber"></div>
+              <div class="notif-text">Documento "Contrato Aprobado"</div>
+              <i class="fas fa-chevron-right notif-arr"></i>
+            </div>
+            <div class="notif-item">
+              <div class="notif-color red"></div>
+              <div class="notif-text">Tarea "Revisión de Expediente" completada</div>
+              <i class="fas fa-chevron-right notif-arr"></i>
+            </div>
+            <div class="notif-item">
+              <div class="notif-color green"></div>
+              <div class="notif-text">Plazo para entrega hoy</div>
+              <i class="fas fa-chevron-right notif-arr"></i>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Row 3: Accesos rápidos judicante -->
+      <div class="panel">
+        <div class="panel-head"><span class="panel-head-title">Accesos Rápidos</span></div>
+        <div class="quick-wrap">
+          <div class="quick-row">
+            <button class="quick-btn-solid teal"><i class="fas fa-upload"></i> Subir Documento</button>
+            <button class="quick-btn-solid green"><i class="fas fa-user-plus"></i> Pedir Ayuda</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content judic -->
+  </div><!-- /main judic -->
+
+</div><!-- /app -->
+
+<script>
+  function switchView(role) {
+    // Sidebars
+    document.getElementById('sidebar-admin').style.display = role === 'admin' ? 'flex' : 'none';
+    document.getElementById('sidebar-judic').style.display = role === 'judic' ? 'flex' : 'none';
+    // Mains
+    document.getElementById('main-admin').style.display = role === 'admin' ? 'flex' : 'none';
+    document.getElementById('main-judic').style.display = role === 'judic' ? 'flex' : 'none';
+    // Buttons
+    document.getElementById('btn-admin').className = 'role-btn' + (role === 'admin' ? ' active' : '');
+    document.getElementById('btn-judic').className = 'role-btn' + (role === 'judic' ? ' active' : '');
+  }
+</script>
+</body>
+</html>
