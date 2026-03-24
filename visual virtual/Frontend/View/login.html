@@ -116,34 +116,38 @@ form.addEventListener('submit', async e => {
     btn.disabled = true;
 
     try {
-        const res = await fetch("http://localhost:3000/login", {
+        const res = await fetch("http://localhost:3000/auth/login", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ Email, Contraseña })
         });
 
-        const data = await res.json();
+        let data = {};
+        try {
+            data = await res.json();
+        } catch (_) {
+            data = {};
+        }
 
         btn.classList.remove('loading');
         btn.disabled = false;
 
-        if (data.mensaje.includes("✅")) {
-            showToast(data.mensaje);
+        if (res.ok) {
+            showToast(data.mensaje || 'Login exitoso');
 
             setTimeout(() => {
                 window.location.href = "perfil.html";
             }, 1500);
 
         } else {
-            showToast(data.mensaje, true);
+            const msg = data.mensaje || 'Correo o contraseña incorrectos';
+            showToast(msg, true);
         }
 
     } catch (error) {
         btn.classList.remove('loading');
         btn.disabled = false;
-        showToast("Error de conexión", true);
+        showToast("Error de conexión: servidor no disponible", true);
         console.error(error);
     }
 });
