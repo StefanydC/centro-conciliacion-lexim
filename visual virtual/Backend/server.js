@@ -2,12 +2,12 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env'
 const express = require('express');
 const cors = require('cors');
 const { conectarDB } = require('./db');
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./Routes/auth');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: 'http://127.0.0.1:5500' }));
+app.use(cors({ origin: ['http://127.0.0.1:5500', 'http://localhost:5000'] }));
 app.use(express.json());
 
 app.use('/auth', authRoutes);
@@ -30,5 +30,10 @@ async function iniciar() {
     process.exit(1);
   }
 }
+
+// Log temporal para ver rutas registradas
+app.get('/test', (req, res) => {
+  res.json({ mensaje: 'Backend funcionando en 3001' });
+});
 
 iniciar();
