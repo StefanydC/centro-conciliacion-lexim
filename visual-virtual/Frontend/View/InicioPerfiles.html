@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inicio de Perfiles - LEXIM</title>
+  <link rel="icon" href="../Controller/imagenes/logo.png" type="image/png" />
+  <link rel="stylesheet" href="../Controller/styles/inicio.css" />
+  <link rel="stylesheet" href="../Controller/styles/inicio-perfiles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+  <div class="profiles-layout">
+    <aside class="left-menu" id="leftMenu">
+      <div class="menu-head">
+        <div class="menu-brand">
+          <div class="menu-logo"><i class="fas fa-balance-scale"></i></div>
+          <div class="menu-brand-copy">
+            <strong>LEXIM</strong>
+            <span id="menuRoleLabel">Administrador</span>
+          </div>
+        </div>
+        <button class="menu-toggle" id="menuToggleBtn" type="button" title="Expandir o contraer menú">
+          <i class="fas fa-angles-left"></i>
+        </button>
+      </div>
+
+      <div class="menu-user" id="menuUser">Usuario</div>
+
+      <div class="menu-role-switch view-toggle">
+        <button class="toggle-btn active" id="btn-admin" type="button">Administrador</button>
+        <button class="toggle-btn" id="btn-judic" type="button">Judicante</button>
+      </div>
+
+      <nav class="menu-nav" id="nav-admin">
+        <a class="menu-item active" href="#" data-tooltip="Inicio"><i class="fas fa-house"></i><span>Inicio</span></a>
+        <a class="menu-item" href="#" data-tooltip="Tareas"><i class="fas fa-list-check"></i><span>Tareas</span></a>
+        <a class="menu-item" href="#" data-tooltip="Documentos"><i class="fas fa-file-lines"></i><span>Documentos</span></a>
+        <a class="menu-item" href="#" data-tooltip="Ingresos"><i class="fas fa-dollar-sign"></i><span>Ingresos</span></a>
+        <a class="menu-item" href="#" data-tooltip="Egresos"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
+        <a class="menu-item" href="#" data-tooltip="Conciliaciones"><i class="fas fa-handshake-angle"></i><span>Conciliaciones</span></a>
+        <a class="menu-item" href="#" data-tooltip="Agenda"><i class="fas fa-calendar-days"></i><span>Agenda</span></a>
+        <a class="menu-item" href="#" data-tooltip="Usuarios"><i class="fas fa-users"></i><span>Usuarios</span></a>
+        <a class="menu-item" href="#" data-tooltip="Reportes"><i class="fas fa-chart-column"></i><span>Reportes</span></a>
+      </nav>
+
+      <nav class="menu-nav hidden" id="nav-judic">
+        <a class="menu-item active" href="#" data-tooltip="Inicio"><i class="fas fa-house"></i><span>Inicio</span></a>
+        <a class="menu-item" href="#" data-tooltip="Mis tareas"><i class="fas fa-list-check"></i><span>Mis tareas</span></a>
+        <a class="menu-item" href="#" data-tooltip="Mis documentos"><i class="fas fa-file-lines"></i><span>Mis documentos</span></a>
+        <a class="menu-item" href="#" data-tooltip="Agenda"><i class="fas fa-calendar-days"></i><span>Agenda</span></a>
+        <a class="menu-item" href="#" data-tooltip="Notificaciones"><i class="fas fa-bell"></i><span>Notificaciones</span></a>
+        <a class="menu-item" href="#" data-tooltip="Ayuda"><i class="fas fa-circle-question"></i><span>Ayuda</span></a>
+      </nav>
+
+      <button id="logoutMenuBtn" class="logout-menu-btn" type="button" data-tooltip="Cerrar sesión">
+        <i class="fas fa-right-from-bracket"></i>
+        <span>Cerrar sesión</span>
+      </button>
+    </aside>
+
+    <main class="profiles-main">
+      <section class="profiles-hero">
+        <div class="container">
+          <div class="profiles-hero-card animated-reveal">
+            <p class="hero-eyebrow">Portal Privado</p>
+            <h1 id="welcomeTitle">Bienvenido a tu inicio de perfiles</h1>
+            <p class="hero-subtitle">
+              Gestiona tus actividades en un entorno práctico y elegante, con foco en velocidad y claridad.
+            </p>
+            <div class="hero-meta">
+              <span class="meta-pill" id="currentRole">Rol: Cargando...</span>
+              <span class="meta-pill" id="currentUser">Usuario: Cargando...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="profiles-summary">
+        <div class="container metrics-grid" id="metrics-admin">
+        <article class="metric-card animated-reveal">
+          <i class="fas fa-gavel"></i>
+          <h3>12</h3>
+          <p>Casos pendientes</p>
+        </article>
+        <article class="metric-card animated-reveal">
+          <i class="fas fa-file-circle-check"></i>
+          <h3>5</h3>
+          <p>Documentos en proceso</p>
+        </article>
+        <article class="metric-card animated-reveal">
+          <i class="fas fa-calendar-check"></i>
+          <h3>3</h3>
+          <p>Citas esta semana</p>
+        </article>
+        </div>
+
+        <div class="container metrics-grid hidden" id="metrics-judic">
+        <article class="metric-card animated-reveal">
+          <i class="fas fa-list-check"></i>
+          <h3>8</h3>
+          <p>Tareas pendientes</p>
+        </article>
+        <article class="metric-card animated-reveal">
+          <i class="fas fa-folder-open"></i>
+          <h3>4</h3>
+          <p>Documentos asignados</p>
+        </article>
+        <article class="metric-card animated-reveal">
+          <i class="fas fa-clock"></i>
+          <h3>9:00 AM</h3>
+          <p>Próxima audiencia</p>
+        </article>
+        </div>
+      </section>
+
+      <section class="profiles-panels">
+        <div class="container panel-wrap" id="panel-admin">
+        <div class="panel-block animated-reveal">
+          <h3>Accesos rápidos de administración</h3>
+          <div class="quick-modules">
+            <article class="module-card module-admin">
+              <div class="module-icon"><i class="fas fa-user-plus"></i></div>
+              <h4>Usuarios</h4>
+              <p>Crea y organiza perfiles del equipo en segundos.</p>
+              <a class="module-action" href="#" data-module="crear-usuario">Crear usuario</a>
+            </article>
+
+            <article class="module-card module-admin">
+              <div class="module-icon"><i class="fas fa-file-signature"></i></div>
+              <h4>Tareas</h4>
+              <p>Asigna actividades y da seguimiento al avance.</p>
+              <a class="module-action" href="#" data-module="asignar-tarea">Asignar tarea</a>
+            </article>
+
+            <article class="module-card module-admin">
+              <div class="module-icon"><i class="fas fa-chart-line"></i></div>
+              <h4>Reportes</h4>
+              <p>Consulta estado general y métricas del proceso.</p>
+              <a class="module-action" href="#" data-module="ver-reportes">Ver reportes</a>
+            </article>
+          </div>
+        </div>
+        <div class="panel-block animated-reveal">
+          <h3>Agenda inmediata</h3>
+          <ul>
+            <li><i class="fas fa-circle"></i> Hoy 10:00 AM - Audiencia civil</li>
+            <li><i class="fas fa-circle"></i> Mañana 3:00 PM - Conciliación comercial</li>
+            <li><i class="fas fa-circle"></i> Viernes 9:30 AM - Revisión documental</li>
+          </ul>
+        </div>
+        </div>
+
+        <div class="container panel-wrap hidden" id="panel-judic">
+        <div class="panel-block animated-reveal">
+          <h3>Accesos rápidos de judicante</h3>
+          <div class="quick-modules">
+            <article class="module-card module-judic">
+              <div class="module-icon"><i class="fas fa-upload"></i></div>
+              <h4>Documentos</h4>
+              <p>Sube archivos clave para audiencias y casos.</p>
+              <a class="module-action" href="#" data-module="subir-documento">Subir documento</a>
+            </article>
+
+            <article class="module-card module-judic">
+              <div class="module-icon"><i class="fas fa-handshake"></i></div>
+              <h4>Soporte</h4>
+              <p>Solicita apoyo rápido con el equipo administrativo.</p>
+              <a class="module-action" href="#" data-module="pedir-apoyo">Pedir apoyo</a>
+            </article>
+
+            <article class="module-card module-judic">
+              <div class="module-icon"><i class="fas fa-clipboard-check"></i></div>
+              <h4>Seguimiento</h4>
+              <p>Actualiza tareas y consulta tu progreso semanal.</p>
+              <a class="module-action" href="#" data-module="actualizar-tarea">Actualizar tarea</a>
+            </article>
+          </div>
+        </div>
+        <div class="panel-block animated-reveal">
+          <h3>Seguimiento semanal</h3>
+          <ul>
+            <li><i class="fas fa-circle"></i> 2 audiencias programadas</li>
+            <li><i class="fas fa-circle"></i> 4 documentos por validar</li>
+            <li><i class="fas fa-circle"></i> 1 informe por entregar hoy</li>
+          </ul>
+        </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="session-overlay" id="logoutConfirmOverlay" aria-hidden="true">
+    <div class="session-modal" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">
+      <i class="fas fa-sign-out-alt"></i>
+      <h3 id="logoutConfirmTitle">Confirmar cierre de sesión</h3>
+      <p>¿Seguro que deseas cerrar tu sesión?</p>
+      <div class="session-actions">
+        <button type="button" class="session-btn cancel" id="cancelLogoutBtn">Cancelar</button>
+        <button type="button" class="session-btn confirm" id="confirmLogoutBtn">Sí, cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="session-overlay" id="logoutLoadingOverlay" aria-hidden="true">
+    <div class="logout-loader">
+      <div class="logout-spinner" id="logoutSpinner"></div>
+      <div class="logout-status" id="logoutStatus">Cerrando sesión...</div>
+      <div class="logout-note" id="logoutNote">Por favor espera un momento.</div>
+    </div>
+  </div>
+
+  <div class="session-overlay" id="quickModuleOverlay" aria-hidden="true">
+    <div class="quick-module-modal" role="dialog" aria-modal="true" aria-labelledby="quickModuleTitle">
+      <div class="quick-module-head">
+        <h3 id="quickModuleTitle">Módulo</h3>
+        <button type="button" class="quick-module-close" id="quickModuleCloseBtn" aria-label="Cerrar ventana">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+      <p class="quick-module-sub" id="quickModuleSub">Contenido del módulo.</p>
+      <div class="quick-module-body" id="quickModuleBody"></div>
+      <div class="quick-module-actions">
+        <button type="button" class="session-btn cancel" id="quickModuleCancelBtn">Cerrar</button>
+        <a href="#" class="session-btn confirm quick-module-link" id="quickModuleLink">Continuar</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="../Controller/js/main.js"></script>
+  <script>
+    let usuarioGuardado = null;
+    try {
+      usuarioGuardado = JSON.parse(localStorage.getItem('usuario'));
+    } catch (_) {
+      usuarioGuardado = null;
+    }
+
+    const tipoUsuario = localStorage.getItem('tipo_usuario') || 'administrador';
+
+    if (!usuarioGuardado || !usuarioGuardado.nombre || !usuarioGuardado.apellido) {
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('tipo_usuario');
+      window.location.href = 'login.html';
+    }
+
+    const nombreCompleto = usuarioGuardado.nombre + ' ' + usuarioGuardado.apellido;
+    const tipoCapitalizado = tipoUsuario.charAt(0).toUpperCase() + tipoUsuario.slice(1);
+
+    document.getElementById('welcomeTitle').textContent = 'Bienvenido, ' + nombreCompleto;
+    document.getElementById('currentRole').textContent = 'Rol: ' + tipoCapitalizado;
+    document.getElementById('currentUser').textContent = 'Usuario: ' + (usuarioGuardado.Email || '');
+
+    const btnAdmin = document.getElementById('btn-admin');
+    const btnJudic = document.getElementById('btn-judic');
+    const metricsAdmin = document.getElementById('metrics-admin');
+    const metricsJudic = document.getElementById('metrics-judic');
+    const panelAdmin = document.getElementById('panel-admin');
+    const panelJudic = document.getElementById('panel-judic');
+    const navAdmin = document.getElementById('nav-admin');
+    const navJudic = document.getElementById('nav-judic');
+    const menuRoleLabel = document.getElementById('menuRoleLabel');
+
+    function setView(role) {
+      const isAdmin = role === 'administrador';
+
+      btnAdmin.classList.toggle('active', isAdmin);
+      btnJudic.classList.toggle('active', !isAdmin);
+
+      metricsAdmin.classList.toggle('hidden', !isAdmin);
+      panelAdmin.classList.toggle('hidden', !isAdmin);
+      metricsJudic.classList.toggle('hidden', isAdmin);
+      panelJudic.classList.toggle('hidden', isAdmin);
+
+      navAdmin.classList.toggle('hidden', !isAdmin);
+      navJudic.classList.toggle('hidden', isAdmin);
+      menuRoleLabel.textContent = isAdmin ? 'Administrador' : 'Judicante';
+    }
+
+    btnAdmin.addEventListener('click', () => setView('administrador'));
+    btnJudic.addEventListener('click', () => setView('judicante'));
+
+    setView(tipoUsuario === 'judicante' ? 'judicante' : 'administrador');
+
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const leftMenu = document.getElementById('leftMenu');
+
+    menuToggleBtn.addEventListener('click', () => {
+      leftMenu.classList.toggle('collapsed');
+    });
+
+    const menuUser = document.getElementById('menuUser');
+    menuUser.textContent = nombreCompleto;
+
+    const logoutMenuBtn = document.getElementById('logoutMenuBtn');
+    const logoutConfirmOverlay = document.getElementById('logoutConfirmOverlay');
+    const logoutLoadingOverlay = document.getElementById('logoutLoadingOverlay');
+    const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+    const logoutSpinner = document.getElementById('logoutSpinner');
+    const logoutStatus = document.getElementById('logoutStatus');
+    const logoutNote = document.getElementById('logoutNote');
+    const moduleActions = document.querySelectorAll('.module-action');
+    const quickModuleOverlay = document.getElementById('quickModuleOverlay');
+    const quickModuleTitle = document.getElementById('quickModuleTitle');
+    const quickModuleSub = document.getElementById('quickModuleSub');
+    const quickModuleBody = document.getElementById('quickModuleBody');
+    const quickModuleLink = document.getElementById('quickModuleLink');
+    const quickModuleCloseBtn = document.getElementById('quickModuleCloseBtn');
+    const quickModuleCancelBtn = document.getElementById('quickModuleCancelBtn');
+
+    const moduleConfig = {
+      'crear-usuario': {
+        title: 'Crear usuario',
+        subtitle: 'Registro rápido de un nuevo integrante del centro.',
+        body: '<ul><li>Completa nombre, correo y rol.</li><li>Asigna permisos iniciales del perfil.</li><li>Confirma y envía invitación.</li></ul>',
+        ctaLabel: 'Ir a contacto',
+        ctaHref: 'contacto.html'
+      },
+      'asignar-tarea': {
+        title: 'Asignar tarea',
+        subtitle: 'Organiza actividades para el equipo administrativo.',
+        body: '<ul><li>Define responsable y fecha límite.</li><li>Adjunta descripción del caso.</li><li>Marca prioridad: alta, media o baja.</li></ul>',
+        ctaLabel: 'Ver servicios',
+        ctaHref: 'servicios.html'
+      },
+      'ver-reportes': {
+        title: 'Reportes',
+        subtitle: 'Resumen visual de indicadores clave.',
+        body: '<ul><li>Casos activos vs cerrados.</li><li>Productividad semanal por área.</li><li>Alertas de vencimientos próximos.</li></ul>',
+        ctaLabel: 'Abrir módulo',
+        ctaHref: 'servicios.html'
+      },
+      'subir-documento': {
+        title: 'Subir documento',
+        subtitle: 'Carga de archivo para revisión y radicación.',
+        body: '<ul><li>Formatos sugeridos: PDF, DOCX, JPG.</li><li>Incluye asunto y observaciones.</li><li>Confirma envío al expediente.</li></ul>',
+        ctaLabel: 'Ir a contacto',
+        ctaHref: 'contacto.html'
+      },
+      'pedir-apoyo': {
+        title: 'Pedir apoyo',
+        subtitle: 'Solicitud rápida al equipo de soporte.',
+        body: '<ul><li>Describe brevemente la necesidad.</li><li>Selecciona tipo de apoyo requerido.</li><li>Indica urgencia del caso.</li></ul>',
+        ctaLabel: 'Solicitar ahora',
+        ctaHref: 'contacto.html'
+      },
+      'actualizar-tarea': {
+        title: 'Actualizar tarea',
+        subtitle: 'Cambia estado y avances del trabajo asignado.',
+        body: '<ul><li>Marca avance actual de la tarea.</li><li>Agrega comentarios o bloqueos.</li><li>Guarda cambios para seguimiento.</li></ul>',
+        ctaLabel: 'Ver seguimiento',
+        ctaHref: 'quienes-somos.html'
+      }
+    };
+
+    function openQuickModule(moduleKey) {
+      const config = moduleConfig[moduleKey];
+      if (!config) {
+        return;
+      }
+
+      quickModuleTitle.textContent = config.title;
+      quickModuleSub.textContent = config.subtitle;
+      quickModuleBody.innerHTML = config.body;
+      quickModuleLink.textContent = config.ctaLabel;
+      quickModuleLink.setAttribute('href', config.ctaHref);
+
+      quickModuleOverlay.classList.add('active');
+      quickModuleOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeQuickModule() {
+      quickModuleOverlay.classList.remove('active');
+      quickModuleOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    moduleActions.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        openQuickModule(button.dataset.module);
+      });
+    });
+
+    quickModuleCloseBtn.addEventListener('click', closeQuickModule);
+    quickModuleCancelBtn.addEventListener('click', closeQuickModule);
+
+    quickModuleOverlay.addEventListener('click', (event) => {
+      if (event.target === quickModuleOverlay) {
+        closeQuickModule();
+      }
+    });
+
+    function openLogoutConfirm() {
+      logoutConfirmOverlay.classList.add('active');
+      logoutConfirmOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeLogoutConfirm() {
+      logoutConfirmOverlay.classList.remove('active');
+      logoutConfirmOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    function startLogoutFlow() {
+      closeLogoutConfirm();
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('tipo_usuario');
+
+      logoutLoadingOverlay.classList.add('active');
+      logoutLoadingOverlay.setAttribute('aria-hidden', 'false');
+
+      logoutSpinner.style.display = 'block';
+      logoutStatus.textContent = 'Cerrando sesión...';
+      logoutNote.textContent = 'Por favor espera un momento.';
+
+      setTimeout(() => {
+        logoutSpinner.style.display = 'none';
+        logoutStatus.textContent = 'Sesión cerrada exitosamente';
+        logoutNote.textContent = 'Redirigiendo al login...';
+      }, 1200);
+
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 2200);
+    }
+
+    logoutMenuBtn.addEventListener('click', openLogoutConfirm);
+    cancelLogoutBtn.addEventListener('click', closeLogoutConfirm);
+    confirmLogoutBtn.addEventListener('click', startLogoutFlow);
+
+    logoutConfirmOverlay.addEventListener('click', (event) => {
+      if (event.target === logoutConfirmOverlay) {
+        closeLogoutConfirm();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeLogoutConfirm();
+        closeQuickModule();
+      }
+    });
+
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        menuItems.forEach((entry) => entry.classList.remove('active'));
+        item.classList.add('active');
+      });
+    });
+
+    const tooltipTargets = document.querySelectorAll('.menu-item, .logout-menu-btn');
+    const menuTooltip = document.createElement('div');
+    menuTooltip.className = 'menu-tooltip';
+    document.body.appendChild(menuTooltip);
+
+    function hideMenuTooltip() {
+      menuTooltip.classList.remove('show');
+      menuTooltip.style.transform = 'translate(-9999px, -9999px)';
+    }
+
+    function showMenuTooltip(target) {
+      const tooltipText = target.dataset.tooltip;
+      if (!leftMenu.classList.contains('collapsed') || !tooltipText) {
+        hideMenuTooltip();
+        return;
+      }
+
+      const rect = target.getBoundingClientRect();
+      menuTooltip.textContent = tooltipText;
+      menuTooltip.classList.add('show');
+
+      const x = rect.right + 12;
+      const y = rect.top + rect.height / 2;
+      menuTooltip.style.transform = 'translate(' + x + 'px, calc(' + y + 'px - 50%))';
+    }
+
+    tooltipTargets.forEach((target) => {
+      target.addEventListener('mouseenter', () => showMenuTooltip(target));
+      target.addEventListener('mouseleave', hideMenuTooltip);
+      target.addEventListener('focus', () => showMenuTooltip(target));
+      target.addEventListener('blur', hideMenuTooltip);
+    });
+
+    menuToggleBtn.addEventListener('click', hideMenuTooltip);
+    window.addEventListener('scroll', hideMenuTooltip, true);
+    window.addEventListener('resize', hideMenuTooltip);
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+
+  # 🗄️ MongoDB
+  mongo:
+    image: mongo:6.0
+    container_name: mongo_lexim
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # 🔐 Auth Service
+  auth-service:
+    build: ./visual-virtual/Backend
+    container_name: auth_service
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+
+  # 🌐 API Gateway
+  gateway:
+    build: ./Gateway
+    container_name: api_gateway
+    ports:
+      - "5000:5000"
+    depends_on:
+      - auth-service
+
+  # 🚀 Nginx (Frontend + Proxy)
+  nginx:
+    build: .
+    container_name: nginx_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+
+volumes:
+  mongo_data:
