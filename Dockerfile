@@ -1,7 +1,5 @@
 FROM nginx:alpine
 
-# Copia frontend
-COPY ./visual-virtual/Frontend /usr/share/nginx/html
-
-# Copia config nginx
+COPY ./visual-virtual/Frontend/View /usr/share/nginx/html
+COPY ./visual-virtual/Frontend/Controller /usr/share/nginx/Controller
 COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf

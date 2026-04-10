@@ -70,13 +70,22 @@
       <div class="topbar-title">Inicio</div>
       <button class="tb-icon-btn"><i class="fas fa-bell"></i><span class="dot"></span></button>
       <button class="tb-icon-btn"><i class="fas fa-sync-alt"></i></button>
-      <button class="tb-icon-btn"><i class="fas fa-bars"></i></button>
+      <button class="tb-icon-btn" id="menuToggleBtnAdmin" title="Desplegar o contraer menú"><i class="fas fa-bars"></i></button>
       <div class="user-pill">
         <div class="u-avatar" id="avatar-admin">AD</div>
         <span class="u-name" id="nombre-admin">Administrador</span>
       </div>
     </header>
     <div class="content">
+
+      <div class="welcome-strip">
+        <p class="welcome-eyebrow">Portal Privado</p>
+        <h1 class="welcome-title" id="welcome-title-admin">Bienvenido a tu panel</h1>
+        <div class="welcome-meta">
+          <span id="welcome-role-admin">Rol: Administrador</span>
+          <span id="welcome-email-admin">Usuario: --</span>
+        </div>
+      </div>
 
       <div class="stat-banner admin-grid">
         <div class="scard blue">
@@ -168,12 +177,12 @@
         <div class="panel-head"><span class="panel-head-title">Accesos Rápidos</span></div>
         <div class="quick-wrap">
           <div class="quick-row">
-            <a href="#" class="quick-btn"><span><i class="fas fa-plus quick-icon"></i>Nuevo Usuario</span><i class="fas fa-chevron-right"></i></a>
-            <a href="#" class="quick-btn"><span><i class="fas fa-plus quick-icon"></i>Asignar Tarea</span><i class="fas fa-chevron-right"></i></a>
+            <a href="#" class="quick-btn" data-quick="nuevo-usuario"><span><i class="fas fa-plus quick-icon"></i>Nuevo Usuario</span><i class="fas fa-chevron-right"></i></a>
+            <a href="#" class="quick-btn" data-quick="asignar-tarea"><span><i class="fas fa-plus quick-icon"></i>Asignar Tarea</span><i class="fas fa-chevron-right"></i></a>
           </div>
           <div class="quick-row">
-            <button class="quick-btn-solid teal"><i class="fas fa-plus"></i> Asignar Tarea</button>
-            <button class="quick-btn-solid green"><i class="fas fa-plus"></i> Agregar Documento</button>
+            <button class="quick-btn-solid teal" data-quick="asignar-tarea" type="button"><i class="fas fa-plus"></i> Asignar Tarea</button>
+            <button class="quick-btn-solid green" data-quick="agregar-documento" type="button"><i class="fas fa-plus"></i> Agregar Documento</button>
           </div>
         </div>
       </div>
@@ -186,13 +195,22 @@
       <div class="topbar-title">Inicio</div>
       <button class="tb-icon-btn"><i class="fas fa-bell"></i><span class="dot"></span></button>
       <button class="tb-icon-btn"><i class="fas fa-sync-alt"></i></button>
-      <button class="tb-icon-btn"><i class="fas fa-bars"></i></button>
+      <button class="tb-icon-btn" id="menuToggleBtnJudic" title="Desplegar o contraer menú"><i class="fas fa-bars"></i></button>
       <div class="user-pill">
         <div class="u-avatar judic" id="avatar-judic">JU</div>
         <span class="u-name" id="nombre-judic">Judicante</span>
       </div>
     </header>
     <div class="content">
+
+      <div class="welcome-strip">
+        <p class="welcome-eyebrow">Portal Privado</p>
+        <h1 class="welcome-title" id="welcome-title-judic">Bienvenido a tu panel</h1>
+        <div class="welcome-meta">
+          <span id="welcome-role-judic">Rol: Judicante</span>
+          <span id="welcome-email-judic">Usuario: --</span>
+        </div>
+      </div>
 
       <div class="stat-banner judic-grid">
         <div class="scard teal">
@@ -285,8 +303,8 @@
         <div class="panel-head"><span class="panel-head-title">Accesos Rápidos</span></div>
         <div class="quick-wrap">
           <div class="quick-row">
-            <button class="quick-btn-solid teal"><i class="fas fa-upload"></i> Subir Documento</button>
-            <button class="quick-btn-solid green"><i class="fas fa-user-plus"></i> Pedir Ayuda</button>
+            <button class="quick-btn-solid teal" data-quick="subir-documento" type="button"><i class="fas fa-upload"></i> Subir Documento</button>
+            <button class="quick-btn-solid green" data-quick="pedir-ayuda" type="button"><i class="fas fa-user-plus"></i> Pedir Ayuda</button>
           </div>
         </div>
       </div>
@@ -294,6 +312,23 @@
     </div>
   </div>
 
+</div>
+
+<div class="session-overlay" id="quickActionOverlay" aria-hidden="true">
+  <div class="quick-action-modal" role="dialog" aria-modal="true" aria-labelledby="quickActionTitle">
+    <div class="quick-action-head">
+      <h3 id="quickActionTitle">Acción rápida</h3>
+      <button type="button" class="quick-action-close" id="quickActionCloseBtn" aria-label="Cerrar ventana">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+    <p class="quick-action-sub" id="quickActionSub">Resumen de la acción.</p>
+    <div class="quick-action-body" id="quickActionBody"></div>
+    <div class="session-actions">
+      <button type="button" class="session-btn cancel" id="quickActionCancelBtn">Cerrar</button>
+      <a href="#" class="session-btn confirm quick-action-link" id="quickActionLink">Continuar</a>
+    </div>
+  </div>
 </div>
 
 <div class="session-overlay" id="logoutConfirmOverlay" aria-hidden="true">
@@ -324,7 +359,7 @@
     usuarioGuardado = null;
   }
 
-  const tipoUsuario = localStorage.getItem('tipo_usuario');
+  const tipoUsuario = localStorage.getItem('tipo_usuario') || 'administrador';
 
   if (!usuarioGuardado || !usuarioGuardado.nombre || !usuarioGuardado.apellido) {
     localStorage.removeItem('usuario');
@@ -332,15 +367,21 @@
     window.location.href = 'login.html';
   }
 
-  if (usuarioGuardado) {
-    const nombreCompleto = usuarioGuardado.nombre + ' ' + usuarioGuardado.apellido;
-    const iniciales = (usuarioGuardado.nombre[0] + usuarioGuardado.apellido[0]).toUpperCase();
+  const nombreCompleto = usuarioGuardado.nombre + ' ' + usuarioGuardado.apellido;
+  const iniciales = (usuarioGuardado.nombre[0] + usuarioGuardado.apellido[0]).toUpperCase();
+  const rolTexto = tipoUsuario === 'judicante' ? 'Judicante' : 'Administrador';
+  const emailUsuario = usuarioGuardado.Email || 'sin-correo';
 
-    document.getElementById('nombre-admin').textContent = nombreCompleto;
-    document.getElementById('nombre-judic').textContent = nombreCompleto;
-    document.getElementById('avatar-admin').textContent = iniciales;
-    document.getElementById('avatar-judic').textContent = iniciales;
-  }
+  document.getElementById('nombre-admin').textContent = nombreCompleto;
+  document.getElementById('nombre-judic').textContent = nombreCompleto;
+  document.getElementById('avatar-admin').textContent = iniciales;
+  document.getElementById('avatar-judic').textContent = iniciales;
+  document.getElementById('welcome-title-admin').textContent = 'Bienvenido, ' + nombreCompleto;
+  document.getElementById('welcome-title-judic').textContent = 'Bienvenido, ' + nombreCompleto;
+  document.getElementById('welcome-role-admin').textContent = 'Rol: ' + rolTexto;
+  document.getElementById('welcome-role-judic').textContent = 'Rol: ' + rolTexto;
+  document.getElementById('welcome-email-admin').textContent = 'Usuario: ' + emailUsuario;
+  document.getElementById('welcome-email-judic').textContent = 'Usuario: ' + emailUsuario;
 
   function switchView(role) {
     document.getElementById('sidebar-admin').style.display = role === 'admin' ? 'flex' : 'none';
@@ -349,16 +390,127 @@
     document.getElementById('main-judic').style.display = role === 'judic' ? 'flex' : 'none';
     document.getElementById('btn-admin').className = 'role-btn' + (role === 'admin' ? ' active' : '');
     document.getElementById('btn-judic').className = 'role-btn' + (role === 'judic' ? ' active' : '');
+
+    const roleLabel = role === 'admin' ? 'Administrador' : 'Judicante';
+    document.getElementById('welcome-role-admin').textContent = 'Rol: ' + roleLabel;
+    document.getElementById('welcome-role-judic').textContent = 'Rol: ' + roleLabel;
   }
 
-  if (tipoUsuario === 'administrador') {
-    switchView('admin');
-  } else if (tipoUsuario === 'judicante') {
+  if (tipoUsuario === 'judicante') {
     switchView('judic');
+  } else {
+    switchView('admin');
   }
 
   document.querySelector('.role-switcher').style.display = 'none';
   document.body.classList.add('role-switcher-hidden');
+
+  const menuToggleButtons = [
+    document.getElementById('menuToggleBtnAdmin'),
+    document.getElementById('menuToggleBtnJudic')
+  ];
+
+  menuToggleButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      if (window.innerWidth <= 640) {
+        document.body.classList.toggle('sidebar-open');
+      } else {
+        document.body.classList.toggle('sidebar-collapsed');
+      }
+    });
+  });
+
+  const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+  navItems.forEach((item) => {
+    item.addEventListener('click', () => {
+      const currentNav = item.closest('.sidebar-nav');
+      currentNav.querySelectorAll('.nav-item').forEach((entry) => entry.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  const quickConfig = {
+    'nuevo-usuario': {
+      title: 'Nuevo Usuario',
+      subtitle: 'Registra un nuevo perfil con permisos iniciales.',
+      body: '<ul><li>Ingresa nombre, correo y rol.</li><li>Define permisos base del usuario.</li><li>Confirma y activa la cuenta.</li></ul>',
+      ctaLabel: 'Ir a contacto',
+      ctaHref: 'contacto.html'
+    },
+    'asignar-tarea': {
+      title: 'Asignar Tarea',
+      subtitle: 'Crea una tarea y asigna responsable.',
+      body: '<ul><li>Selecciona el responsable.</li><li>Define prioridad y fecha límite.</li><li>Publica para seguimiento.</li></ul>',
+      ctaLabel: 'Ver servicios',
+      ctaHref: 'servicios.html'
+    },
+    'agregar-documento': {
+      title: 'Agregar Documento',
+      subtitle: 'Carga documentos para expediente.',
+      body: '<ul><li>Adjunta archivo en PDF o DOCX.</li><li>Asocia al caso correspondiente.</li><li>Comparte con el equipo.</li></ul>',
+      ctaLabel: 'Subir ahora',
+      ctaHref: 'contacto.html'
+    },
+    'subir-documento': {
+      title: 'Subir Documento',
+      subtitle: 'Carga de archivo para revisión.',
+      body: '<ul><li>Selecciona documento del caso.</li><li>Agrega una nota breve.</li><li>Envía a revisión del administrador.</li></ul>',
+      ctaLabel: 'Abrir carga',
+      ctaHref: 'contacto.html'
+    },
+    'pedir-ayuda': {
+      title: 'Pedir Ayuda',
+      subtitle: 'Comunica una necesidad al equipo.',
+      body: '<ul><li>Describe el bloqueo actual.</li><li>Marca nivel de urgencia.</li><li>Envía solicitud de soporte.</li></ul>',
+      ctaLabel: 'Solicitar apoyo',
+      ctaHref: 'contacto.html'
+    }
+  };
+
+  const quickButtons = document.querySelectorAll('[data-quick]');
+  const quickActionOverlay = document.getElementById('quickActionOverlay');
+  const quickActionTitle = document.getElementById('quickActionTitle');
+  const quickActionSub = document.getElementById('quickActionSub');
+  const quickActionBody = document.getElementById('quickActionBody');
+  const quickActionLink = document.getElementById('quickActionLink');
+  const quickActionCloseBtn = document.getElementById('quickActionCloseBtn');
+  const quickActionCancelBtn = document.getElementById('quickActionCancelBtn');
+
+  function openQuickAction(actionKey) {
+    const config = quickConfig[actionKey];
+    if (!config) {
+      return;
+    }
+
+    quickActionTitle.textContent = config.title;
+    quickActionSub.textContent = config.subtitle;
+    quickActionBody.innerHTML = config.body;
+    quickActionLink.textContent = config.ctaLabel;
+    quickActionLink.setAttribute('href', config.ctaHref);
+
+    quickActionOverlay.classList.add('active');
+    quickActionOverlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeQuickAction() {
+    quickActionOverlay.classList.remove('active');
+    quickActionOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  quickButtons.forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      openQuickAction(button.dataset.quick);
+    });
+  });
+
+  quickActionCloseBtn.addEventListener('click', closeQuickAction);
+  quickActionCancelBtn.addEventListener('click', closeQuickAction);
+  quickActionOverlay.addEventListener('click', (event) => {
+    if (event.target === quickActionOverlay) {
+      closeQuickAction();
+    }
+  });
 
   const logoutButtons = document.querySelectorAll('.logout-btn');
   const logoutConfirmOverlay = document.getElementById('logoutConfirmOverlay');
@@ -416,6 +568,13 @@
   logoutConfirmOverlay.addEventListener('click', (event) => {
     if (event.target === logoutConfirmOverlay) {
       closeLogoutConfirm();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeLogoutConfirm();
+      closeQuickAction();
     }
   });
 </script>

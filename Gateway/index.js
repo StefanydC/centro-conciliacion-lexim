@@ -6,10 +6,19 @@ const cors = require('cors');
 
 const app = express();
 const PORT = 5000;
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+
+const localOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 app.use(morgan('dev'));
 app.use(cors({
-  origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
+  origin: (origin, callback) => {
+    if (!origin || localOriginPattern.test(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Origin no permitido por CORS'));
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -18,7 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // 🔐 AUTH SERVICE
 app.use('/auth', createProxyMiddleware({
-  target: 'http://auth-service:3001',
+  target: AUTH_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/auth${path}`,
@@ -92,5 +101,6 @@ app.get('/health', (req, res) => {
 // 🚀 START SERVER
 app.listen(PORT, () => {
   console.log(`🚀 Gateway corriendo en http://localhost:${PORT}`);
+  console.log(`🔌 Auth service target: ${AUTH_SERVICE_URL}`);
   console.log(`🩺 Health check: http://localhost:${PORT}/health`);
 });

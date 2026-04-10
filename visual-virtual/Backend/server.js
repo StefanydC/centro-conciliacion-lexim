@@ -7,7 +7,17 @@ const authRoutes = require('./Routes/auth');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: ['http://127.0.0.1:5500', 'http://localhost:5000'] }));
+const localOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || localOriginPattern.test(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Origin no permitido por CORS'));
+  }
+}));
 app.use(express.json());
 
 app.use('/auth', authRoutes);

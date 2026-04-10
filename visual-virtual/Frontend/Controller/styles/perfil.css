@@ -316,6 +316,47 @@ body.role-switcher-hidden {
   flex: 1;
 }
 
+.welcome-strip {
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: linear-gradient(130deg, #f6f9fb 0%, #edf3f6 100%);
+  border: 1px solid #dbe5ea;
+  box-shadow: var(--shadow);
+  animation: fade-up 0.45s both;
+}
+
+.welcome-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.welcome-title {
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+
+.welcome-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.welcome-meta span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(35, 76, 88, 0.09);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
 .stat-banner {
   display: grid;
   gap: 12px;
@@ -839,6 +880,32 @@ body.role-switcher-hidden {
   display: flex;
 }
 
+body.sidebar-collapsed .sidebar {
+  width: 74px;
+}
+
+body.sidebar-collapsed .brand-name,
+body.sidebar-collapsed .brand-role,
+body.sidebar-collapsed .nav-item span,
+body.sidebar-collapsed .nav-item .notif-badge,
+body.sidebar-collapsed .logout-btn {
+  display: none;
+}
+
+body.sidebar-collapsed .sidebar-brand {
+  justify-content: center;
+}
+
+body.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 11px;
+  border-left-width: 0;
+}
+
+body.sidebar-collapsed .sidebar-bottom {
+  display: none;
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -972,6 +1039,67 @@ body.role-switcher-hidden {
   color: var(--secondary);
 }
 
+.quick-action-modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 20px 45px rgba(15, 21, 22, 0.22);
+}
+
+.quick-action-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.quick-action-head h3 {
+  font-size: 1rem;
+  color: var(--dark);
+}
+
+.quick-action-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #eef3f6;
+  cursor: pointer;
+  color: var(--secondary);
+}
+
+.quick-action-sub {
+  font-size: 0.82rem;
+  color: var(--secondary);
+  margin-bottom: 10px;
+}
+
+.quick-action-body {
+  background: #f6f9fb;
+  border: 1px solid #e1eaef;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.quick-action-body ul {
+  padding-left: 18px;
+  color: var(--dark);
+}
+
+.quick-action-body li {
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+.quick-action-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
 }
@@ -994,10 +1122,25 @@ body.role-switcher-hidden {
 
 @media (max-width: 640px) {
   .sidebar {
-    display: none;
+    position: fixed;
+    z-index: 1200;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    transform: translateX(-102%);
+    transition: transform var(--trans);
+    display: flex;
+  }
+
+  body.sidebar-open .sidebar[style*='display: flex'] {
+    transform: translateX(0);
   }
 
   .stat-banner.judic-grid {
     grid-template-columns: 1fr;
+  }
+
+  .welcome-title {
+    font-size: 1.05rem;
   }
 }

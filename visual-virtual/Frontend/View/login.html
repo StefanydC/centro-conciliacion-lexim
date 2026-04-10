@@ -101,10 +101,58 @@ const form    = document.getElementById('login-form');
 const btn     = document.getElementById('btn-login');
 const emailEl = document.getElementById('email');
 
-// Si se abre con Live Server (5500), el backend real está en el gateway (5000).
-const API_BASE = ['5500'].includes(window.location.port)
-    ? 'http://localhost:5000'
-    : '';
+const localApiCandidates = [
+    '/auth/login',
+    'http://localhost:5000/auth/login',
+    'http://127.0.0.1:5000/auth/login',
+    'http://localhost:3001/auth/login',
+    'http://127.0.0.1:3001/auth/login'
+];
+
+const absoluteCurrentOrigin = window.location.origin && window.location.origin.startsWith('http')
+    ? `${window.location.origin}/auth/login`
+    : null;
+
+const loginEndpoints = [absoluteCurrentOrigin, ...localApiCandidates]
+    .filter(Boolean)
+    .filter((value, index, array) => array.indexOf(value) === index);
+
+async function tryLoginAcrossEndpoints(payload) {
+    let lastServerResult = { mensaje: 'No fue posible iniciar sesión' };
+
+    for (const endpoint of loginEndpoints) {
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            let data = {};
+            try {
+                data = await res.json();
+            } catch (_) {
+                data = {};
+            }
+
+            if (res.ok) {
+                return { ok: true, data };
+            }
+
+            // Si el backend respondió credenciales inválidas, no seguimos probando endpoints.
+            if ([400, 401, 403].includes(res.status)) {
+                return { ok: false, data };
+            }
+
+            // Guardamos el último error de servidor y probamos siguiente endpoint.
+            lastServerResult = { ok: false, data };
+        } catch (_) {
+            // Error de red: intentar siguiente endpoint.
+        }
+    }
+
+    return { ok: false, ...lastServerResult };
+}
 
 form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -121,23 +169,13 @@ form.addEventListener('submit', async e => {
     btn.disabled = true;
 
     try {
-        const res = await fetch(`${API_BASE}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ Email, Contraseña })
-        });
-
-        let data = {};
-        try {
-            data = await res.json();
-        } catch (_) {
-            data = {};
-        }
+        const result = await tryLoginAcrossEndpoints({ Email, Contraseña });
+        const data = result.data || {};
 
         btn.classList.remove('loading');
         btn.disabled = false;
 
-        if (res.ok) {
+        if (result.ok) {
             showToast(data.mensaje || 'Login exitoso');
 
             const usuario = data.usuario || {};
@@ -147,7 +185,7 @@ form.addEventListener('submit', async e => {
             localStorage.setItem('tipo_usuario', tipoUsuario);
 
             setTimeout(() => {
-                window.location.href = 'InicioPerfiles.html';
+                window.location.href = 'InicioPerfilesPanel.html';
             }, 1200);
         } else {
             showToast(data.mensaje || 'No fue posible iniciar sesión', true);
