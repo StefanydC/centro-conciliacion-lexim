@@ -1,5 +1,5 @@
 FROM nginx:alpine
 
-COPY ./visual-virtual/Frontend/View /usr/share/nginx/html
-COPY ./visual-virtual/Frontend/Controller /usr/share/nginx/Controller
-COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./Frontend/View /usr/share/nginx/html
+COPY ./Frontend/Controller /usr/share/nginx/Controller
+COPY ./Backend/nginx/nginx.conf /etc/nginx/conf.d/default.conf

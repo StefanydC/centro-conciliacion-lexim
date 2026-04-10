@@ -22,7 +22,7 @@ http://localhost
 2. Levantar backend auth:
 
 ```bash
-cd visual-virtual/Backend
+cd Backend
 npm install
 npm start
 ```
@@ -30,7 +30,7 @@ npm start
 3. Levantar gateway:
 
 ```bash
-cd Gateway
+cd Backend/Gateway
 npm install
 npm start
 ```
@@ -48,3 +48,31 @@ El login ahora prueba automaticamente estos endpoints hasta conectar:
 - http://127.0.0.1:3001/auth/login
 
 Con esto funciona tanto en Docker como en ejecucion manual por CMD.
+
+## Comandos rapidos
+
+Docker (todo junto):
+
+```bash
+docker compose up --build
+```
+
+Detener y limpiar contenedores:
+
+```bash
+docker compose down
+```
+
+Manual (por servicios):
+
+```bash
+cd Backend
+npm install
+npm start
+```
+
+```bash
+cd Backend/Gateway
+npm install
+npm start
+```

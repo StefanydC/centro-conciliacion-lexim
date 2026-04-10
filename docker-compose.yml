@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   # 🗄️ MongoDB
@@ -13,7 +11,7 @@ services:
 
   # 🔐 Auth Service
   auth-service:
-    build: ./visual-virtual/Backend
+    build: ./Backend
     container_name: auth_service
     ports:
       - "3001:3001"
@@ -24,7 +22,7 @@ services:
 
   # 🌐 API Gateway
   gateway:
-    build: ./Gateway
+    build: ./Backend/Gateway
     container_name: api_gateway
     ports:
       - "5000:5000"
