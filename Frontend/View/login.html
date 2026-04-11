@@ -103,8 +103,6 @@ const emailEl = document.getElementById('email');
 
 const localApiCandidates = [
     '/auth/login',
-    'http://localhost:5000/auth/login',
-    'http://127.0.0.1:5000/auth/login',
     'http://localhost:3001/auth/login',
     'http://127.0.0.1:3001/auth/login'
 ];
@@ -157,10 +155,10 @@ async function tryLoginAcrossEndpoints(payload) {
 form.addEventListener('submit', async e => {
     e.preventDefault();
 
-    const Email = emailEl.value.trim();
-    const Contraseña = passInput.value;
+    const email = emailEl.value.trim();
+    const password = passInput.value;
 
-    if (!Email || !Contraseña) {
+    if (!email || !password) {
         showToast('Completa todos los campos', true);
         return;
     }
@@ -169,7 +167,7 @@ form.addEventListener('submit', async e => {
     btn.disabled = true;
 
     try {
-        const result = await tryLoginAcrossEndpoints({ Email, Contraseña });
+        const result = await tryLoginAcrossEndpoints({ email, password });
         const data = result.data || {};
 
         btn.classList.remove('loading');
@@ -188,7 +186,11 @@ form.addEventListener('submit', async e => {
                 window.location.href = 'InicioPerfilesPanel.html';
             }, 1200);
         } else {
-            showToast(data.mensaje || 'No fue posible iniciar sesión', true);
+            const validationMessage = Array.isArray(data.errores) && data.errores.length > 0
+                ? data.errores.map(error => error.msg).filter(Boolean).join(' | ')
+                : '';
+
+            showToast(validationMessage || data.mensaje || 'No fue posible iniciar sesión', true);
         }
 
     } catch (error) {

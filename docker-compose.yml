@@ -11,25 +11,17 @@ services:
 
   # 🔐 Auth Service
   auth-service:
-    build: ./Backend
+    build: ./auth-service
     container_name: auth_service
     ports:
       - "3001:3001"
-    env_file:
-      - .env
+    environment:
+      - PORT=3001
+      - MONGO_URI=mongodb://mongo:27017/auth_service
+      - JWT_SECRET=replace_with_secure_secret
+      - JWT_EXPIRES_IN=1h
     depends_on:
       - mongo
-
-  # 🌐 API Gateway
-  gateway:
-    build: ./Backend/Gateway
-    container_name: api_gateway
-    ports:
-      - "5000:5000"
-    environment:
-      - AUTH_SERVICE_URL=http://auth-service:3001
-    depends_on:
-      - auth-service
 
   # 🚀 Nginx (Frontend + Proxy)
   nginx:
@@ -38,7 +30,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - gateway
+      - auth-service
 
 volumes:
   mongo_data:
