@@ -91,7 +91,8 @@ toggleBtn.addEventListener('click', () => {
 function showToast(msg, isError = false) {
     const toast = document.getElementById('toast');
     document.getElementById('toast-msg').textContent = msg;
-    document.getElementById('toast-icon').className = isError ? 'fas fa-times-circle' : 'fas fa-check-circle';
+    document.getElementById('toast-icon').className = isError
+        ? 'fas fa-times-circle' : 'fas fa-check-circle';
     toast.className = 'toast' + (isError ? ' error' : '');
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 3800);
@@ -101,61 +102,10 @@ const form    = document.getElementById('login-form');
 const btn     = document.getElementById('btn-login');
 const emailEl = document.getElementById('email');
 
-const localApiCandidates = [
-    '/auth/login',
-    'http://localhost:3001/auth/login',
-    'http://127.0.0.1:3001/auth/login'
-];
-
-const absoluteCurrentOrigin = window.location.origin && window.location.origin.startsWith('http')
-    ? `${window.location.origin}/auth/login`
-    : null;
-
-const loginEndpoints = [absoluteCurrentOrigin, ...localApiCandidates]
-    .filter(Boolean)
-    .filter((value, index, array) => array.indexOf(value) === index);
-
-async function tryLoginAcrossEndpoints(payload) {
-    let lastServerResult = { mensaje: 'No fue posible iniciar sesión' };
-
-    for (const endpoint of loginEndpoints) {
-        try {
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            let data = {};
-            try {
-                data = await res.json();
-            } catch (_) {
-                data = {};
-            }
-
-            if (res.ok) {
-                return { ok: true, data };
-            }
-
-            // Si el backend respondió credenciales inválidas, no seguimos probando endpoints.
-            if ([400, 401, 403].includes(res.status)) {
-                return { ok: false, data };
-            }
-
-            // Guardamos el último error de servidor y probamos siguiente endpoint.
-            lastServerResult = { ok: false, data };
-        } catch (_) {
-            // Error de red: intentar siguiente endpoint.
-        }
-    }
-
-    return { ok: false, ...lastServerResult };
-}
-
 form.addEventListener('submit', async e => {
     e.preventDefault();
 
-    const email = emailEl.value.trim();
+    const email    = emailEl.value.trim();
     const password = passInput.value;
 
     if (!email || !password) {
@@ -167,37 +117,34 @@ form.addEventListener('submit', async e => {
     btn.disabled = true;
 
     try {
-        const result = await tryLoginAcrossEndpoints({ email, password });
-        const data = result.data || {};
+        const res = await fetch('/auth/login', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ email, password })
+        });
 
+        const data = await res.json().catch(() => ({}));
         btn.classList.remove('loading');
         btn.disabled = false;
 
-        if (result.ok) {
+        if (res.ok) {
+            const usuario = data.data?.usuario || {};
+            localStorage.setItem('usuario',      JSON.stringify(usuario));
+            localStorage.setItem('tipo_usuario', usuario.tipo_usuario || 'judicante');
+            localStorage.setItem('token',        data.data?.token || '');
+
             showToast(data.mensaje || 'Login exitoso');
-
-            const usuario = data.usuario || {};
-            const tipoUsuario = usuario.tipo_usuario || 'administrador';
-
-            localStorage.setItem('usuario', JSON.stringify(usuario));
-            localStorage.setItem('tipo_usuario', tipoUsuario);
-
             setTimeout(() => {
                 window.location.href = 'InicioPerfilesPanel.html';
             }, 1200);
         } else {
-            const validationMessage = Array.isArray(data.errores) && data.errores.length > 0
-                ? data.errores.map(error => error.msg).filter(Boolean).join(' | ')
-                : '';
-
-            showToast(validationMessage || data.mensaje || 'No fue posible iniciar sesión', true);
+            showToast(data.mensaje || 'Correo o contraseña incorrectos', true);
         }
 
-    } catch (error) {
+    } catch (err) {
         btn.classList.remove('loading');
         btn.disabled = false;
-        showToast("Error de conexión: servidor no disponible", true);
-        console.error(error);
+        showToast('Error de conexión', true);
     }
 });
 </script>

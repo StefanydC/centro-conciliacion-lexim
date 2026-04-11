@@ -1,69 +1,45 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/user.model");
+const mongoose = require("mongoose");
 const { ApiError } = require("../utils/apiError");
 const { env } = require("../config/env");
 
-const signToken = (user) => {
-  return jwt.sign(
-    {
-      sub: user._id.toString(),
-      email: user.email
-    },
-    env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRES_IN }
-  );
-};
+const userSchema = new mongoose.Schema({}, { 
+  strict: false, 
+  collection: "usuarios" 
+});
 
-const register = async ({ name, email, password }) => {
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    throw new ApiError("El correo ya esta registrado", 409);
-  }
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 
-  const hashedPassword = await bcrypt.hash(password, 12);
-  const user = await User.create({
-    name,
-    email,
-    password: hashedPassword
-  });
-
-  const token = signToken(user);
-
-  return {
-    token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email
-    }
-  };
-};
+const signToken = (user) => jwt.sign(
+  { sub: user._id.toString(), email: user.Email },
+  env.JWT_SECRET,
+  { expiresIn: env.JWT_EXPIRES_IN }
+);
 
 const login = async ({ email, password }) => {
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new ApiError("Credenciales invalidas", 401);
-  }
+  console.log("LOGIN RECIBIDO:", email);
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw new ApiError("Credenciales invalidas", 401);
-  }
+  const user = await User.findOne({ Email: email });
+  console.log("USUARIO:", user ? "encontrado" : "NO encontrado");
 
-  const token = signToken(user);
+  if (!user) throw new ApiError("Credenciales invalidas", 401);
+
+  const valid = await bcrypt.compare(password, user.Password);
+  console.log("PASSWORD VALIDA:", valid);
+
+  if (!valid) throw new ApiError("Credenciales invalidas", 401);
 
   return {
-    token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email
+    token: signToken(user),
+    usuario: {
+      id:           user._id,
+      nombre:       user.Nombre,
+      apellido:     user.Apellido,
+      correo:       user.Email,
+      tipo_usuario: user.tipo_usuario
     }
   };
 };
 
-module.exports = {
-  register,
-  login
-};
+module.exports = { login };

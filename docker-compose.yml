@@ -1,36 +1,28 @@
 services:
 
-  # 🗄️ MongoDB
-  mongo:
-    image: mongo:6.0
-    container_name: mongo_lexim
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-  # 🔐 Auth Service
   auth-service:
     build: ./auth-service
     container_name: auth_service
-    ports:
-      - "3001:3001"
     environment:
       - PORT=3001
-      - MONGO_URI=mongodb://mongo:27017/auth_service
-      - JWT_SECRET=replace_with_secure_secret
-      - JWT_EXPIRES_IN=1h
-    depends_on:
-      - mongo
+      - MONGO_URI=mongodb://santiagomartinezaaz009_db_user:406iDuSgqgOQvkgX@ac-cl3k5su-shard-00-00.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-01.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-02.9joqo3s.mongodb.net:27017/?ssl=true&replicaSet=atlas-14lg3a-shard-0&authSource=admin&appName=ProyectoLexim
+      - JWT_SECRET=lirwugekwtmqxaytkkkklnthsqtfxhgv
+      - JWT_EXPIRES_IN=8h
+    networks:
+      - lexim-net
+    restart: unless-stopped
 
-  # 🚀 Nginx (Frontend + Proxy)
   nginx:
     build: .
-    container_name: nginx_frontend
+    container_name: nginx_lexim
     ports:
       - "80:80"
     depends_on:
       - auth-service
+    networks:
+      - lexim-net
+    restart: unless-stopped
 
-volumes:
-  mongo_data:
+networks:
+  lexim-net:
+    driver: bridge

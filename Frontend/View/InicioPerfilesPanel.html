@@ -368,9 +368,10 @@
   }
 
   const nombreCompleto = usuarioGuardado.nombre + ' ' + usuarioGuardado.apellido;
-  const iniciales = (usuarioGuardado.nombre[0] + usuarioGuardado.apellido[0]).toUpperCase();
-  const rolTexto = tipoUsuario === 'judicante' ? 'Judicante' : 'Administrador';
-  const emailUsuario = usuarioGuardado.Email || 'sin-correo';
+  const iniciales      = (usuarioGuardado.nombre[0] + usuarioGuardado.apellido[0]).toUpperCase();
+  const rolTexto       = tipoUsuario === 'judicante' ? 'Judicante' : 'Administrador';
+  // BUG FIX: el servicio devuelve "correo", no "Email"
+  const emailUsuario   = usuarioGuardado.correo || 'sin-correo';
 
   document.getElementById('nombre-admin').textContent = nombreCompleto;
   document.getElementById('nombre-judic').textContent = nombreCompleto;
@@ -536,6 +537,7 @@
 
     localStorage.removeItem('usuario');
     localStorage.removeItem('tipo_usuario');
+    localStorage.removeItem('token');
 
     logoutLoadingOverlay.classList.add('active');
     logoutLoadingOverlay.setAttribute('aria-hidden', 'false');
