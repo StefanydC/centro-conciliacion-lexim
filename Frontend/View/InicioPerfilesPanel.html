@@ -81,10 +81,6 @@
       <div class="welcome-strip">
         <p class="welcome-eyebrow">Portal Privado</p>
         <h1 class="welcome-title" id="welcome-title-admin">Bienvenido a tu panel</h1>
-        <div class="welcome-meta">
-          <span id="welcome-role-admin">Rol: Administrador</span>
-          <span id="welcome-email-admin">Usuario: --</span>
-        </div>
       </div>
 
       <div class="stat-banner admin-grid">
@@ -206,10 +202,6 @@
       <div class="welcome-strip">
         <p class="welcome-eyebrow">Portal Privado</p>
         <h1 class="welcome-title" id="welcome-title-judic">Bienvenido a tu panel</h1>
-        <div class="welcome-meta">
-          <span id="welcome-role-judic">Rol: Judicante</span>
-          <span id="welcome-email-judic">Usuario: --</span>
-        </div>
       </div>
 
       <div class="stat-banner judic-grid">
@@ -369,9 +361,6 @@
 
   const nombreCompleto = usuarioGuardado.nombre + ' ' + usuarioGuardado.apellido;
   const iniciales      = (usuarioGuardado.nombre[0] + usuarioGuardado.apellido[0]).toUpperCase();
-  const rolTexto       = tipoUsuario === 'judicante' ? 'Judicante' : 'Administrador';
-  // BUG FIX: el servicio devuelve "correo", no "Email"
-  const emailUsuario   = usuarioGuardado.correo || 'sin-correo';
 
   document.getElementById('nombre-admin').textContent = nombreCompleto;
   document.getElementById('nombre-judic').textContent = nombreCompleto;
@@ -379,10 +368,6 @@
   document.getElementById('avatar-judic').textContent = iniciales;
   document.getElementById('welcome-title-admin').textContent = 'Bienvenido, ' + nombreCompleto;
   document.getElementById('welcome-title-judic').textContent = 'Bienvenido, ' + nombreCompleto;
-  document.getElementById('welcome-role-admin').textContent = 'Rol: ' + rolTexto;
-  document.getElementById('welcome-role-judic').textContent = 'Rol: ' + rolTexto;
-  document.getElementById('welcome-email-admin').textContent = 'Usuario: ' + emailUsuario;
-  document.getElementById('welcome-email-judic').textContent = 'Usuario: ' + emailUsuario;
 
   function switchView(role) {
     document.getElementById('sidebar-admin').style.display = role === 'admin' ? 'flex' : 'none';
@@ -391,10 +376,6 @@
     document.getElementById('main-judic').style.display = role === 'judic' ? 'flex' : 'none';
     document.getElementById('btn-admin').className = 'role-btn' + (role === 'admin' ? ' active' : '');
     document.getElementById('btn-judic').className = 'role-btn' + (role === 'judic' ? ' active' : '');
-
-    const roleLabel = role === 'admin' ? 'Administrador' : 'Judicante';
-    document.getElementById('welcome-role-admin').textContent = 'Rol: ' + roleLabel;
-    document.getElementById('welcome-role-judic').textContent = 'Rol: ' + roleLabel;
   }
 
   if (tipoUsuario === 'judicante') {
