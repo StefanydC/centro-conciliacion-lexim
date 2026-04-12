@@ -1,6 +1,6 @@
 FROM nginx:alpine
 # html y paginas
-COPY ./Frontend/View /usr/share/nginx/html
+COPY ./Frontend/View /usr/share/nginx/html/api
 #css, js, imagenes, etc
 COPY ./Frontend/Controller /usr/share/nginx/Controller
 #configuracion de nginx
