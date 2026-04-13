@@ -12,7 +12,11 @@ const userSchema = new mongoose.Schema({}, {
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 const signToken = (user) => jwt.sign(
-  { sub: user._id.toString(), email: user.Email || user.email || user.correo },
+  {
+    sub:          user._id.toString(),
+    email:        user.Email,
+    tipo_usuario: user.tipo_usuario
+  },
   env.JWT_SECRET,
   { expiresIn: env.JWT_EXPIRES_IN }
 );

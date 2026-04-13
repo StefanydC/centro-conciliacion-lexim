@@ -327,12 +327,23 @@ const tareasEjemplo = [
   }
 ];
 
-function cargarTareas() {
-  // Aquí conectarías con: fetch('/api/tasks', { headers: { Authorization: `Bearer ${token}` } })
-  // Por ahora usa los datos de ejemplo que coinciden con tu MongoDB
-  allTasks = tareasEjemplo;
-  actualizarStats();
-  renderTareas();
+async function cargarTareas() {
+  try {
+    const res = await fetch('/tasks', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error('Error al cargar tareas');
+
+    const { data } = await res.json();
+    allTasks = data;
+    actualizarStats();
+    renderTareas();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('tasksBody').innerHTML =
+      `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error al cargar tareas</p></div></td></tr>`;
+  }
 }
 
 function actualizarStats() {
@@ -368,7 +379,7 @@ function formatFecha(f) {
   return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function iniciales(u) {
+function getIniciales(u) {
   if (!u) return '??';
   return ((u.Nombre||'')[0] + (u.Apellido||'')[0]).toUpperCase();
 }
@@ -399,7 +410,7 @@ function renderLista(tareas) {
       <td>${badgePrio(t.prioridad)}</td>
       <td>
         <div class="assignee">
-          <div class="assignee-av">${iniciales(asig)}</div>
+          <div class="assignee-av">${getIniciales(asig)}</div>
           <span class="assignee-name">${asig.Nombre||''} ${asig.Apellido||''}</span>
         </div>
       </td>
@@ -471,14 +482,29 @@ function verDetalle(id) {
   document.getElementById('detailOverlay').classList.add('active');
 }
 
-function actualizarEstado(id, nuevoEstado) {
-  const t = allTasks.find(x => x._id === id);
-  if (t) {
-    t.estado = nuevoEstado;
-    // fetch(`/api/tasks/${id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ estado: nuevoEstado }) })
+async function actualizarEstado(id, nuevoEstado) {
+  try {
+    const res = await fetch(`/tasks/${id}/estado`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ estado: nuevoEstado })
+    });
+
+    if (!res.ok) throw new Error('Error al actualizar');
+
+    const { data } = await res.json();
+    const idx = allTasks.findIndex(t => t._id === id);
+    if (idx !== -1) allTasks[idx] = data;
+
     actualizarStats();
     renderTareas();
     document.getElementById('detailOverlay').classList.remove('active');
+  } catch (err) {
+    console.error(err);
+    alert('Error al actualizar el estado');
   }
 }
 
