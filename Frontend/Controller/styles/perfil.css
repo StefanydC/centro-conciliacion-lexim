@@ -11,7 +11,8 @@
   --green-lt: #27ae60;
   --red: #c0392b;
   --amber: #d68910;
-  --sidebar-w: 200px;
+  --sidebar-w: 280px;
+  --sidebar-w-col: 84px;
   --role-switcher-h: 40px;
   --topbar-h: 56px;
   --radius: 10px;
@@ -92,7 +93,8 @@ body {
   position: sticky;
   top: 0;
   height: calc(100vh - var(--role-switcher-h));
-  overflow-y: auto;
+  overflow: hidden;
+  padding: 16px 14px;
   flex-shrink: 0;
 }
 
@@ -101,17 +103,43 @@ body.role-switcher-hidden {
 }
 
 .sidebar-brand {
-  padding: 16px 18px;
+  padding: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  justify-content: space-between;
+  border-bottom: none;
+}
+
+.brand-texts {
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.25s, transform 0.35s;
+}
+
+.sidebar-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--trans);
+  flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .brand-ico {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.18);
   display: flex;
@@ -123,81 +151,102 @@ body.role-switcher-hidden {
 }
 
 .brand-name {
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #fff;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
 .brand-role {
-  font-size: 0.62rem;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .sidebar-nav {
+  display: grid;
+  gap: 4px;
+  margin-top: 20px;
+  overflow-y: auto;
   flex: 1;
-  padding: 10px 0;
+  padding: 0;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 18px;
-  color: rgba(255, 255, 255, 0.6);
+  padding: 10px 12px;
+  color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 600;
+  border-radius: 10px;
   border-left: 3px solid transparent;
-  transition: all var(--trans);
-  cursor: pointer;
-  position: relative;
+  transition: all 0.25s;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .nav-item i {
-  width: 16px;
+  width: 18px;
   text-align: center;
-  font-size: 0.85rem;
   flex-shrink: 0;
 }
 
 .nav-item:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.06);
-  border-left-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border-left-color: #fff;
 }
 
 .nav-item.active {
   color: #fff;
-  background: rgba(255, 255, 255, 0.11);
-  border-left-color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border-left-color: #6fcf97;
 }
 
 .nav-item .notif-badge {
   margin-left: auto;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: var(--red);
   color: #fff;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 1px 6px;
+  flex-shrink: 0;
 }
 
 .sidebar-sep {
   height: 1px;
-  background: rgba(255, 255, 255, 0.07);
-  margin: 8px 18px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 8px 0;
 }
 
 .sidebar-bottom {
-  padding: 10px 0 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.logout-btn {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(10, 20, 22, 0.45);
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-radius: 10px;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  transition: all 0.25s;
+}
+
+.logout-btn:hover {
+  background: rgba(192, 57, 43, 0.28);
 }
 
 .main {
@@ -881,15 +930,17 @@ body.role-switcher-hidden {
 }
 
 body.sidebar-collapsed .sidebar {
-  width: 74px;
+  width: var(--sidebar-w-col);
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
-body.sidebar-collapsed .brand-name,
-body.sidebar-collapsed .brand-role,
+body.sidebar-collapsed .brand-texts,
 body.sidebar-collapsed .nav-item span,
-body.sidebar-collapsed .nav-item .notif-badge,
-body.sidebar-collapsed .logout-btn {
-  display: none;
+body.sidebar-collapsed .nav-item .notif-badge {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-6px);
 }
 
 body.sidebar-collapsed .sidebar-brand {
@@ -898,12 +949,17 @@ body.sidebar-collapsed .sidebar-brand {
 
 body.sidebar-collapsed .nav-item {
   justify-content: center;
-  padding: 11px;
-  border-left-width: 0;
+  padding: 11px 0;
+  border-left: 0;
+  border-radius: 12px;
 }
 
-body.sidebar-collapsed .sidebar-bottom {
-  display: none;
+body.sidebar-collapsed .logout-btn {
+  justify-content: center;
+}
+
+body.sidebar-collapsed .sidebar-toggle {
+  margin: 0 auto;
 }
 
 @keyframes fade-up {

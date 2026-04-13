@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LEXIM — Módulo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-ico"><i class="fas fa-balance-scale"></i></div>
+    <div class="brand-texts">
+      <div class="brand-name">LEXIM</div>
+      <div class="brand-role" id="sidebar-role">Administrador</div>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-chevron-left"></i></button>
+  </div>
+
+  <nav class="sidebar-nav" id="nav-admin">
+    <a class="nav-item" data-nav="inicio" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item" data-nav="tareas" href="tareas.html"><i class="fas fa-tasks"></i><span>Tareas</span></a>
+    <a class="nav-item" data-nav="documentos" href="modulo.html?mod=documentos"><i class="fas fa-file-alt"></i><span>Documentos</span><span class="notif-badge">3</span></a>
+    <a class="nav-item" data-nav="ingresos" href="modulo.html?mod=ingresos"><i class="fas fa-dollar-sign"></i><span>Ingresos</span></a>
+    <a class="nav-item" data-nav="egresos" href="modulo.html?mod=egresos"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item" data-nav="conciliaciones" href="modulo.html?mod=conciliaciones"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
+    <a class="nav-item" data-nav="agenda" href="modulo.html?mod=agenda"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" data-nav="usuarios" href="modulo.html?mod=usuarios"><i class="fas fa-users"></i><span>Usuarios</span></a>
+    <a class="nav-item" data-nav="reportes" href="modulo.html?mod=reportes"><i class="fas fa-chart-bar"></i><span>Reportes</span></a>
+  </nav>
+
+  <nav class="sidebar-nav" id="nav-judic" style="display:none">
+    <a class="nav-item" data-nav="inicio" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item" data-nav="tareas" href="tareas.html"><i class="fas fa-tasks"></i><span>Mis Tareas</span></a>
+    <a class="nav-item" data-nav="mis-documentos" href="modulo.html?mod=mis-documentos"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
+    <a class="nav-item" data-nav="agenda" href="modulo.html?mod=agenda"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" data-nav="notificaciones" href="modulo.html?mod=notificaciones"><i class="fas fa-bell"></i><span>Notificaciones</span><span class="notif-badge">2</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item" data-nav="ayuda" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <a class="logout-btn" href="#" id="logoutBtn"><i class="fas fa-lock"></i><span>Cerrar Sesión</span></a>
+  </div>
+</aside>
+
+<div class="main" id="mainContent">
+  <header class="topbar">
+    <div class="topbar-title" id="topbarTitle">Módulo</div>
+    <button class="tb-btn" id="btnNotis"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
+    <button class="tb-btn" id="btnRefresh"><i class="fas fa-sync-alt"></i></button>
+    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    <div class="user-pill">
+      <div class="u-avatar" id="uAvatar">AD</div>
+      <span class="u-name" id="uName">Administrador</span>
+    </div>
+  </header>
+
+  <div class="content">
+    <section class="module-hero">
+      <p class="module-kicker">Panel Interno</p>
+      <h1 class="module-title" id="moduleTitle">Módulo</h1>
+      <p class="module-subtitle" id="moduleSubtitle">Este módulo está listo para integrarse con datos reales.</p>
+    </section>
+
+    <section class="module-grid">
+      <article class="module-card">
+        <h3>Estado del módulo</h3>
+        <p id="moduleStatus">Configurado y navegable desde el menú lateral.</p>
+      </article>
+      <article class="module-card">
+        <h3>Siguiente paso</h3>
+        <p id="moduleNext">Conectar este módulo a tus endpoints del backend y tablas reales.</p>
+      </article>
+      <article class="module-card">
+        <h3>Acceso rápido</h3>
+        <p>Usa el botón de Tareas o Inicio en el menú para volver a las vistas principales.</p>
+      </article>
+    </section>
+  </div>
+</div>
+
+<div class="session-overlay" id="logoutConfirm">
+  <div class="session-modal">
+    <i class="fas fa-sign-out-alt"></i>
+    <h3>Confirmar cierre de sesión</h3>
+    <p>¿Seguro que deseas cerrar tu sesión?</p>
+    <div class="session-actions">
+      <button class="session-btn cancel" id="cancelLogout">Cancelar</button>
+      <button class="session-btn confirm" id="confirmLogout">Sí, cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
+<div class="session-overlay" id="logoutLoading">
+  <div class="logout-loader">
+    <div class="logout-spinner"></div>
+    <div style="font-weight:700;color:#0f1516;margin-bottom:6px">Cerrando sesión...</div>
+    <div style="font-size:.78rem;color:#5a7a84">Por favor espera un momento.</div>
+  </div>
+</div>
+
+<script>
+const moduleMeta = {
+  documentos: { title: 'Documentos', subtitle: 'Gestión de archivos y expedientes del centro de conciliación.' },
+  ingresos: { title: 'Ingresos', subtitle: 'Control financiero de entradas y pagos registrados.' },
+  egresos: { title: 'Egresos', subtitle: 'Seguimiento de salidas, gastos operativos y comprobantes.' },
+  conciliaciones: { title: 'Conciliaciones', subtitle: 'Registro y trazabilidad de procesos conciliatorios.' },
+  agenda: { title: 'Agenda', subtitle: 'Calendario de audiencias, reuniones y recordatorios.' },
+  usuarios: { title: 'Usuarios', subtitle: 'Administración de cuentas, roles y permisos de acceso.' },
+  reportes: { title: 'Reportes', subtitle: 'Consolidado de métricas y reportes exportables.' },
+  'mis-documentos': { title: 'Mis Documentos', subtitle: 'Documentos asignados al judicante en sesión.' },
+  notificaciones: { title: 'Notificaciones', subtitle: 'Alertas y eventos recientes de tus actividades.' },
+  ayuda: { title: 'Ayuda', subtitle: 'Centro de soporte y acompañamiento de uso.' }
+};
+
+let usuario = null;
+try { usuario = JSON.parse(localStorage.getItem('usuario')); } catch (_) {}
+const tipoUsuario = localStorage.getItem('tipo_usuario') || 'administrador';
+
+if (!usuario) {
+  window.location.href = 'login.html';
+}
+
+const nombreCompleto = ((usuario?.nombre || '') + ' ' + (usuario?.apellido || '')).trim();
+const iniciales = ((usuario?.nombre || 'A')[0] + (usuario?.apellido || 'D')[0]).toUpperCase();
+document.getElementById('uName').textContent = nombreCompleto || 'Usuario';
+document.getElementById('uAvatar').textContent = iniciales;
+
+if (tipoUsuario === 'judicante') {
+  document.getElementById('nav-admin').style.display = 'none';
+  document.getElementById('nav-judic').style.display = 'grid';
+  document.getElementById('sidebar-role').textContent = 'Judicante';
+}
+
+const params = new URLSearchParams(window.location.search);
+const mod = params.get('mod') || (tipoUsuario === 'judicante' ? 'agenda' : 'documentos');
+const meta = moduleMeta[mod] || { title: 'Módulo', subtitle: 'Vista interna del sistema.' };
+
+document.title = 'LEXIM — ' + meta.title;
+document.getElementById('topbarTitle').textContent = meta.title;
+document.getElementById('moduleTitle').textContent = meta.title;
+document.getElementById('moduleSubtitle').textContent = meta.subtitle;
+document.getElementById('moduleStatus').textContent = 'Módulo ' + meta.title + ' disponible en el menú interno.';
+document.getElementById('moduleNext').textContent = 'Puedes integrar tablas, formularios y APIs para ' + meta.title.toLowerCase() + '.';
+
+const visibleNav = tipoUsuario === 'judicante' ? document.getElementById('nav-judic') : document.getElementById('nav-admin');
+visibleNav.querySelectorAll('.nav-item').forEach((item) => {
+  if (item.dataset.nav === mod) {
+    item.classList.add('active');
+  } else {
+    item.classList.remove('active');
+  }
+});
+
+const sidebar = document.getElementById('sidebar');
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  sidebar.classList.toggle('collapsed');
+});
+document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+  sidebar.classList.toggle('mobile-open');
+});
+
+document.getElementById('btnRefresh').addEventListener('click', () => {
+  window.location.reload();
+});
+document.getElementById('btnNotis').addEventListener('click', () => {
+  window.location.href = 'modulo.html?mod=notificaciones';
+});
+
+document.getElementById('logoutBtn').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('logoutConfirm').classList.add('active');
+});
+document.getElementById('cancelLogout').addEventListener('click', () => {
+  document.getElementById('logoutConfirm').classList.remove('active');
+});
+document.getElementById('confirmLogout').addEventListener('click', () => {
+  document.getElementById('logoutConfirm').classList.remove('active');
+  localStorage.removeItem('usuario');
+  localStorage.removeItem('tipo_usuario');
+  localStorage.removeItem('token');
+  document.getElementById('logoutLoading').classList.add('active');
+  setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+});
+</script>
+</body>
+</html>

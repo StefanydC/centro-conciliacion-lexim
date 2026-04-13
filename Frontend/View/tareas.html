@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LEXIM — Tareas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-ico"><i class="fas fa-balance-scale"></i></div>
+    <div class="brand-texts">
+      <div class="brand-name">LEXIM</div>
+      <div class="brand-role" id="sidebar-role">Administrador</div>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-chevron-left"></i></button>
+  </div>
+
+  <nav class="sidebar-nav" id="nav-admin">
+    <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item active" href="tareas.html"><i class="fas fa-tasks"></i><span>Tareas</span></a>
+    <a class="nav-item" href="modulo.html?mod=documentos"><i class="fas fa-file-alt"></i><span>Documentos</span><span class="notif-badge">3</span></a>
+    <a class="nav-item" href="modulo.html?mod=ingresos"><i class="fas fa-dollar-sign"></i><span>Ingresos</span></a>
+    <a class="nav-item" href="modulo.html?mod=egresos"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item" href="modulo.html?mod=conciliaciones"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
+    <a class="nav-item" href="modulo.html?mod=agenda"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" href="modulo.html?mod=usuarios"><i class="fas fa-users"></i><span>Usuarios</span></a>
+    <a class="nav-item" href="modulo.html?mod=reportes"><i class="fas fa-chart-bar"></i><span>Reportes</span></a>
+  </nav>
+
+  <nav class="sidebar-nav" id="nav-judic" style="display:none">
+    <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item active" href="tareas.html"><i class="fas fa-tasks"></i><span>Mis Tareas</span></a>
+    <a class="nav-item" href="modulo.html?mod=mis-documentos"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
+    <a class="nav-item" href="modulo.html?mod=agenda"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" href="modulo.html?mod=notificaciones"><i class="fas fa-bell"></i><span>Notificaciones</span><span class="notif-badge">2</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <a class="logout-btn" href="#" id="logoutBtn"><i class="fas fa-lock"></i><span>Cerrar Sesión</span></a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="mainContent">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-title">Gestión de Tareas</div>
+    <button class="tb-btn"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
+    <button class="tb-btn"><i class="fas fa-sync-alt"></i></button>
+    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    <div class="user-pill">
+      <div class="u-avatar" id="uAvatar">AD</div>
+      <span class="u-name" id="uName">Administrador</span>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Tareas</h1>
+        <p>Gestiona y realiza seguimiento de todas las tareas asignadas</p>
+      </div>
+      <button class="btn-primary" id="btnNuevaTarea" style="display:none">
+        <i class="fas fa-plus"></i> Nueva Tarea
+      </button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card blue">
+        <div class="stat-label">Total Tareas</div>
+        <div class="stat-val" id="statTotal">0</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Pendientes</div>
+        <div class="stat-val" id="statPendiente">0</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">En Proceso</div>
+        <div class="stat-val" id="statEnProceso">0</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Completadas</div>
+        <div class="stat-val" id="statCompletado">0</div>
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Buscar tarea...">
+      </div>
+      <button class="filter-btn active" data-filter="todos">Todos</button>
+      <button class="filter-btn" data-filter="pendiente">Pendiente</button>
+      <button class="filter-btn" data-filter="en_proceso">En Proceso</button>
+      <button class="filter-btn" data-filter="completado">Completado</button>
+      <button class="filter-btn" data-filter="cancelado">Cancelado</button>
+    </div>
+
+    <!-- TASKS PANEL -->
+    <div class="tasks-panel">
+      <div class="tasks-panel-head">
+        <h2 id="tasksCount">Tareas</h2>
+        <div class="view-btns">
+          <button class="view-btn active" id="btnListView" title="Vista lista"><i class="fas fa-list"></i></button>
+          <button class="view-btn" id="btnKanbanView" title="Vista kanban"><i class="fas fa-columns"></i></button>
+        </div>
+      </div>
+
+      <!-- LISTA -->
+      <div id="listView">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th>Estado</th>
+              <th>Prioridad</th>
+              <th>Asignado a</th>
+              <th>Fecha Límite</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tasksBody">
+            <tr><td colspan="6"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando tareas...</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- KANBAN -->
+      <div class="kanban" id="kanbanView">
+        <div class="kanban-col">
+          <div class="kanban-col-head"><span class="kanban-col-title" style="color:#d68910">Pendiente</span><span class="kanban-count" id="k-pendiente">0</span></div>
+          <div id="k-col-pendiente"></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-head"><span class="kanban-col-title" style="color:#2980b9">En Proceso</span><span class="kanban-count" id="k-en_proceso">0</span></div>
+          <div id="k-col-en_proceso"></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-head"><span class="kanban-col-title" style="color:#1e8449">Completado</span><span class="kanban-count" id="k-completado">0</span></div>
+          <div id="k-col-completado"></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-head"><span class="kanban-col-title" style="color:#c0392b">Cancelado</span><span class="kanban-count" id="k-cancelado">0</span></div>
+          <div id="k-col-cancelado"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL NUEVA TAREA -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Nueva Tarea</h3>
+      <button class="modal-close" id="modalClose"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea id="fDesc" placeholder="Describe la tarea..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prioridad</label>
+          <select id="fPrio">
+            <option value="baja">Baja</option>
+            <option value="media" selected>Media</option>
+            <option value="alta">Alta</option>
+            <option value="urgente">Urgente</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha Límite</label>
+          <input type="date" id="fFecha">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Asignar a</label>
+        <select id="fAsignado">
+          <option value="">Selecciona judicante...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Observaciones</label>
+        <input type="text" id="fObs" placeholder="Observaciones opcionales">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="modalCancel">Cancelar</button>
+      <button class="btn-primary" id="btnGuardar"><i class="fas fa-save"></i> Guardar Tarea</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="overlay" id="detailOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Detalle de Tarea</h3>
+      <button class="modal-close" id="detailClose"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="detailCancel">Cerrar</button>
+      <div id="detailActions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGOUT -->
+<div class="session-overlay" id="logoutConfirm">
+  <div class="session-modal">
+    <i class="fas fa-sign-out-alt"></i>
+    <h3>Confirmar cierre de sesión</h3>
+    <p>¿Seguro que deseas cerrar tu sesión?</p>
+    <div class="session-actions">
+      <button class="session-btn cancel" id="cancelLogout">Cancelar</button>
+      <button class="session-btn confirm" id="confirmLogout">Sí, cerrar sesión</button>
+    </div>
+  </div>
+</div>
+<div class="session-overlay" id="logoutLoading">
+  <div class="logout-loader">
+    <div class="logout-spinner"></div>
+    <div style="font-weight:700;color:#0f1516;margin-bottom:6px">Cerrando sesión...</div>
+    <div style="font-size:.78rem;color:#5a7a84">Por favor espera un momento.</div>
+  </div>
+</div>
+
+<script>
+// ── SESSION ──────────────────────────────────────────────
+let usuario = null;
+try { usuario = JSON.parse(localStorage.getItem('usuario')); } catch(_) {}
+const tipoUsuario = localStorage.getItem('tipo_usuario') || 'administrador';
+const token = localStorage.getItem('token') || '';
+
+if (!usuario) { window.location.href = 'login.html'; }
+
+const nombreCompleto = (usuario?.nombre || '') + ' ' + (usuario?.apellido || '');
+const iniciales = ((usuario?.nombre||'A')[0] + (usuario?.apellido||'D')[0]).toUpperCase();
+document.getElementById('uName').textContent = nombreCompleto;
+document.getElementById('uAvatar').textContent = iniciales;
+
+// Nav según rol
+if (tipoUsuario === 'judicante') {
+  document.getElementById('nav-admin').style.display = 'none';
+  document.getElementById('nav-judic').style.display = 'grid';
+  document.getElementById('sidebar-role').textContent = 'Judicante';
+} else {
+  document.getElementById('btnNuevaTarea').style.display = 'inline-flex';
+}
+
+// ── SIDEBAR TOGGLE ────────────────────────────────────────
+const sidebar = document.getElementById('sidebar');
+const mainContent = document.getElementById('mainContent');
+
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  sidebar.classList.toggle('collapsed');
+});
+document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+  sidebar.classList.toggle('mobile-open');
+});
+
+// ── DATA ──────────────────────────────────────────────────
+let allTasks = [];
+let filtroActual = 'todos';
+let vistaActual = 'lista';
+
+// Datos de ejemplo conectados a la BD (estructura real de tu MongoDB)
+const tareasEjemplo = [
+  {
+    _id: '1',
+    descripcion: 'Revisar expediente caso civil #001',
+    estado: 'pendiente',
+    prioridad: 'urgente',
+    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
+    creado_por: { Nombre: 'Antonio', Apellido: 'Gomez' },
+    fecha_limite: '2026-05-01',
+    observaciones: 'Audiencia proxima el 20 de abril'
+  },
+  {
+    _id: '2',
+    descripcion: 'Redactar acta de conciliacion familiar #003',
+    estado: 'en_proceso',
+    prioridad: 'alta',
+    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
+    creado_por: { Nombre: 'Antonio', Apellido: 'Gomez' },
+    fecha_limite: '2026-04-25',
+    observaciones: 'Partes llegaron a acuerdo parcial'
+  },
+  {
+    _id: '3',
+    descripcion: 'Preparar documentos notariales caso #007',
+    estado: 'completado',
+    prioridad: 'media',
+    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
+    creado_por: { Nombre: 'Antonio', Apellido: 'Gomez' },
+    fecha_limite: '2026-04-10',
+    observaciones: 'Entregado a tiempo'
+  },
+  {
+    _id: '4',
+    descripcion: 'Investigar jurisprudencia caso penal #002',
+    estado: 'cancelado',
+    prioridad: 'baja',
+    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
+    creado_por: { Nombre: 'Antonio', Apellido: 'Gomez' },
+    fecha_limite: '2026-04-15',
+    observaciones: 'Caso retirado por las partes'
+  }
+];
+
+function cargarTareas() {
+  // Aquí conectarías con: fetch('/api/tasks', { headers: { Authorization: `Bearer ${token}` } })
+  // Por ahora usa los datos de ejemplo que coinciden con tu MongoDB
+  allTasks = tareasEjemplo;
+  actualizarStats();
+  renderTareas();
+}
+
+function actualizarStats() {
+  document.getElementById('statTotal').textContent = allTasks.length;
+  document.getElementById('statPendiente').textContent = allTasks.filter(t => t.estado === 'pendiente').length;
+  document.getElementById('statEnProceso').textContent = allTasks.filter(t => t.estado === 'en_proceso').length;
+  document.getElementById('statCompletado').textContent = allTasks.filter(t => t.estado === 'completado').length;
+}
+
+function tareasFiltradas() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  return allTasks.filter(t => {
+    const matchFiltro = filtroActual === 'todos' || t.estado === filtroActual;
+    const matchSearch = !q || t.descripcion.toLowerCase().includes(q);
+    return matchFiltro && matchSearch;
+  });
+}
+
+function badgeEstado(estado) {
+  const labels = { pendiente: 'Pendiente', en_proceso: 'En Proceso', completado: 'Completado', cancelado: 'Cancelado' };
+  const icons = { pendiente: 'fa-hourglass-half', en_proceso: 'fa-spinner', completado: 'fa-check', cancelado: 'fa-times' };
+  return `<span class="badge badge-${estado}"><i class="fas ${icons[estado]||'fa-circle'}"></i> ${labels[estado]||estado}</span>`;
+}
+
+function badgePrio(p) {
+  const labels = { urgente: 'Urgente', alta: 'Alta', media: 'Media', baja: 'Baja' };
+  return `<span class="prio-badge prio-${p}">${labels[p]||p}</span>`;
+}
+
+function formatFecha(f) {
+  if (!f) return '—';
+  const d = new Date(f);
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function iniciales(u) {
+  if (!u) return '??';
+  return ((u.Nombre||'')[0] + (u.Apellido||'')[0]).toUpperCase();
+}
+
+function renderTareas() {
+  const tareas = tareasFiltradas();
+  document.getElementById('tasksCount').textContent = `${tareas.length} tarea${tareas.length !== 1 ? 's' : ''}`;
+
+  if (vistaActual === 'lista') renderLista(tareas);
+  else renderKanban(tareas);
+}
+
+function renderLista(tareas) {
+  const tbody = document.getElementById('tasksBody');
+  if (!tareas.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-tasks"></i><p>No hay tareas que mostrar</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = tareas.map(t => {
+    const asig = t.asignado_a || {};
+    const canEdit = tipoUsuario === 'administrador';
+    return `<tr>
+      <td>
+        <div class="task-desc">${t.descripcion}</div>
+        <div class="task-meta">${t.observaciones || ''}</div>
+      </td>
+      <td>${badgeEstado(t.estado)}</td>
+      <td>${badgePrio(t.prioridad)}</td>
+      <td>
+        <div class="assignee">
+          <div class="assignee-av">${iniciales(asig)}</div>
+          <span class="assignee-name">${asig.Nombre||''} ${asig.Apellido||''}</span>
+        </div>
+      </td>
+      <td style="font-size:.82rem;color:var(--color-secondary)">${formatFecha(t.fecha_limite)}</td>
+      <td>
+        <div class="action-btns">
+          <button class="action-btn" onclick="verDetalle('${t._id}')" title="Ver detalle"><i class="fas fa-eye"></i></button>
+          ${canEdit ? `<button class="action-btn" onclick="cambiarEstado('${t._id}')" title="Cambiar estado"><i class="fas fa-exchange-alt"></i></button>` : ''}
+          ${canEdit && t.estado !== 'completado' && t.estado !== 'cancelado' ? `<button class="action-btn danger" onclick="cancelarTarea('${t._id}')" title="Cancelar"><i class="fas fa-ban"></i></button>` : ''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderKanban(tareas) {
+  const estados = ['pendiente', 'en_proceso', 'completado', 'cancelado'];
+  estados.forEach(e => {
+    const grupo = tareas.filter(t => t.estado === e);
+    document.getElementById(`k-${e}`).textContent = grupo.length;
+    document.getElementById(`k-col-${e}`).innerHTML = grupo.map(t => `
+      <div class="kanban-card" onclick="verDetalle('${t._id}')">
+        <div class="kanban-card-title">${t.descripcion}</div>
+        <div class="kanban-card-foot">
+          ${badgePrio(t.prioridad)}
+          <span class="kanban-date">${formatFecha(t.fecha_limite)}</span>
+        </div>
+      </div>
+    `).join('') || `<div style="padding:12px;font-size:.75rem;color:var(--color-secondary);text-align:center">Sin tareas</div>`;
+  });
+}
+
+function verDetalle(id) {
+  const t = allTasks.find(x => x._id === id);
+  if (!t) return;
+  const asig = t.asignado_a || {};
+  const crea = t.creado_por || {};
+  document.getElementById('detailBody').innerHTML = `
+    <div style="display:grid;gap:14px">
+      <div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Descripción</div>
+        <div style="font-weight:600;color:var(--color-dark)">${t.descripcion}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Estado</div>${badgeEstado(t.estado)}</div>
+        <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Prioridad</div>${badgePrio(t.prioridad)}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Asignado a</div><div style="font-weight:600">${asig.Nombre||''} ${asig.Apellido||''}</div></div>
+        <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Creado por</div><div style="font-weight:600">${crea.Nombre||''} ${crea.Apellido||''}</div></div>
+      </div>
+      <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Fecha límite</div><div style="font-weight:600">${formatFecha(t.fecha_limite)}</div></div>
+      ${t.observaciones ? `<div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Observaciones</div><div style="font-size:.85rem;color:var(--color-secondary)">${t.observaciones}</div></div>` : ''}
+    </div>
+  `;
+
+  // Botones de estado para judicante
+  if (tipoUsuario === 'judicante' && (t.estado === 'pendiente' || t.estado === 'en_proceso')) {
+    const siguiente = t.estado === 'pendiente' ? 'en_proceso' : 'completado';
+    const label = t.estado === 'pendiente' ? 'Iniciar tarea' : 'Marcar completada';
+    document.getElementById('detailActions').innerHTML = `
+      <button class="btn-primary" onclick="actualizarEstado('${id}','${siguiente}')">
+        <i class="fas fa-check"></i> ${label}
+      </button>`;
+  } else {
+    document.getElementById('detailActions').innerHTML = '';
+  }
+
+  document.getElementById('detailOverlay').classList.add('active');
+}
+
+function actualizarEstado(id, nuevoEstado) {
+  const t = allTasks.find(x => x._id === id);
+  if (t) {
+    t.estado = nuevoEstado;
+    // fetch(`/api/tasks/${id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ estado: nuevoEstado }) })
+    actualizarStats();
+    renderTareas();
+    document.getElementById('detailOverlay').classList.remove('active');
+  }
+}
+
+function cambiarEstado(id) {
+  const t = allTasks.find(x => x._id === id);
+  if (!t) return;
+  const estados = ['pendiente', 'en_proceso', 'completado', 'cancelado'];
+  const idx = estados.indexOf(t.estado);
+  const siguiente = estados[(idx + 1) % estados.length];
+  actualizarEstado(id, siguiente);
+}
+
+function cancelarTarea(id) {
+  actualizarEstado(id, 'cancelado');
+}
+
+// ── FILTERS ──────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filtroActual = btn.dataset.filter;
+    renderTareas();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', renderTareas);
+
+// ── VIEWS ─────────────────────────────────────────────────
+document.getElementById('btnListView').addEventListener('click', () => {
+  vistaActual = 'lista';
+  document.getElementById('btnListView').classList.add('active');
+  document.getElementById('btnKanbanView').classList.remove('active');
+  document.getElementById('listView').style.display = 'block';
+  document.getElementById('kanbanView').classList.remove('active');
+  renderTareas();
+});
+
+document.getElementById('btnKanbanView').addEventListener('click', () => {
+  vistaActual = 'kanban';
+  document.getElementById('btnKanbanView').classList.add('active');
+  document.getElementById('btnListView').classList.remove('active');
+  document.getElementById('listView').style.display = 'none';
+  document.getElementById('kanbanView').classList.add('active');
+  renderTareas();
+});
+
+// ── MODAL NUEVA TAREA ─────────────────────────────────────
+document.getElementById('btnNuevaTarea').addEventListener('click', () => {
+  document.getElementById('modalOverlay').classList.add('active');
+});
+document.getElementById('modalClose').addEventListener('click', () => {
+  document.getElementById('modalOverlay').classList.remove('active');
+});
+document.getElementById('modalCancel').addEventListener('click', () => {
+  document.getElementById('modalOverlay').classList.remove('active');
+});
+document.getElementById('detailClose').addEventListener('click', () => {
+  document.getElementById('detailOverlay').classList.remove('active');
+});
+document.getElementById('detailCancel').addEventListener('click', () => {
+  document.getElementById('detailOverlay').classList.remove('active');
+});
+
+document.getElementById('btnGuardar').addEventListener('click', () => {
+  const desc = document.getElementById('fDesc').value.trim();
+  if (!desc) { alert('La descripción es obligatoria'); return; }
+  const nueva = {
+    _id: Date.now().toString(),
+    descripcion: desc,
+    estado: 'pendiente',
+    prioridad: document.getElementById('fPrio').value,
+    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
+    creado_por: { Nombre: usuario?.nombre||'Admin', Apellido: usuario?.apellido||'' },
+    fecha_limite: document.getElementById('fFecha').value,
+    observaciones: document.getElementById('fObs').value
+  };
+  allTasks.unshift(nueva);
+  actualizarStats();
+  renderTareas();
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fObs').value = '';
+});
+
+// Cerrar overlay al click fuera
+['modalOverlay','detailOverlay'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target.id === id) document.getElementById(id).classList.remove('active');
+  });
+});
+
+// ── LOGOUT ────────────────────────────────────────────────
+document.getElementById('logoutBtn').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('logoutConfirm').classList.add('active');
+});
+document.getElementById('cancelLogout').addEventListener('click', () => {
+  document.getElementById('logoutConfirm').classList.remove('active');
+});
+document.getElementById('confirmLogout').addEventListener('click', () => {
+  document.getElementById('logoutConfirm').classList.remove('active');
+  localStorage.removeItem('usuario');
+  localStorage.removeItem('tipo_usuario');
+  localStorage.removeItem('token');
+  document.getElementById('logoutLoading').classList.add('active');
+  setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.getElementById('modalOverlay').classList.remove('active');
+    document.getElementById('detailOverlay').classList.remove('active');
+    document.getElementById('logoutConfirm').classList.remove('active');
+  }
+});
+
+// ── INIT ──────────────────────────────────────────────────
+cargarTareas();
+</script>
+</body>
+</html>
