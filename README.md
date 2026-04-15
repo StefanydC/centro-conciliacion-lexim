@@ -17,42 +17,17 @@ http://localhost
 
 ## Ejecutar en CMD (manual)
 
-1. Preparar variables de auth-service:
+1. Levantar MongoDB local en 27017.
+
+2. Levantar auth-service:
 
 ```bash
 cd auth-service
-copy .env.example .env
+npm install
+npm start
 ```
 
-Edita `.env` para entorno local (por ejemplo `MONGO_URI=mongodb://127.0.0.1:27017/auth_service` y un `JWT_SECRET` propio).
-
-2. Levantar MongoDB local en 27017.
-
-3. Levantar auth-service:
-
-```bash
-start-auth-service.cmd
-```
-
-4. Levantar nginx local (sin Docker):
-
-Requisito: tener `nginx.exe` instalado y disponible en `PATH`.
-
-```bash
-start-nginx.cmd
-```
-
-Para detener nginx:
-
-```bash
-stop-nginx.cmd
-```
-
-5. Abrir frontend:
-
-```text
-http://localhost
-```
+3. Levantar frontend con Live Server o servidor estatico y abrir login.
 
 ## Compatibilidad del login
 
@@ -81,13 +56,7 @@ docker compose down
 Manual (por servicios):
 
 ```bash
-start-auth-service.cmd
-start-nginx.cmd
-```
-
-Tambien puedes usar scripts npm desde la raiz:
-
-```bash
-npm run start:auth
-npm run start:nginx
+cd auth-service
+npm install
+npm start
 ```

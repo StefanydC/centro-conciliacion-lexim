@@ -4,10 +4,7 @@
   "description": "Proyecto pagina web centro de conciliacion lexim",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start:auth": "start-auth-service.cmd",
-    "start:nginx": "start-nginx.cmd",
-    "stop:nginx": "stop-nginx.cmd"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
