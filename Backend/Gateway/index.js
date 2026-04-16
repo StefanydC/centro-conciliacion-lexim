@@ -5,25 +5,42 @@ const morgan = require('morgan');
 const cors = require('cors');
 
 const app = express();
-const PORT = 5000;
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+const PORT = process.env.PORT || 5000;
 
-const localOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+// ─── URLs de microservicios (siempre usar nombres de servicio Docker, nunca localhost) ───
+const AUTH_SERVICE_URL         = process.env.AUTH_SERVICE_URL         || 'http://auth-service:3001';
+const CONCILIACION_SERVICE_URL = process.env.CONCILIACION_SERVICE_URL || 'http://conciliacion-service:3002';
+const USUARIOS_SERVICE_URL     = process.env.USUARIOS_SERVICE_URL     || 'http://usuarios-service:3003';
+
+// Orígenes permitidos: env var (separados por coma) o wildcard en desarrollo
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : null;
 
 app.use(morgan('dev'));
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || localOriginPattern.test(origin)) {
-      callback(null, true);
-      return;
-    }
-    callback(new Error('Origin no permitido por CORS'));
+    // Sin origin = petición server-to-server o curl → permitir
+    if (!origin) return callback(null, true);
+    // Si no hay lista configurada → permitir todo (útil en desarrollo)
+    if (!ALLOWED_ORIGINS) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    callback(new Error(`Origin no permitido por CORS: ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+function proxyError(serviceName, errorCode, req, res, err) {
+  console.error(`Error en ${serviceName}:`, err.message);
+  res.status(503).json({ mensaje: `${serviceName} no disponible`, code: errorCode });
+}
+
+function markGatewayHit(proxyRes) {
+  proxyRes.headers['x-api-gateway'] = 'backend-gateway';
+}
 
 // 🔐 AUTH SERVICE
 app.use('/auth', createProxyMiddleware({
@@ -47,53 +64,103 @@ app.use('/auth', createProxyMiddleware({
       }
     },
 
+    proxyRes: (proxyRes) => {
+      markGatewayHit(proxyRes);
+    },
+
     error: (err, req, res) => {
-      console.error('❌ Error en AUTH:', err.message);
-      res.status(503).json({ mensaje: 'Auth service no disponible', code: 'AUTH_UNAVAILABLE' });
+      proxyError('Auth service', 'AUTH_UNAVAILABLE', req, res, err);
+    }
+  }
+}));
+
+// ✅ TASKS SERVICE (en auth-service)
+app.use('/tasks', createProxyMiddleware({
+  target: AUTH_SERVICE_URL,
+  changeOrigin: true,
+  proxyTimeout: 10000,
+  pathRewrite: (path) => `/tasks${path}`,
+  on: {
+    proxyReq: (proxyReq, req) => {
+      console.log('→ [TASKS] Enviando:', req.method, req.originalUrl);
+
+      if (req.body && Object.keys(req.body).length) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
+    },
+
+    proxyRes: (proxyRes) => {
+      markGatewayHit(proxyRes);
+    },
+
+    error: (err, req, res) => {
+      proxyError('Tasks service', 'TASKS_UNAVAILABLE', req, res, err);
     }
   }
 }));
 
 // ⚖️ CONCILIACION SERVICE
 app.use('/conciliacion', createProxyMiddleware({
-  target: 'http://localhost:3002/conciliacion', // 🔥 CORREGIDO
+  target: CONCILIACION_SERVICE_URL,   // http://conciliacion-service:3002
   changeOrigin: true,
   proxyTimeout: 10000,
+  pathRewrite: (path) => `/conciliacion${path}`,
   on: {
     proxyReq: (proxyReq, req) => {
       console.log('→ [CONCILIACION] Enviando:', req.method, req.originalUrl);
+      if (req.body && Object.keys(req.body).length) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
+    },
+    proxyRes: (proxyRes) => {
+      markGatewayHit(proxyRes);
     },
     error: (err, req, res) => {
-      console.error('❌ Error en CONCILIACION:', err.message);
-      res.status(503).json({ mensaje: 'Conciliacion service no disponible', code: 'CONCILIACION_UNAVAILABLE' });
+      proxyError('Conciliacion service', 'CONCILIACION_UNAVAILABLE', req, res, err);
     }
   }
 }));
 
 // 👤 USUARIOS SERVICE
 app.use('/usuarios', createProxyMiddleware({
-  target: 'http://localhost:3003/usuarios', // 🔥 CORREGIDO
+  target: USUARIOS_SERVICE_URL,       // http://usuarios-service:3003
   changeOrigin: true,
   proxyTimeout: 10000,
+  pathRewrite: (path) => `/usuarios${path}`,
   on: {
     proxyReq: (proxyReq, req) => {
       console.log('→ [USUARIOS] Enviando:', req.method, req.originalUrl);
+      if (req.body && Object.keys(req.body).length) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
+    },
+    proxyRes: (proxyRes) => {
+      markGatewayHit(proxyRes);
     },
     error: (err, req, res) => {
-      console.error('❌ Error en USUARIOS:', err.message);
-      res.status(503).json({ mensaje: 'Usuarios service no disponible', code: 'USUARIOS_UNAVAILABLE' });
+      proxyError('Usuarios service', 'USUARIOS_UNAVAILABLE', req, res, err);
     }
   }
 }));
 
 // 🩺 HEALTH CHECK
 app.get('/health', (req, res) => {
+  res.setHeader('x-api-gateway', 'backend-gateway');
   res.json({
     gateway: 'ok',
     servicios: {
-      auth: 'http://localhost:3001',
-      conciliacion: 'http://localhost:3002',
-      usuarios: 'http://localhost:3003'
+      auth:         AUTH_SERVICE_URL,
+      conciliacion: CONCILIACION_SERVICE_URL,
+      usuarios:     USUARIOS_SERVICE_URL
     }
   });
 });

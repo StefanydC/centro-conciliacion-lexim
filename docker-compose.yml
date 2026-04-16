@@ -1,5 +1,6 @@
 services:
 
+  # ─── Microservicio de autenticación y tareas ───────────────────────────────
   auth-service:
     build: ./auth-service
     container_name: auth_service
@@ -13,13 +14,60 @@ services:
       - lexim-net
     restart: unless-stopped
 
+  # ─── Microservicio de conciliación ────────────────────────────────────────
+  conciliacion-service:
+    build: ./conciliacion-service
+    container_name: conciliacion_service
+    environment:
+      - PORT=3002
+      - MONGO_URI=mongodb://santiagomartinezaaz009_db_user:406iDuSgqgOQvkgX@ac-cl3k5su-shard-00-00.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-01.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-02.9joqo3s.mongodb.net:27017/?ssl=true&replicaSet=atlas-14lg3a-shard-0&authSource=admin&appName=ProyectoLexim
+      - MONGO_DB_NAME=Lexim_db
+      - JWT_SECRET=lirwugekwtmqxaytkkkklnthsqtfxhgv
+    networks:
+      - lexim-net
+    restart: unless-stopped
+
+  # ─── Microservicio de usuarios ────────────────────────────────────────────
+  usuarios-service:
+    build: ./usuarios-service
+    container_name: usuarios_service
+    environment:
+      - PORT=3003
+      - MONGO_URI=mongodb://santiagomartinezaaz009_db_user:406iDuSgqgOQvkgX@ac-cl3k5su-shard-00-00.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-01.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-02.9joqo3s.mongodb.net:27017/?ssl=true&replicaSet=atlas-14lg3a-shard-0&authSource=admin&appName=ProyectoLexim
+      - MONGO_DB_NAME=Lexim_db
+      - JWT_SECRET=lirwugekwtmqxaytkkkklnthsqtfxhgv
+    networks:
+      - lexim-net
+    restart: unless-stopped
+
+  # ─── API Gateway ──────────────────────────────────────────────────────────
+  api-gateway:
+    build: ./Backend/Gateway
+    container_name: api_gateway
+    environment:
+      - PORT=5000
+      # Nombres de servicio Docker — NUNCA usar localhost entre contenedores
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - CONCILIACION_SERVICE_URL=http://conciliacion-service:3002
+      - USUARIOS_SERVICE_URL=http://usuarios-service:3003
+      # Para producción: ALLOWED_ORIGINS=https://tudominio.com
+      # En desarrollo sin esta variable se permite cualquier origen
+    depends_on:
+      - auth-service
+      - conciliacion-service
+      - usuarios-service
+    networks:
+      - lexim-net
+    restart: unless-stopped
+
+  # ─── Nginx (reverse proxy + frontend estático) ────────────────────────────
   nginx:
     build: .
     container_name: nginx_lexim
     ports:
       - "80:80"
     depends_on:
-      - auth-service
+      - api-gateway
     networks:
       - lexim-net
     restart: unless-stopped
