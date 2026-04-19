@@ -1,4 +1,5 @@
 const Task = require("../models/task.model");
+const User = require("../models/user.model");
 
 const listar = async (req, res, next) => {
   try {
@@ -39,8 +40,20 @@ const crear = async (req, res, next) => {
       ...req.body,
       creado_por: req.user.sub
     });
-    res.status(201).json({ data: tarea });
+    const poblada = await Task.findById(tarea._id)
+      .populate("creado_por", "Nombre Apellido Email")
+      .populate("asignado_a", "Nombre Apellido Email");
+    res.status(201).json({ data: poblada });
   } catch (e) { next(e); }
 };
 
-module.exports = { listar, actualizarEstado, crear };
+const listarJudicantes = async (req, res, next) => {
+  try {
+    const judicantes = await User.find({ tipo_usuario: "judicante" })
+      .select("Nombre Apellido Email")
+      .sort({ Nombre: 1 });
+    res.json({ data: judicantes });
+  } catch (e) { next(e); }
+};
+
+module.exports = { listar, actualizarEstado, crear, listarJudicantes };

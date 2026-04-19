@@ -129,7 +129,7 @@
               <th>Descripción</th>
               <th>Estado</th>
               <th>Prioridad</th>
-              <th>Asignado a</th>
+              <th id="thAsignadoCol">Asignado a</th>
               <th>Fecha Límite</th>
               <th>Acciones</th>
             </tr>
@@ -263,6 +263,7 @@ if (tipoUsuario === 'judicante') {
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('nav-judic').style.display = 'grid';
   document.getElementById('sidebar-role').textContent = 'Judicante';
+  document.getElementById('thAsignadoCol').textContent = 'Asignado por';
 } else {
   document.getElementById('btnNuevaTarea').style.display = 'inline-flex';
 }
@@ -283,49 +284,25 @@ let allTasks = [];
 let filtroActual = 'todos';
 let vistaActual = 'lista';
 
-// Datos de ejemplo conectados a la BD (estructura real de tu MongoDB)
-const tareasEjemplo = [
-  {
-    _id: '1',
-    descripcion: 'Revisar expediente caso civil #001',
-    estado: 'pendiente',
-    prioridad: 'urgente',
-    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
-    creado_por: { Nombre: 'Antonio', Apellido: 'Gomez' },
-    fecha_limite: '2026-05-01',
-    observaciones: 'Audiencia proxima el 20 de abril'
-  },
-  {
-    _id: '2',
-    descripcion: 'Redactar acta de conciliacion familiar #003',
-    estado: 'en_proceso',
-    prioridad: 'alta',
-    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
-    creado_por: { Nombre: 'Antonio', Apellido: 'Gomez' },
-    fecha_limite: '2026-04-25',
-    observaciones: 'Partes llegaron a acuerdo parcial'
-  },
-  {
-    _id: '3',
-    descripcion: 'Preparar documentos notariales caso #007',
-    estado: 'completado',
-    prioridad: 'media',
-    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
-    creado_por: { Nombre: 'Antonio', Apellido: 'Gomez' },
-    fecha_limite: '2026-04-10',
-    observaciones: 'Entregado a tiempo'
-  },
-  {
-    _id: '4',
-    descripcion: 'Investigar jurisprudencia caso penal #002',
-    estado: 'cancelado',
-    prioridad: 'baja',
-    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
-    creado_por: { Nombre: 'Antonio', Apellido: 'Gomez' },
-    fecha_limite: '2026-04-15',
-    observaciones: 'Caso retirado por las partes'
+async function cargarJudicantes() {
+  try {
+    const res = await fetch('/tasks/judicantes', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const { data } = await res.json();
+    const select = document.getElementById('fAsignado');
+    select.innerHTML = '<option value="">Selecciona judicante...</option>';
+    (data || []).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u._id;
+      opt.textContent = `${u.Nombre || ''} ${u.Apellido || ''}`.trim();
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Error al cargar judicantes', err);
   }
-];
+}
 
 async function cargarTareas() {
   try {
@@ -399,7 +376,7 @@ function renderLista(tareas) {
     return;
   }
   tbody.innerHTML = tareas.map(t => {
-    const asig = t.asignado_a || {};
+    const persona = tipoUsuario === 'judicante' ? (t.creado_por || {}) : (t.asignado_a || {});
     const canEdit = tipoUsuario === 'administrador';
     return `<tr>
       <td>
@@ -410,8 +387,8 @@ function renderLista(tareas) {
       <td>${badgePrio(t.prioridad)}</td>
       <td>
         <div class="assignee">
-          <div class="assignee-av">${getIniciales(asig)}</div>
-          <span class="assignee-name">${asig.Nombre||''} ${asig.Apellido||''}</span>
+          <div class="assignee-av">${getIniciales(persona)}</div>
+          <span class="assignee-name">${persona.Nombre||''} ${persona.Apellido||''}</span>
         </div>
       </td>
       <td style="font-size:.82rem;color:var(--color-secondary)">${formatFecha(t.fecha_limite)}</td>
@@ -459,8 +436,11 @@ function verDetalle(id) {
         <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Prioridad</div>${badgePrio(t.prioridad)}</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Asignado a</div><div style="font-weight:600">${asig.Nombre||''} ${asig.Apellido||''}</div></div>
-        <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Creado por</div><div style="font-weight:600">${crea.Nombre||''} ${crea.Apellido||''}</div></div>
+        ${tipoUsuario === 'judicante'
+          ? `<div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Asignado por</div><div style="font-weight:600">${crea.Nombre||''} ${crea.Apellido||''}</div></div>`
+          : `<div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Asignado a</div><div style="font-weight:600">${asig.Nombre||''} ${asig.Apellido||''}</div></div>
+             <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Creado por</div><div style="font-weight:600">${crea.Nombre||''} ${crea.Apellido||''}</div></div>`
+        }
       </div>
       <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Fecha límite</div><div style="font-weight:600">${formatFecha(t.fecha_limite)}</div></div>
       ${t.observaciones ? `<div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Observaciones</div><div style="font-size:.85rem;color:var(--color-secondary)">${t.observaciones}</div></div>` : ''}
@@ -569,25 +549,54 @@ document.getElementById('detailCancel').addEventListener('click', () => {
   document.getElementById('detailOverlay').classList.remove('active');
 });
 
-document.getElementById('btnGuardar').addEventListener('click', () => {
+document.getElementById('btnGuardar').addEventListener('click', async () => {
   const desc = document.getElementById('fDesc').value.trim();
   if (!desc) { alert('La descripción es obligatoria'); return; }
-  const nueva = {
-    _id: Date.now().toString(),
+
+  const body = {
     descripcion: desc,
-    estado: 'pendiente',
     prioridad: document.getElementById('fPrio').value,
-    asignado_a: { Nombre: 'Carlos', Apellido: 'Ramirez' },
-    creado_por: { Nombre: usuario?.nombre||'Admin', Apellido: usuario?.apellido||'' },
-    fecha_limite: document.getElementById('fFecha').value,
-    observaciones: document.getElementById('fObs').value
+    fecha_limite: document.getElementById('fFecha').value || undefined,
+    observaciones: document.getElementById('fObs').value.trim() || undefined,
+    asignado_a: document.getElementById('fAsignado').value || undefined
   };
-  allTasks.unshift(nueva);
-  actualizarStats();
-  renderTareas();
-  document.getElementById('modalOverlay').classList.remove('active');
-  document.getElementById('fDesc').value = '';
-  document.getElementById('fObs').value = '';
+
+  const btnGuardar = document.getElementById('btnGuardar');
+  btnGuardar.disabled = true;
+  btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+  try {
+    const res = await fetch('/tasks', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.mensaje || 'Error al guardar la tarea');
+    }
+
+    const { data } = await res.json();
+    allTasks.unshift(data);
+    actualizarStats();
+    renderTareas();
+    document.getElementById('modalOverlay').classList.remove('active');
+    document.getElementById('fDesc').value = '';
+    document.getElementById('fObs').value = '';
+    document.getElementById('fFecha').value = '';
+    document.getElementById('fAsignado').value = '';
+    document.getElementById('fPrio').value = 'media';
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Error al guardar la tarea');
+  } finally {
+    btnGuardar.disabled = false;
+    btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Tarea';
+  }
 });
 
 // Cerrar overlay al click fuera
@@ -624,6 +633,7 @@ document.addEventListener('keydown', e => {
 
 // ── INIT ──────────────────────────────────────────────────
 cargarTareas();
+if (tipoUsuario !== 'judicante') cargarJudicantes();
 </script>
 </body>
 </html>

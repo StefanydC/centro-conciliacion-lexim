@@ -135,7 +135,7 @@ form.addEventListener('submit', async e => {
 
             showToast(data.mensaje || 'Login exitoso');
             setTimeout(() => {
-                window.location.href = 'InicioPerfilesPanel.html';
+                window.location.href = '/api/InicioPerfilesPanel.html';
             }, 1200);
         } else {
             showToast(data.mensaje || 'Correo o contraseña incorrectos', true);

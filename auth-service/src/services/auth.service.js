@@ -1,15 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose");
 const { ApiError } = require("../utils/apiError");
 const { env } = require("../config/env");
-
-const userSchema = new mongoose.Schema({}, { 
-  strict: false, 
-  collection: "usuarios" 
-});
-
-const User = mongoose.models.User || mongoose.model("User", userSchema);
+const User = require("../models/user.model");
 
 const signToken = (user) => jwt.sign(
   {

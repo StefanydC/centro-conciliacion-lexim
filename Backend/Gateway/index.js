@@ -56,7 +56,7 @@ function injectUserHeaders(proxyReq, req) {
 }
 
 function forwardBody(proxyReq, req) {
-  if (req.body && Object.keys(req.body).length) {
+  if (req.body !== undefined && req.body !== null) {
     const bodyData = JSON.stringify(req.body);
     proxyReq.setHeader('Content-Type', 'application/json');
     proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
