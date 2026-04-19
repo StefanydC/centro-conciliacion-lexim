@@ -1,18 +1,22 @@
 require('dotenv').config();
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const morgan = require('morgan');
-const cors = require('cors');
+const morgan  = require('morgan');
+const cors    = require('cors');
 
-const app = express();
+const { requireJudicante, requireAdmin } = require('./middleware/auth');
+
+const app  = express();
 const PORT = process.env.PORT || 5000;
 
-// ─── URLs de microservicios (siempre usar nombres de servicio Docker, nunca localhost) ───
+// ─── URLs de microservicios ───────────────────────────────────────────────────
+// NUNCA usar localhost: cada contenedor Docker tiene su propia red.
+// Los nombres de servicio son resueltos por el DNS interno de Docker.
 const AUTH_SERVICE_URL         = process.env.AUTH_SERVICE_URL         || 'http://auth-service:3001';
 const CONCILIACION_SERVICE_URL = process.env.CONCILIACION_SERVICE_URL || 'http://conciliacion-service:3002';
 const USUARIOS_SERVICE_URL     = process.env.USUARIOS_SERVICE_URL     || 'http://usuarios-service:3003';
 
-// Orígenes permitidos: env var (separados por coma) o wildcard en desarrollo
+// ─── CORS ─────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : null;
@@ -20,154 +24,170 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
 app.use(morgan('dev'));
 app.use(cors({
   origin: (origin, callback) => {
-    // Sin origin = petición server-to-server o curl → permitir
-    if (!origin) return callback(null, true);
-    // Si no hay lista configurada → permitir todo (útil en desarrollo)
-    if (!ALLOWED_ORIGINS) return callback(null, true);
+    if (!origin)               return callback(null, true);  // server-to-server / curl
+    if (!ALLOWED_ORIGINS)      return callback(null, true);  // dev: permitir todo
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    callback(new Error(`Origin no permitido por CORS: ${origin}`));
+    callback(new Error(`Origin no permitido: ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-function proxyError(serviceName, errorCode, req, res, err) {
-  console.error(`Error en ${serviceName}:`, err.message);
-  res.status(503).json({ mensaje: `${serviceName} no disponible`, code: errorCode });
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function proxyError(serviceName, errorCode, _req, res, err) {
+  console.error(`[GATEWAY] Error en ${serviceName}:`, err.message);
+  res.status(503).json({ error: `${serviceName} no disponible`, code: errorCode });
 }
 
-function markGatewayHit(proxyRes) {
-  proxyRes.headers['x-api-gateway'] = 'backend-gateway';
+/**
+ * Inyecta headers de usuario en la petición al microservicio.
+ * El servicio de destino puede leer X-User-ID, X-User-Role, X-User-Email
+ * sin necesidad de re-validar el JWT (confía en el gateway).
+ */
+function injectUserHeaders(proxyReq, req) {
+  if (req.user) {
+    proxyReq.setHeader('X-User-ID',    req.user.sub);
+    proxyReq.setHeader('X-User-Role',  req.user.tipo_usuario);
+    proxyReq.setHeader('X-User-Email', req.user.email || '');
+  }
 }
 
-// 🔐 AUTH SERVICE
+function forwardBody(proxyReq, req) {
+  if (req.body && Object.keys(req.body).length) {
+    const bodyData = JSON.stringify(req.body);
+    proxyReq.setHeader('Content-Type', 'application/json');
+    proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+    proxyReq.write(bodyData);
+  }
+}
+
+function markGateway(proxyRes) {
+  proxyRes.headers['x-api-gateway'] = 'lexim-gateway';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  RUTAS PÚBLICAS — no requieren JWT
+// ─────────────────────────────────────────────────────────────────────────────
+
+// 🔓 AUTH — login (público, sin verificación de token)
 app.use('/auth', createProxyMiddleware({
   target: AUTH_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/auth${path}`,
-
   on: {
     proxyReq: (proxyReq, req) => {
-      console.log('→ [AUTH] Enviando:', req.method, req.originalUrl);
-
-      // 🔥 REENVIAR BODY (CLAVE)
-      if (req.body && Object.keys(req.body).length) {
-        const bodyData = JSON.stringify(req.body);
-
-        proxyReq.setHeader('Content-Type', 'application/json');
-        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-
-        proxyReq.write(bodyData);
-      }
+      console.log(`→ [AUTH] ${req.method} ${req.originalUrl}`);
+      forwardBody(proxyReq, req);
     },
-
-    proxyRes: (proxyRes) => {
-      markGatewayHit(proxyRes);
-    },
-
-    error: (err, req, res) => {
-      proxyError('Auth service', 'AUTH_UNAVAILABLE', req, res, err);
-    }
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Auth service', 'AUTH_UNAVAILABLE', req, res, err)
   }
 }));
 
-// ✅ TASKS SERVICE (en auth-service)
-app.use('/tasks', createProxyMiddleware({
+// ─────────────────────────────────────────────────────────────────────────────
+//  RUTAS PROTEGIDAS — requieren JWT válido (administrador o judicante)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ✅ TASKS — cualquier usuario autenticado
+app.use('/tasks', requireJudicante, createProxyMiddleware({
   target: AUTH_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/tasks${path}`,
   on: {
     proxyReq: (proxyReq, req) => {
-      console.log('→ [TASKS] Enviando:', req.method, req.originalUrl);
-
-      if (req.body && Object.keys(req.body).length) {
-        const bodyData = JSON.stringify(req.body);
-        proxyReq.setHeader('Content-Type', 'application/json');
-        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-        proxyReq.write(bodyData);
-      }
+      console.log(`→ [TASKS] ${req.method} ${req.originalUrl} | user: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      forwardBody(proxyReq, req);
     },
-
-    proxyRes: (proxyRes) => {
-      markGatewayHit(proxyRes);
-    },
-
-    error: (err, req, res) => {
-      proxyError('Tasks service', 'TASKS_UNAVAILABLE', req, res, err);
-    }
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Tasks service', 'TASKS_UNAVAILABLE', req, res, err)
   }
 }));
 
-// ⚖️ CONCILIACION SERVICE
-app.use('/conciliacion', createProxyMiddleware({
-  target: CONCILIACION_SERVICE_URL,   // http://conciliacion-service:3002
+// ⚖️ CONCILIACION — cualquier usuario autenticado
+app.use('/conciliacion', requireJudicante, createProxyMiddleware({
+  target: CONCILIACION_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/conciliacion${path}`,
   on: {
     proxyReq: (proxyReq, req) => {
-      console.log('→ [CONCILIACION] Enviando:', req.method, req.originalUrl);
-      if (req.body && Object.keys(req.body).length) {
-        const bodyData = JSON.stringify(req.body);
-        proxyReq.setHeader('Content-Type', 'application/json');
-        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-        proxyReq.write(bodyData);
-      }
+      console.log(`→ [CONCILIACION] ${req.method} ${req.originalUrl} | user: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      forwardBody(proxyReq, req);
     },
-    proxyRes: (proxyRes) => {
-      markGatewayHit(proxyRes);
-    },
-    error: (err, req, res) => {
-      proxyError('Conciliacion service', 'CONCILIACION_UNAVAILABLE', req, res, err);
-    }
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Conciliacion service', 'CONCILIACION_UNAVAILABLE', req, res, err)
   }
 }));
 
-// 👤 USUARIOS SERVICE
-app.use('/usuarios', createProxyMiddleware({
-  target: USUARIOS_SERVICE_URL,       // http://usuarios-service:3003
+// ─────────────────────────────────────────────────────────────────────────────
+//  RUTAS PRIVADAS — acceso exclusivo para administradores
+// ─────────────────────────────────────────────────────────────────────────────
+
+// 👤 USUARIOS — solo administrador
+app.use('/usuarios', requireAdmin, createProxyMiddleware({
+  target: USUARIOS_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/usuarios${path}`,
   on: {
     proxyReq: (proxyReq, req) => {
-      console.log('→ [USUARIOS] Enviando:', req.method, req.originalUrl);
-      if (req.body && Object.keys(req.body).length) {
-        const bodyData = JSON.stringify(req.body);
-        proxyReq.setHeader('Content-Type', 'application/json');
-        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-        proxyReq.write(bodyData);
-      }
+      console.log(`→ [USUARIOS] ${req.method} ${req.originalUrl} | admin: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      forwardBody(proxyReq, req);
     },
-    proxyRes: (proxyRes) => {
-      markGatewayHit(proxyRes);
-    },
-    error: (err, req, res) => {
-      proxyError('Usuarios service', 'USUARIOS_UNAVAILABLE', req, res, err);
-    }
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Usuarios service', 'USUARIOS_UNAVAILABLE', req, res, err)
   }
 }));
 
-// 🩺 HEALTH CHECK
-app.get('/health', (req, res) => {
-  res.setHeader('x-api-gateway', 'backend-gateway');
+// 🔑 ADMIN — alias privado para operaciones administrativas
+//    Actualmente enruta a usuarios-service. En el futuro puede ser
+//    su propio microservicio sin cambiar el contrato de la API.
+app.use('/admin', requireAdmin, createProxyMiddleware({
+  target: USUARIOS_SERVICE_URL,
+  changeOrigin: true,
+  proxyTimeout: 10000,
+  pathRewrite: (path) => `/usuarios${path}`,
+  on: {
+    proxyReq: (proxyReq, req) => {
+      console.log(`→ [ADMIN] ${req.method} ${req.originalUrl} | admin: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      forwardBody(proxyReq, req);
+    },
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Admin (usuarios) service', 'ADMIN_UNAVAILABLE', req, res, err)
+  }
+}));
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  HEALTH CHECK — público, sin autenticación
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/health', (_req, res) => {
+  res.setHeader('x-api-gateway', 'lexim-gateway');
   res.json({
     gateway: 'ok',
     servicios: {
       auth:         AUTH_SERVICE_URL,
       conciliacion: CONCILIACION_SERVICE_URL,
       usuarios:     USUARIOS_SERVICE_URL
+    },
+    rutas: {
+      publicas:   ['/auth', '/health'],
+      protegidas: ['/tasks', '/conciliacion'],
+      soloAdmin:  ['/usuarios', '/admin']
     }
   });
 });
 
-// 🚀 START SERVER
+// ─────────────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`🚀 Gateway corriendo en http://localhost:${PORT}`);
-  console.log(`🔌 Auth service target: ${AUTH_SERVICE_URL}`);
-  console.log(`🩺 Health check: http://localhost:${PORT}/health`);
+  console.log(`Gateway corriendo en puerto ${PORT}`);
+  console.log(`JWT_SECRET configurado: ${process.env.JWT_SECRET ? 'si' : 'NO - verificar .env'}`);
 });

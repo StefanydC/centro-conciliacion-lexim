@@ -46,6 +46,8 @@ services:
     container_name: api_gateway
     environment:
       - PORT=5000
+      # JWT_SECRET debe ser IDÉNTICO al de auth-service para poder verificar tokens
+      - JWT_SECRET=lirwugekwtmqxaytkkkklnthsqtfxhgv
       # Nombres de servicio Docker — NUNCA usar localhost entre contenedores
       - AUTH_SERVICE_URL=http://auth-service:3001
       - CONCILIACION_SERVICE_URL=http://conciliacion-service:3002
