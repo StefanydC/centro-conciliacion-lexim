@@ -6,10 +6,10 @@ services:
     container_name: auth_service
     environment:
       - PORT=3001
-      - MONGO_URI=mongodb://santiagomartinezaaz009_db_user:406iDuSgqgOQvkgX@ac-cl3k5su-shard-00-00.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-01.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-02.9joqo3s.mongodb.net:27017/?ssl=true&replicaSet=atlas-14lg3a-shard-0&authSource=admin&appName=ProyectoLexim
-      - MONGO_DB_NAME=Lexim_db
-      - JWT_SECRET=lirwugekwtmqxaytkkkklnthsqtfxhgv
-      - JWT_EXPIRES_IN=8h
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
     networks:
       - lexim-net
     restart: unless-stopped
@@ -20,9 +20,9 @@ services:
     container_name: conciliacion_service
     environment:
       - PORT=3002
-      - MONGO_URI=mongodb://santiagomartinezaaz009_db_user:406iDuSgqgOQvkgX@ac-cl3k5su-shard-00-00.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-01.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-02.9joqo3s.mongodb.net:27017/?ssl=true&replicaSet=atlas-14lg3a-shard-0&authSource=admin&appName=ProyectoLexim
-      - MONGO_DB_NAME=Lexim_db
-      - JWT_SECRET=lirwugekwtmqxaytkkkklnthsqtfxhgv
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - lexim-net
     restart: unless-stopped
@@ -33,9 +33,29 @@ services:
     container_name: usuarios_service
     environment:
       - PORT=3003
-      - MONGO_URI=mongodb://santiagomartinezaaz009_db_user:406iDuSgqgOQvkgX@ac-cl3k5su-shard-00-00.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-01.9joqo3s.mongodb.net:27017,ac-cl3k5su-shard-00-02.9joqo3s.mongodb.net:27017/?ssl=true&replicaSet=atlas-14lg3a-shard-0&authSource=admin&appName=ProyectoLexim
-      - MONGO_DB_NAME=Lexim_db
-      - JWT_SECRET=lirwugekwtmqxaytkkkklnthsqtfxhgv
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - lexim-net
+    restart: unless-stopped
+
+  # ─── Microservicio de documentos (Google Drive) ───────────────────────────
+  document-service:
+    build: ./document-service
+    container_name: document_service
+    environment:
+      - PORT=3004
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOGLE_CREDENTIALS_PATH=/app/credentials/lexim-493421-e71af6001af4.json
+      - GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
+      - GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
+      - GOOGLE_OAUTH_REFRESH_TOKEN=${GOOGLE_OAUTH_REFRESH_TOKEN}
+      - DRIVE_ROOT_FOLDER_ID=${DRIVE_ROOT_FOLDER_ID}
+    volumes:
+      - ./document-service/credentials:/app/credentials:ro
     networks:
       - lexim-net
     restart: unless-stopped
@@ -46,18 +66,16 @@ services:
     container_name: api_gateway
     environment:
       - PORT=5000
-      # JWT_SECRET debe ser IDÉNTICO al de auth-service para poder verificar tokens
-      - JWT_SECRET=lirwugekwtmqxaytkkkklnthsqtfxhgv
-      # Nombres de servicio Docker — NUNCA usar localhost entre contenedores
+      - JWT_SECRET=${JWT_SECRET}
       - AUTH_SERVICE_URL=http://auth-service:3001
       - CONCILIACION_SERVICE_URL=http://conciliacion-service:3002
       - USUARIOS_SERVICE_URL=http://usuarios-service:3003
-      # Para producción: ALLOWED_ORIGINS=https://tudominio.com
-      # En desarrollo sin esta variable se permite cualquier origen
+      - DOCUMENT_SERVICE_URL=http://document-service:3004
     depends_on:
       - auth-service
       - conciliacion-service
       - usuarios-service
+      - document-service
     networks:
       - lexim-net
     restart: unless-stopped

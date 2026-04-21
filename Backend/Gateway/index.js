@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 5000;
 const AUTH_SERVICE_URL         = process.env.AUTH_SERVICE_URL         || 'http://auth-service:3001';
 const CONCILIACION_SERVICE_URL = process.env.CONCILIACION_SERVICE_URL || 'http://conciliacion-service:3002';
 const USUARIOS_SERVICE_URL     = process.env.USUARIOS_SERVICE_URL     || 'http://usuarios-service:3003';
+const DOCUMENT_SERVICE_URL     = process.env.DOCUMENT_SERVICE_URL     || 'http://document-service:3004';
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
@@ -56,6 +57,9 @@ function injectUserHeaders(proxyReq, req) {
 }
 
 function forwardBody(proxyReq, req) {
+  const contentType = req.headers['content-type'] || '';
+  // No tocar streams multipart — el proxy los pasa directamente sin bufferear
+  if (contentType.includes('multipart/form-data')) return;
   if (req.body !== undefined && req.body !== null) {
     const bodyData = JSON.stringify(req.body);
     proxyReq.setHeader('Content-Type', 'application/json');
@@ -126,6 +130,27 @@ app.use('/conciliacion', requireJudicante, createProxyMiddleware({
   }
 }));
 
+// 📄 DOCUMENTOS — admin y judicante (control de roles en el microservicio)
+app.use('/documentos', requireJudicante, createProxyMiddleware({
+  target: DOCUMENT_SERVICE_URL,
+  changeOrigin: true,
+  proxyTimeout: 60000,
+  limit: '200mb',
+  pathRewrite: (path) => path.replace(/^\/documentos/, ''),
+  on: {
+    proxyReq: (proxyReq, req) => {
+      console.log(`→ [DOCUMENTOS] ${req.method} ${req.originalUrl} | user: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      // Reenviar body JSON para endpoints como POST /documentos/folders.
+      // En uploads multipart req.body no viene parseado por express.json(),
+      // por lo que forwardBody no modifica el stream original del archivo.
+      forwardBody(proxyReq, req);
+    },
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Document service', 'DOCUMENTS_UNAVAILABLE', req, res, err)
+  }
+}));
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  RUTAS PRIVADAS — acceso exclusivo para administradores
 // ─────────────────────────────────────────────────────────────────────────────
@@ -176,11 +201,12 @@ app.get('/health', (_req, res) => {
     servicios: {
       auth:         AUTH_SERVICE_URL,
       conciliacion: CONCILIACION_SERVICE_URL,
-      usuarios:     USUARIOS_SERVICE_URL
+      usuarios:     USUARIOS_SERVICE_URL,
+      documentos:   DOCUMENT_SERVICE_URL
     },
     rutas: {
       publicas:   ['/auth', '/health'],
-      protegidas: ['/tasks', '/conciliacion'],
+      protegidas: ['/tasks', '/conciliacion', '/documentos'],
       soloAdmin:  ['/usuarios', '/admin']
     }
   });

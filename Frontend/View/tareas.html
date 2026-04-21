@@ -24,7 +24,7 @@
   <nav class="sidebar-nav" id="nav-admin">
     <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
     <a class="nav-item active" href="tareas.html"><i class="fas fa-tasks"></i><span>Tareas</span></a>
-    <a class="nav-item" href="modulo.html?mod=documentos"><i class="fas fa-file-alt"></i><span>Documentos</span><span class="notif-badge">3</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Documentos</span><span class="notif-badge">3</span></a>
     <a class="nav-item" href="modulo.html?mod=ingresos"><i class="fas fa-dollar-sign"></i><span>Ingresos</span></a>
     <a class="nav-item" href="modulo.html?mod=egresos"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
     <div class="sidebar-sep"></div>
@@ -37,7 +37,7 @@
   <nav class="sidebar-nav" id="nav-judic" style="display:none">
     <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
     <a class="nav-item active" href="tareas.html"><i class="fas fa-tasks"></i><span>Mis Tareas</span></a>
-    <a class="nav-item" href="modulo.html?mod=mis-documentos"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
     <a class="nav-item" href="modulo.html?mod=agenda"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
     <a class="nav-item" href="modulo.html?mod=notificaciones"><i class="fas fa-bell"></i><span>Notificaciones</span><span class="notif-badge">2</span></a>
     <div class="sidebar-sep"></div>
@@ -358,7 +358,10 @@ function formatFecha(f) {
 
 function getIniciales(u) {
   if (!u) return '??';
-  return ((u.Nombre||'')[0] + (u.Apellido||'')[0]).toUpperCase();
+  const nombre = String(u.Nombre || '').trim();
+  const apellido = String(u.Apellido || '').trim();
+  const iniciales = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
+  return (iniciales || '?').toUpperCase();
 }
 
 function renderTareas() {
