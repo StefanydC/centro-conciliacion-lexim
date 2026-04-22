@@ -2,6 +2,7 @@ const express = require("express");
 const cors    = require("cors");
 const authRoutes = require("./routes/auth.routes");
 const taskRoutes = require("./routes/task.routes");
+const finanzasRoutes = require("./routes/finanzas.routes");
 const { notFoundHandler, errorHandler } = require("./middlewares/error.middleware");
 
 const app = express();
@@ -14,8 +15,9 @@ app.use(cors({
 
 app.use(express.json());
 
-app.use("/auth",  authRoutes);
-app.use("/tasks", taskRoutes);
+app.use("/auth",     authRoutes);
+app.use("/tasks",    taskRoutes);
+app.use("/finanzas", finanzasRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "auth-service" });

@@ -113,6 +113,23 @@ app.use('/tasks', requireJudicante, createProxyMiddleware({
   }
 }));
 
+// 💰 FINANZAS — cualquier usuario autenticado
+app.use('/finanzas', requireJudicante, createProxyMiddleware({
+  target: AUTH_SERVICE_URL,
+  changeOrigin: true,
+  proxyTimeout: 10000,
+  pathRewrite: (path) => `/finanzas${path}`,
+  on: {
+    proxyReq: (proxyReq, req) => {
+      console.log(`→ [FINANZAS] ${req.method} ${req.originalUrl} | user: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      forwardBody(proxyReq, req);
+    },
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Finanzas service', 'FINANZAS_UNAVAILABLE', req, res, err)
+  }
+}));
+
 // ⚖️ CONCILIACION — cualquier usuario autenticado
 app.use('/conciliacion', requireJudicante, createProxyMiddleware({
   target: CONCILIACION_SERVICE_URL,
@@ -206,7 +223,7 @@ app.get('/health', (_req, res) => {
     },
     rutas: {
       publicas:   ['/auth', '/health'],
-      protegidas: ['/tasks', '/conciliacion', '/documentos'],
+      protegidas: ['/tasks', '/finanzas', '/conciliacion', '/documentos'],
       soloAdmin:  ['/usuarios', '/admin']
     }
   });

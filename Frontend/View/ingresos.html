@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LEXIM — Ingresos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
+  <style>
+    /* ── Stat cards ── */
+    .fin-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+      width: min(720px, 100%);
+    }
+    .fin-stat {
+      position: relative; overflow: hidden;
+      border: 1px solid rgba(35,76,88,.14); border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 20px rgba(15,21,22,.07);
+      transition: transform .18s ease, box-shadow .2s ease;
+    }
+    .fin-stat:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(15,21,22,.12); }
+    .fin-stat-head { display: flex; align-items: center; gap: 9px; position: relative; z-index: 1; }
+    .fin-stat-icon {
+      width: 30px; height: 30px; border-radius: 9px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #fff; font-size: .8rem;
+      box-shadow: 0 4px 10px rgba(15,21,22,.22);
+    }
+    .fin-stat-label {
+      font-size: .67rem; font-weight: 800; letter-spacing: .08em;
+      text-transform: uppercase; color: #5e747d;
+    }
+    .fin-stat-value {
+      display: block; margin-top: 10px; font-size: 1.5rem; line-height: 1;
+      font-weight: 800; color: #183540; letter-spacing: .02em;
+      position: relative; z-index: 1;
+    }
+    .fin-stat-hint {
+      display: block; margin-top: 6px; font-size: .69rem;
+      color: #5e747d; font-weight: 600; position: relative; z-index: 1;
+    }
+    /* Verde — ingresos total */
+    .fin-stat.s-green {
+      background: linear-gradient(145deg, #eaf7ee 0%, #d0eeda 100%);
+      border-color: rgba(46,139,87,.35);
+    }
+    .fin-stat.s-green .fin-stat-icon { background: linear-gradient(135deg, #1e8449, #27ae60); }
+    /* Azul — registros */
+    .fin-stat.s-blue {
+      background: linear-gradient(145deg, #e7f6ff 0%, #d8ecf7 100%);
+      border-color: rgba(73,141,171,.38);
+    }
+    .fin-stat.s-blue .fin-stat-icon { background: linear-gradient(135deg, #2f80a3, #3f98bd); }
+    /* Ámbar — categorías */
+    .fin-stat.s-amber {
+      background: linear-gradient(145deg, #fff8de 0%, #f8ecd0 100%);
+      border-color: rgba(221,170,55,.42);
+    }
+    .fin-stat.s-amber .fin-stat-icon { background: linear-gradient(135deg, #d4a017, #f0b429); }
+
+    /* ── Filtros ── */
+    .fin-filters { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .fin-filters .search-box { flex: 1; min-width: 200px; }
+    .fin-select {
+      border: 1px solid rgba(35,76,88,.18); border-radius: 10px;
+      padding: 9px 14px; font-family: var(--font-main); font-size: .82rem;
+      color: var(--color-dark); background: #fff; outline: none;
+      cursor: pointer; transition: border-color .2s; min-width: 180px;
+    }
+    .fin-select:focus { border-color: var(--color-primary); }
+
+    /* ── Monto verde ── */
+    .amount-green { font-weight: 700; color: #1e8449; }
+
+    /* ── Badge categoría ── */
+    .cat-badge {
+      display: inline-flex; align-items: center;
+      background: rgba(35,76,88,.08); color: var(--color-primary);
+      padding: 3px 10px; border-radius: 999px;
+      font-size: .72rem; font-weight: 700;
+    }
+
+    /* ── Filas de detalle en modal ── */
+    .detalle-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid rgba(35,76,88,.07);
+    }
+    .detalle-row:last-child { border-bottom: none; }
+    .detalle-label {
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--color-secondary); min-width: 120px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-ico"><i class="fas fa-balance-scale"></i></div>
+    <div class="brand-texts">
+      <div class="brand-name">LEXIM</div>
+      <div class="brand-role" id="sidebarRole">Administrador</div>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-chevron-left"></i></button>
+  </div>
+
+  <nav class="sidebar-nav" id="nav-admin">
+    <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item" href="tareas.html"><i class="fas fa-tasks"></i><span>Tareas</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Documentos</span></a>
+    <a class="nav-item active" href="ingresos.html"><i class="fas fa-arrow-up"></i><span>Ingresos</span></a>
+    <a class="nav-item" href="egresos.html"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item" href="modulo.html?mod=conciliaciones"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
+    <a class="nav-item" href="modulo.html?mod=agenda"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" href="modulo.html?mod=usuarios"><i class="fas fa-users"></i><span>Usuarios</span></a>
+    <a class="nav-item" href="modulo.html?mod=reportes"><i class="fas fa-chart-bar"></i><span>Reportes</span></a>
+  </nav>
+
+  <nav class="sidebar-nav" id="nav-judic" style="display:none">
+    <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item" href="tareas.html"><i class="fas fa-tasks"></i><span>Mis Tareas</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
+    <a class="nav-item" href="modulo.html?mod=agenda"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <a class="logout-btn" href="#" id="logoutBtn"><i class="fas fa-lock"></i><span>Cerrar Sesión</span></a>
+  </div>
+</aside>
+
+<!-- ── MAIN ─────────────────────────────────────────────────────────── -->
+<div class="main" id="mainContent">
+
+  <header class="topbar">
+    <div class="topbar-title">Gestión de Ingresos</div>
+    <button class="tb-btn"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
+    <button class="tb-btn" id="btnRefresh" title="Recargar"><i class="fas fa-sync-alt"></i></button>
+    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    <div class="user-pill">
+      <div class="u-avatar" id="uAvatar">AD</div>
+      <span class="u-name" id="uName">Administrador</span>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Ingresos</h1>
+        <p>Registros de ingresos del centro de conciliación</p>
+        <div class="fin-stats">
+          <div class="fin-stat s-green">
+            <div class="fin-stat-head">
+              <span class="fin-stat-icon"><i class="fas fa-arrow-up"></i></span>
+              <span class="fin-stat-label">Total Ingresos</span>
+            </div>
+            <strong class="fin-stat-value" id="statTotal">$0</strong>
+            <span class="fin-stat-hint">Suma de todos los registros</span>
+          </div>
+          <div class="fin-stat s-blue">
+            <div class="fin-stat-head">
+              <span class="fin-stat-icon"><i class="fas fa-list-ol"></i></span>
+              <span class="fin-stat-label">Registros</span>
+            </div>
+            <strong class="fin-stat-value" id="statCount">0</strong>
+            <span class="fin-stat-hint">Total de entradas</span>
+          </div>
+          <div class="fin-stat s-amber">
+            <div class="fin-stat-head">
+              <span class="fin-stat-icon"><i class="fas fa-tags"></i></span>
+              <span class="fin-stat-label">Categorías</span>
+            </div>
+            <strong class="fin-stat-value" id="statCats">0</strong>
+            <span class="fin-stat-hint">Tipos distintos</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn-primary" id="btnNuevoIngreso" style="display:none">
+          <i class="fas fa-plus"></i> Nuevo Ingreso
+        </button>
+      </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="fin-filters">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Buscar ingreso...">
+      </div>
+      <select id="categoryFilter" class="fin-select">
+        <option value="">Todas las categorías</option>
+      </select>
+    </div>
+
+    <!-- TABLA -->
+    <div class="tasks-panel">
+      <div class="tasks-panel-head">
+        <h2 id="tableCount">Ingresos</h2>
+      </div>
+      <table class="task-table">
+        <thead>
+          <tr>
+            <th>Monto</th>
+            <th>Descripción</th>
+            <th>Categoría</th>
+            <th>Fecha</th>
+            <th>Registrado por</th>
+            <th id="accionesHeader" style="display:none">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="6">
+            <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Nuevo Ingreso -->
+<div class="overlay" id="modalNuevo">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Registrar Nuevo Ingreso</h3>
+      <button class="modal-close" id="btnCerrarNuevo"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Monto (COP)*</label>
+        <input type="number" id="fMonto" step="0.01" min="0.01" placeholder="350000">
+      </div>
+      <div class="form-group">
+        <label>Descripción*</label>
+        <input type="text" id="fDescripcion" placeholder="Ej: Pago honorarios caso #001">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Categoría*</label>
+          <input type="text" id="fCategoria" placeholder="Ej: Honorarios">
+        </div>
+        <div class="form-group">
+          <label>Fecha*</label>
+          <input type="date" id="fFecha">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btnCancelarNuevo">Cancelar</button>
+      <button class="btn-primary" id="btnGuardar">
+        <i class="fas fa-save"></i> <span id="btnGuardarTxt">Guardar Ingreso</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Ver Detalle -->
+<div class="overlay" id="modalDetalle">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Detalle del Ingreso</h3>
+      <button class="modal-close" id="btnCerrarDetalle"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="detalleBody" style="gap:0;padding:20px 22px"></div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btnCerrarDetalle2">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirmar eliminación -->
+<div class="overlay" id="modalConfirm">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <h3>Confirmar eliminación</h3>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.88rem;color:var(--color-secondary);line-height:1.6;margin:0">
+        ¿Estás seguro de que quieres eliminar este ingreso? Esta acción no se puede deshacer.
+      </p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btnCancelarEliminar">Cancelar</button>
+      <button style="background:#c0392b;border:none;color:#fff;padding:9px 18px;border-radius:10px;font-family:var(--font-main);font-size:.82rem;font-weight:700;cursor:pointer" id="btnConfirmEliminar">
+        <i class="fas fa-trash"></i> Eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGOUT -->
+<div class="session-overlay" id="logoutConfirm">
+  <div class="session-modal">
+    <i class="fas fa-sign-out-alt"></i>
+    <h3>¿Cerrar sesión?</h3>
+    <p>Tu sesión actual se cerrará.</p>
+    <div class="session-actions">
+      <button class="session-btn cancel" id="cancelLogout">Cancelar</button>
+      <button class="session-btn confirm" id="confirmLogout">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+<div class="session-overlay" id="logoutLoading">
+  <div class="logout-loader">
+    <div class="logout-spinner"></div>
+    <p style="font-size:.85rem;color:var(--color-secondary)">Cerrando sesión...</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastContainer" style="position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.75rem;z-index:9999;pointer-events:none"></div>
+
+<script>
+// ── SESSION ──────────────────────────────────────────────
+let usuario = null;
+try { usuario = JSON.parse(localStorage.getItem('usuario')); } catch(_) {}
+const tipoUsuario = localStorage.getItem('tipo_usuario') || 'administrador';
+const token = localStorage.getItem('token') || '';
+
+if (!usuario || !token) { window.location.href = 'login.html'; }
+
+const esAdmin = tipoUsuario === 'administrador';
+const nombreCompleto = `${usuario?.nombre || ''} ${usuario?.apellido || ''}`.trim();
+const iniciales = ((usuario?.nombre || 'A')[0] + (usuario?.apellido || 'D')[0]).toUpperCase();
+document.getElementById('uName').textContent = nombreCompleto || 'Usuario';
+document.getElementById('uAvatar').textContent = iniciales;
+
+if (tipoUsuario === 'judicante') {
+  document.getElementById('nav-admin').style.display = 'none';
+  document.getElementById('nav-judic').style.display = 'grid';
+  document.getElementById('sidebarRole').textContent = 'Judicante';
+}
+if (esAdmin) {
+  document.getElementById('btnNuevoIngreso').style.display = 'inline-flex';
+  document.getElementById('accionesHeader').style.display = 'table-cell';
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+});
+
+// ── LOGOUT ────────────────────────────────────────────────
+document.getElementById('logoutBtn').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('logoutConfirm').classList.add('active');
+});
+document.getElementById('cancelLogout').addEventListener('click', () => {
+  document.getElementById('logoutConfirm').classList.remove('active');
+});
+document.getElementById('confirmLogout').addEventListener('click', () => {
+  document.getElementById('logoutConfirm').classList.remove('active');
+  localStorage.clear();
+  document.getElementById('logoutLoading').classList.add('active');
+  setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+});
+
+// ── HELPERS ───────────────────────────────────────────────
+function formatCOP(v) {
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
+}
+function formatFecha(d) {
+  return new Date(d).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+function toast(msg, tipo = 'info') {
+  const c = document.getElementById('toastContainer');
+  const d = document.createElement('div');
+  const col = { success: '#1e8449', error: '#c0392b', info: '#2980b9' };
+  d.style.cssText = `background:#fff;padding:.85rem 1.25rem;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-family:var(--font-main);font-size:.82rem;font-weight:600;border-left:4px solid ${col[tipo]||col.info};color:${col[tipo]||col.info};pointer-events:auto`;
+  d.textContent = msg;
+  c.appendChild(d);
+  setTimeout(() => d.remove(), 3200);
+}
+
+// ── DATA ──────────────────────────────────────────────────
+let allIngresos = [];
+let ingresoParaEliminar = null;
+
+async function cargarIngresos() {
+  try {
+    const res = await fetch('/finanzas?tipo=ingreso', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error(`Error ${res.status} al cargar ingresos`);
+    const { data } = await res.json();
+    allIngresos = data;
+    actualizarStats();
+    poblarCategorias();
+    renderTabla();
+  } catch (err) {
+    console.error(err);
+    toast(err.message, 'error');
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${err.message}</p></div></td></tr>`;
+  }
+}
+
+function actualizarStats() {
+  const total = allIngresos.reduce((s, i) => s + i.monto, 0);
+  document.getElementById('statTotal').textContent = formatCOP(total);
+  document.getElementById('statCount').textContent = allIngresos.length;
+  document.getElementById('statCats').textContent = new Set(allIngresos.map(i => i.categoria)).size;
+}
+
+function poblarCategorias() {
+  const sel = document.getElementById('categoryFilter');
+  const existentes = Array.from(sel.options).map(o => o.value);
+  [...new Set(allIngresos.map(i => i.categoria))].forEach(cat => {
+    if (!existentes.includes(cat)) {
+      const opt = document.createElement('option');
+      opt.value = cat; opt.textContent = cat;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+function renderTabla() {
+  const tbody = document.getElementById('tbody');
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('categoryFilter').value;
+  const filtrados = allIngresos.filter(i =>
+    (!q || i.descripcion.toLowerCase().includes(q) || i.categoria.toLowerCase().includes(q)) &&
+    (!cat || i.categoria === cat)
+  );
+
+  document.getElementById('tableCount').textContent =
+    `${filtrados.length} ingreso${filtrados.length !== 1 ? 's' : ''}`;
+
+  if (!filtrados.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-inbox"></i><p>No hay ingresos que coincidan</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtrados.map(i => {
+    const nombre = `${i.registrado_por?.Nombre || ''} ${i.registrado_por?.Apellido || ''}`.trim();
+    const acciones = esAdmin ? `
+      <td><div class="action-btns">
+        <button class="action-btn" onclick="verDetalle('${i._id}')" title="Ver detalle"><i class="fas fa-eye"></i></button>
+        <button class="action-btn danger" onclick="abrirConfirmEliminar('${i._id}')" title="Eliminar"><i class="fas fa-trash"></i></button>
+      </div></td>` : '';
+    return `<tr>
+      <td><span class="amount-green">${formatCOP(i.monto)}</span></td>
+      <td><span class="task-desc">${i.descripcion}</span></td>
+      <td><span class="cat-badge">${i.categoria}</span></td>
+      <td><span class="task-meta">${formatFecha(i.fecha)}</span></td>
+      <td><div class="assignee">
+        <div class="assignee-av">${(nombre[0]||'?').toUpperCase()}</div>
+        <span class="assignee-name">${nombre || '—'}</span>
+      </div></td>
+      ${acciones}
+    </tr>`;
+  }).join('');
+}
+
+// ── DETALLE ───────────────────────────────────────────────
+function verDetalle(id) {
+  const i = allIngresos.find(x => x._id === id);
+  if (!i) return;
+  const nombre = `${i.registrado_por?.Nombre || ''} ${i.registrado_por?.Apellido || ''}`.trim();
+  document.getElementById('detalleBody').innerHTML = `
+    <div class="detalle-row"><span class="detalle-label">Descripción</span><span>${i.descripcion}</span></div>
+    <div class="detalle-row"><span class="detalle-label">Monto</span><span class="amount-green">${formatCOP(i.monto)}</span></div>
+    <div class="detalle-row"><span class="detalle-label">Categoría</span><span class="cat-badge">${i.categoria}</span></div>
+    <div class="detalle-row"><span class="detalle-label">Fecha</span><span>${formatFecha(i.fecha)}</span></div>
+    <div class="detalle-row"><span class="detalle-label">Registrado por</span><span>${nombre || '—'}</span></div>`;
+  document.getElementById('modalDetalle').classList.add('active');
+}
+
+// ── CREAR ─────────────────────────────────────────────────
+document.getElementById('btnNuevoIngreso').addEventListener('click', () => {
+  document.getElementById('fFecha').valueAsDate = new Date();
+  document.getElementById('modalNuevo').classList.add('active');
+});
+document.getElementById('btnGuardar').addEventListener('click', async () => {
+  const monto = parseFloat(document.getElementById('fMonto').value);
+  const descripcion = document.getElementById('fDescripcion').value.trim();
+  const categoria = document.getElementById('fCategoria').value.trim();
+  const fecha = document.getElementById('fFecha').value;
+
+  if (!monto || monto <= 0) { toast('Monto debe ser mayor a 0', 'error'); return; }
+  if (!descripcion) { toast('Descripción requerida', 'error'); return; }
+  if (!categoria) { toast('Categoría requerida', 'error'); return; }
+  if (!fecha) { toast('Fecha requerida', 'error'); return; }
+
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  document.getElementById('btnGuardarTxt').textContent = 'Guardando...';
+  try {
+    const res = await fetch('/finanzas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ tipo: 'ingreso', monto, descripcion, categoria, fecha })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || e.detalle || 'Error al crear'); }
+    toast('Ingreso registrado exitosamente', 'success');
+    document.getElementById('modalNuevo').classList.remove('active');
+    document.getElementById('fMonto').value = '';
+    document.getElementById('fDescripcion').value = '';
+    document.getElementById('fCategoria').value = '';
+    cargarIngresos();
+  } catch (err) { toast(err.message, 'error'); }
+  finally {
+    btn.disabled = false;
+    document.getElementById('btnGuardarTxt').textContent = 'Guardar Ingreso';
+  }
+});
+
+// ── ELIMINAR ──────────────────────────────────────────────
+function abrirConfirmEliminar(id) {
+  ingresoParaEliminar = id;
+  document.getElementById('modalConfirm').classList.add('active');
+}
+document.getElementById('btnConfirmEliminar').addEventListener('click', async () => {
+  if (!ingresoParaEliminar) return;
+  const btn = document.getElementById('btnConfirmEliminar');
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/finanzas/${ingresoParaEliminar}`, {
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Error al eliminar'); }
+    toast('Ingreso eliminado correctamente', 'success');
+    document.getElementById('modalConfirm').classList.remove('active');
+    ingresoParaEliminar = null;
+    cargarIngresos();
+  } catch (err) { toast(err.message, 'error'); }
+  finally { btn.disabled = false; }
+});
+
+// ── CERRAR MODALES ────────────────────────────────────────
+['btnCerrarNuevo','btnCancelarNuevo'].forEach(id =>
+  document.getElementById(id).addEventListener('click', () =>
+    document.getElementById('modalNuevo').classList.remove('active')));
+['btnCerrarDetalle','btnCerrarDetalle2'].forEach(id =>
+  document.getElementById(id).addEventListener('click', () =>
+    document.getElementById('modalDetalle').classList.remove('active')));
+document.getElementById('btnCancelarEliminar').addEventListener('click', () => {
+  document.getElementById('modalConfirm').classList.remove('active');
+  ingresoParaEliminar = null;
+});
+['modalNuevo','modalDetalle','modalConfirm'].forEach(id =>
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target.id === id) document.getElementById(id).classList.remove('active');
+  }));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape')
+    ['modalNuevo','modalDetalle','modalConfirm','logoutConfirm'].forEach(id =>
+      document.getElementById(id).classList.remove('active'));
+});
+
+document.getElementById('searchInput').addEventListener('input', renderTabla);
+document.getElementById('categoryFilter').addEventListener('change', renderTabla);
+document.getElementById('btnRefresh').addEventListener('click', cargarIngresos);
+
+cargarIngresos();
+</script>
+</body>
+</html>
