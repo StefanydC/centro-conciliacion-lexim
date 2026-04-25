@@ -2,7 +2,7 @@ services:
 
   # ─── Microservicio de autenticación y tareas ───────────────────────────────
   auth-service:
-    build: ./auth-service
+    build: ./backend/auth-service
     container_name: auth_service
     environment:
       - PORT=3001
@@ -16,7 +16,7 @@ services:
 
   # ─── Microservicio de conciliación ────────────────────────────────────────
   conciliacion-service:
-    build: ./conciliacion-service
+    build: ./backend/conciliacion-service
     container_name: conciliacion_service
     environment:
       - PORT=3002
@@ -29,7 +29,7 @@ services:
 
   # ─── Microservicio de usuarios ────────────────────────────────────────────
   usuarios-service:
-    build: ./usuarios-service
+    build: ./backend/usuarios-service
     container_name: usuarios_service
     environment:
       - PORT=3003
@@ -42,7 +42,7 @@ services:
 
   # ─── Microservicio de documentos (Google Drive) ───────────────────────────
   document-service:
-    build: ./document-service
+    build: ./backend/document-service
     container_name: document_service
     environment:
       - PORT=3004
@@ -55,14 +55,14 @@ services:
       - GOOGLE_OAUTH_REFRESH_TOKEN=${GOOGLE_OAUTH_REFRESH_TOKEN}
       - DRIVE_ROOT_FOLDER_ID=${DRIVE_ROOT_FOLDER_ID}
     volumes:
-      - ./document-service/credentials:/app/credentials:ro
+      - ./backend/document-service/credentials:/app/credentials:ro
     networks:
       - lexim-net
     restart: unless-stopped
 
   # ─── API Gateway ──────────────────────────────────────────────────────────
   api-gateway:
-    build: ./Backend/Gateway
+    build: ./backend/gateway
     container_name: api_gateway
     environment:
       - PORT=5000
