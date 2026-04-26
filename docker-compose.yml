@@ -1,9 +1,9 @@
 services:
 
-  # ─── Microservicio de autenticación y tareas ───────────────────────────────
-  auth-service:
-    build: ./backend/auth-service
-    container_name: auth_service
+  # ─── Microservicio de autenticación y gestión de usuarios ──────────────────
+  user-auth-service:
+    build: ./backend/user-auth-service
+    container_name: user_auth_service
     environment:
       - PORT=3001
       - MONGO_URI=${MONGO_URI}
@@ -20,19 +20,6 @@ services:
     container_name: conciliacion_service
     environment:
       - PORT=3002
-      - MONGO_URI=${MONGO_URI}
-      - MONGO_DB_NAME=${MONGO_DB_NAME}
-      - JWT_SECRET=${JWT_SECRET}
-    networks:
-      - lexim-net
-    restart: unless-stopped
-
-  # ─── Microservicio de usuarios ────────────────────────────────────────────
-  usuarios-service:
-    build: ./backend/usuarios-service
-    container_name: usuarios_service
-    environment:
-      - PORT=3003
       - MONGO_URI=${MONGO_URI}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
@@ -67,14 +54,12 @@ services:
     environment:
       - PORT=5000
       - JWT_SECRET=${JWT_SECRET}
-      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USER_AUTH_SERVICE_URL=http://user-auth-service:3001
       - CONCILIACION_SERVICE_URL=http://conciliacion-service:3002
-      - USUARIOS_SERVICE_URL=http://usuarios-service:3003
       - DOCUMENT_SERVICE_URL=http://document-service:3004
     depends_on:
-      - auth-service
+      - user-auth-service
       - conciliacion-service
-      - usuarios-service
       - document-service
     networks:
       - lexim-net

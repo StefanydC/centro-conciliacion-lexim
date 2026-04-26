@@ -12,9 +12,8 @@ const PORT = process.env.PORT || 5000;
 // ─── URLs de microservicios ───────────────────────────────────────────────────
 // NUNCA usar localhost: cada contenedor Docker tiene su propia red.
 // Los nombres de servicio son resueltos por el DNS interno de Docker.
-const AUTH_SERVICE_URL         = process.env.AUTH_SERVICE_URL         || 'http://auth-service:3001';
+const USER_AUTH_SERVICE_URL    = process.env.USER_AUTH_SERVICE_URL    || 'http://user-auth-service:3001';
 const CONCILIACION_SERVICE_URL = process.env.CONCILIACION_SERVICE_URL || 'http://conciliacion-service:3002';
-const USUARIOS_SERVICE_URL     = process.env.USUARIOS_SERVICE_URL     || 'http://usuarios-service:3003';
 const DOCUMENT_SERVICE_URL     = process.env.DOCUMENT_SERVICE_URL     || 'http://document-service:3004';
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
@@ -78,7 +77,7 @@ function markGateway(proxyRes) {
 
 // 🔓 AUTH — login (público, sin verificación de token)
 app.use('/auth', createProxyMiddleware({
-  target: AUTH_SERVICE_URL,
+  target: USER_AUTH_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/auth${path}`,
@@ -88,7 +87,7 @@ app.use('/auth', createProxyMiddleware({
       forwardBody(proxyReq, req);
     },
     proxyRes: markGateway,
-    error: (err, req, res) => proxyError('Auth service', 'AUTH_UNAVAILABLE', req, res, err)
+    error: (err, req, res) => proxyError('User Auth service', 'AUTH_UNAVAILABLE', req, res, err)
   }
 }));
 
@@ -98,7 +97,7 @@ app.use('/auth', createProxyMiddleware({
 
 // ✅ TASKS — cualquier usuario autenticado
 app.use('/tasks', requireJudicante, createProxyMiddleware({
-  target: AUTH_SERVICE_URL,
+  target: USER_AUTH_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/tasks${path}`,
@@ -109,13 +108,13 @@ app.use('/tasks', requireJudicante, createProxyMiddleware({
       forwardBody(proxyReq, req);
     },
     proxyRes: markGateway,
-    error: (err, req, res) => proxyError('Tasks service', 'TASKS_UNAVAILABLE', req, res, err)
+    error: (err, req, res) => proxyError('User Auth service', 'TASKS_UNAVAILABLE', req, res, err)
   }
 }));
 
 // 💰 FINANZAS — cualquier usuario autenticado
 app.use('/finanzas', requireJudicante, createProxyMiddleware({
-  target: AUTH_SERVICE_URL,
+  target: USER_AUTH_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/finanzas${path}`,
@@ -126,7 +125,7 @@ app.use('/finanzas', requireJudicante, createProxyMiddleware({
       forwardBody(proxyReq, req);
     },
     proxyRes: markGateway,
-    error: (err, req, res) => proxyError('Finanzas service', 'FINANZAS_UNAVAILABLE', req, res, err)
+    error: (err, req, res) => proxyError('User Auth service', 'FINANZAS_UNAVAILABLE', req, res, err)
   }
 }));
 
@@ -174,7 +173,7 @@ app.use('/documentos', requireJudicante, createProxyMiddleware({
 
 // 👤 USUARIOS — solo administrador
 app.use('/usuarios', requireAdmin, createProxyMiddleware({
-  target: USUARIOS_SERVICE_URL,
+  target: USER_AUTH_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/usuarios${path}`,
@@ -185,15 +184,15 @@ app.use('/usuarios', requireAdmin, createProxyMiddleware({
       forwardBody(proxyReq, req);
     },
     proxyRes: markGateway,
-    error: (err, req, res) => proxyError('Usuarios service', 'USUARIOS_UNAVAILABLE', req, res, err)
+    error: (err, req, res) => proxyError('User Auth service', 'USUARIOS_UNAVAILABLE', req, res, err)
   }
 }));
 
 // 🔑 ADMIN — alias privado para operaciones administrativas
-//    Actualmente enruta a usuarios-service. En el futuro puede ser
+//    Enruta a user-auth-service. En el futuro puede ser
 //    su propio microservicio sin cambiar el contrato de la API.
 app.use('/admin', requireAdmin, createProxyMiddleware({
-  target: USUARIOS_SERVICE_URL,
+  target: USER_AUTH_SERVICE_URL,
   changeOrigin: true,
   proxyTimeout: 10000,
   pathRewrite: (path) => `/usuarios${path}`,
@@ -204,7 +203,7 @@ app.use('/admin', requireAdmin, createProxyMiddleware({
       forwardBody(proxyReq, req);
     },
     proxyRes: markGateway,
-    error: (err, req, res) => proxyError('Admin (usuarios) service', 'ADMIN_UNAVAILABLE', req, res, err)
+    error: (err, req, res) => proxyError('User Auth service', 'ADMIN_UNAVAILABLE', req, res, err)
   }
 }));
 
@@ -216,9 +215,8 @@ app.get('/health', (_req, res) => {
   res.json({
     gateway: 'ok',
     servicios: {
-      auth:         AUTH_SERVICE_URL,
+      userAuth:     USER_AUTH_SERVICE_URL,
       conciliacion: CONCILIACION_SERVICE_URL,
-      usuarios:     USUARIOS_SERVICE_URL,
       documentos:   DOCUMENT_SERVICE_URL
     },
     rutas: {
