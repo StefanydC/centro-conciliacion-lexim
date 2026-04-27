@@ -62,10 +62,15 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null
     },
-    fecha_ingreso: { 
-      type: Date, 
-      default: Date.now 
-    }
+    fecha_ingreso: {
+      type: Date,
+      default: Date.now
+    },
+    google_connected:     { type: Boolean, default: false },
+    google_email:         { type: String,  default: null  },
+    google_access_token:  { type: String,  default: null, select: false },
+    google_refresh_token: { type: String,  default: null, select: false },
+    google_token_expiry:  { type: Date,    default: null  }
   },
   { 
     timestamps: true,

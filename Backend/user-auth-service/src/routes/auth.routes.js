@@ -1,8 +1,9 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
+const express        = require("express");
+const jwt            = require("jsonwebtoken");
 const authController = require("../controllers/auth.controller");
+const googleController = require("../controllers/google.controller");
 const { validateRequest } = require("../middlewares/validate.middleware");
-const { loginValidator } = require("../validators/user.validator");
+const { loginValidator }  = require("../validators/user.validator");
 const { env } = require("../config/env");
 
 const router = express.Router();
@@ -42,5 +43,18 @@ router.post("/logout", (req, res, next) => {
     return res.json({ mensaje: "Sesión ya expirada" });
   }
 }, authController.logout);
+
+/**
+ * GET /auth/google/connect?token=<jwt>
+ * Inicia el flujo OAuth2 para conectar Google Calendar.
+ * El token viaja en query param porque es una redirección del navegador.
+ */
+router.get("/google/connect", googleController.connect);
+
+/**
+ * GET /auth/google/callback
+ * Google redirige aquí después del consentimiento del usuario.
+ */
+router.get("/google/callback", googleController.callback);
 
 module.exports = router;

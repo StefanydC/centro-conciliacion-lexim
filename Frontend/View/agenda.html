@@ -8,6 +8,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
   <link rel="stylesheet" href="../Controller/styles/agenda.css"/>
+  <style>
+    /* Google Calendar banner */
+    .gcal-connect-bar{display:flex;align-items:center;gap:12px;background:#fff8e1;border:1.5px solid #ffd54f;border-radius:10px;padding:11px 16px;margin-bottom:18px}
+    .gcal-connect-bar i.fab{font-size:1.2rem;color:#4285f4;flex-shrink:0}
+    .gcal-connect-bar .gcal-msg{flex:1;font-size:.85rem;color:#e65100;font-weight:500}
+    .gcal-connect-btn{padding:7px 16px;border-radius:7px;border:none;cursor:pointer;background:#1a73e8;color:#fff;font-size:.82rem;font-weight:600;flex-shrink:0;transition:background .2s}
+    .gcal-connect-btn:hover{background:#1557b0}
+    .gcal-connect-btn:disabled{opacity:.6;cursor:not-allowed}
+  </style>
 </head>
 <body>
 
@@ -55,6 +64,14 @@
   </header>
 
   <div class="content">
+
+    <!-- ── GOOGLE CALENDAR SECTION ── -->
+    <!-- Se muestra solo si NO está conectado -->
+    <div class="gcal-connect-bar" id="gcalConnectBar" style="display:none">
+      <i class="fab fa-google"></i>
+      <span class="gcal-msg">Conecta tu Google Calendar para sincronizar eventos automáticamente</span>
+      <button class="gcal-connect-btn" id="gcalConnectBtn"><i class="fab fa-google"></i> Conectar Google Calendar</button>
+    </div>
 
     <!-- PAGE HEADER -->
     <div class="page-header">
@@ -381,13 +398,14 @@ let todosEventos   = [];
 let editandoId     = null;
 let eliminandoId   = null;
 let detalleEvento  = null;
+let gcalConectado  = false;
 
-let calFecha       = new Date();          // mes mostrado en el mini-cal
-let diaSeleccionado = null;               // filtro por día al clicar calendario
-let vistaActual    = 'lista';             // 'lista' | 'mes'
+let calFecha        = new Date();
+let diaSeleccionado = null;
+let vistaActual     = 'lista';
 
 const MESES = ['enero','febrero','marzo','abril','mayo','junio',
-                'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+               'julio','agosto','septiembre','octubre','noviembre','diciembre'];
 
 /* ═══════════════════════════════════════════════
    UTILIDADES
@@ -400,8 +418,7 @@ function formatFecha(valor) {
 }
 
 function formatHora(valor) {
-  if (!valor) return '—';
-  // "HH:MM" o datetime
+  if (!valor) return { display: '—', ampm: '' };
   if (/^\d{2}:\d{2}/.test(valor)) {
     const [h, m] = valor.split(':');
     const hNum = parseInt(h, 10);
@@ -427,7 +444,6 @@ function escapeHtml(v) {
 }
 
 function isoDate(val) {
-  // Retorna 'YYYY-MM-DD' de un campo fecha
   if (!val) return '';
   if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
   const d = new Date(val);
@@ -461,13 +477,23 @@ function cfg(tipo) { return TIPO_CONFIG[tipo] || TIPO_CONFIG.otro; }
    API
 ═══════════════════════════════════════════════ */
 async function apiFetch(url, opts = {}) {
-  const r = await fetch(url, {
-    ...opts,
-    headers: { Authorization: `Bearer ${token}`, ...(opts.headers || {}) }
-  });
-  const body = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(body?.mensaje || body?.error || body?.detalle || `Error HTTP ${r.status}`);
-  return body;
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const r = await fetch(url, {
+      ...opts,
+      signal: ctrl.signal,
+      headers: { Authorization: `Bearer ${token}`, ...(opts.headers || {}) }
+    });
+    clearTimeout(tid);
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(body?.mensaje || body?.error || body?.detalle || `Error HTTP ${r.status}`);
+    return body;
+  } catch (err) {
+    clearTimeout(tid);
+    if (err.name === 'AbortError') throw new Error('Tiempo de espera agotado');
+    throw err;
+  }
 }
 
 function apiListarEventos() { return apiFetch('/agenda/'); }
@@ -497,16 +523,47 @@ function normalizarEvento(raw) {
   const tipo = String(raw?.tipo || 'otro').toLowerCase();
   return {
     id:          String(raw?.id || raw?._id || ''),
-    titulo:      raw?.titulo     || raw?.title       || '',
+    titulo:      raw?.titulo      || raw?.title       || '',
     tipo:        TIPO_CONFIG[tipo] ? tipo : 'otro',
-    caso:        raw?.caso       || raw?.referencia   || '',
-    fecha:       raw?.fecha      || raw?.date         || '',
-    hora:        raw?.hora       || raw?.time         || '',
-    lugar:       raw?.lugar      || raw?.location     || '',
-    descripcion: raw?.descripcion|| raw?.description  || '',
-    createdAt:   raw?.createdAt  || null,
+    caso:        raw?.caso        || raw?.referencia   || '',
+    fecha:       raw?.fecha       || raw?.date         || '',
+    hora:        raw?.hora        || raw?.time         || '',
+    lugar:       raw?.lugar       || raw?.location     || '',
+    descripcion: raw?.descripcion || raw?.description  || '',
+    createdAt:   raw?.createdAt   || null,
   };
 }
+
+/* ═══════════════════════════════════════════════
+   GOOGLE CALENDAR
+═══════════════════════════════════════════════ */
+async function cargarEstadoGcal() {
+  try {
+    const data = await apiFetch('/agenda/google/status');
+    gcalConectado = data.connected;
+    document.getElementById('gcalConnectBar').style.display = data.connected ? 'none' : 'flex';
+  } catch (err) {
+    console.warn('[GCAL] Estado no disponible:', err.message);
+  }
+}
+
+document.getElementById('gcalConnectBtn').addEventListener('click', () => {
+  window.location.href = `/auth/google/connect?token=${encodeURIComponent(token)}`;
+});
+
+
+/* Detectar retorno del flujo OAuth */
+(function() {
+  const p = new URLSearchParams(window.location.search);
+  const g = p.get('gcal');
+  if (g === 'ok') {
+    toast('¡Google Calendar conectado correctamente!', 'success');
+    history.replaceState(null, '', window.location.pathname);
+  } else if (g === 'error') {
+    toast(p.get('msg') || 'Error al conectar Google Calendar', 'error');
+    history.replaceState(null, '', window.location.pathname);
+  }
+})();
 
 /* ═══════════════════════════════════════════════
    STATS
@@ -531,9 +588,8 @@ function getFiltrados() {
   const hoy     = new Date().toISOString().slice(0,10);
   const en7     = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
 
-  // inicio de semana (lunes)
   const now = new Date();
-  const dow = now.getDay(); // 0=dom
+  const dow = now.getDay();
   const iniSem = new Date(now);
   iniSem.setDate(now.getDate() - ((dow + 6) % 7));
   const finSem = new Date(iniSem);
@@ -565,9 +621,9 @@ function eventosPorId(id) { return todosEventos.find(e => e.id === String(id)); 
    RENDER LISTA
 ═══════════════════════════════════════════════ */
 function agruparPorFecha(lista) {
-  const hoy     = new Date().toISOString().slice(0,10);
-  const manana  = new Date(Date.now()+86400000).toISOString().slice(0,10);
-  const grupos  = {};
+  const hoy    = new Date().toISOString().slice(0,10);
+  const manana = new Date(Date.now()+86400000).toISOString().slice(0,10);
+  const grupos = {};
 
   lista.forEach(e => {
     const fd = isoDate(e.fecha) || 'sin-fecha';
@@ -575,7 +631,6 @@ function agruparPorFecha(lista) {
     grupos[fd].push(e);
   });
 
-  // Ordenar fechas
   return Object.entries(grupos)
     .sort(([a],[b]) => a.localeCompare(b))
     .map(([fd, evs]) => {
@@ -593,8 +648,8 @@ function agruparPorFecha(lista) {
 }
 
 function renderEventoItem(e) {
-  const c   = cfg(e.tipo);
-  const h   = formatHora(e.hora);
+  const c = cfg(e.tipo);
+  const h = formatHora(e.hora);
   return `
     <div class="event-item" data-id="${escapeHtml(e.id)}">
       <div class="event-color-bar ${c.barClass}"></div>
@@ -607,8 +662,8 @@ function renderEventoItem(e) {
         <div class="event-title">${escapeHtml(e.titulo || 'Sin título')}</div>
         <div class="event-meta">
           <span class="event-badge ${c.badgeClass}"><i class="fas ${c.icon}"></i> ${c.label}</span>
-          ${e.caso   ? `<span class="event-meta-item"><i class="fas fa-folder-open"></i> ${escapeHtml(e.caso)}</span>` : ''}
-          ${e.lugar  ? `<span class="event-meta-item"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(e.lugar)}</span>` : ''}
+          ${e.caso  ? `<span class="event-meta-item"><i class="fas fa-folder-open"></i> ${escapeHtml(e.caso)}</span>` : ''}
+          ${e.lugar ? `<span class="event-meta-item"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(e.lugar)}</span>` : ''}
         </div>
       </div>
       <div class="event-actions">
@@ -666,18 +721,13 @@ function renderVistaMes() {
   const prevLast = new Date(year, month, 0).getDate();
 
   const cells = [];
-
-  for (let i = firstDay - 1; i >= 0; i--) {
-    cells.push({ day: prevLast - i, thisMonth: false,
-      iso: isoFecha(year, month - 1, prevLast - i) });
-  }
-  for (let d = 1; d <= lastDay; d++) {
+  for (let i = firstDay - 1; i >= 0; i--)
+    cells.push({ day: prevLast - i, thisMonth: false, iso: isoFecha(year, month-1, prevLast-i) });
+  for (let d = 1; d <= lastDay; d++)
     cells.push({ day: d, thisMonth: true, iso: isoFecha(year, month, d) });
-  }
   const rem = 42 - cells.length;
-  for (let d = 1; d <= rem; d++) {
+  for (let d = 1; d <= rem; d++)
     cells.push({ day: d, thisMonth: false, iso: isoFecha(year, month+1, d) });
-  }
 
   const eventMap = {};
   todosEventos.forEach(e => {
@@ -689,32 +739,27 @@ function renderVistaMes() {
   });
 
   document.getElementById('monthViewGrid').innerHTML = cells.map(cell => {
-    const isToday  = cell.iso === hoy;
-    const cls      = `month-cell${!cell.thisMonth ? ' other-month' : ''}${isToday ? ' today' : ''}`;
-    const evs      = eventMap[cell.iso] || [];
-    const max      = 2;
-    const chips    = evs.slice(0, max).map(e =>
+    const isToday = cell.iso === hoy;
+    const cls     = `month-cell${!cell.thisMonth ? ' other-month' : ''}${isToday ? ' today' : ''}`;
+    const evs     = eventMap[cell.iso] || [];
+    const max     = 2;
+    const chips   = evs.slice(0, max).map(e =>
       `<div class="month-event-chip ${cfg(e.tipo).chipClass}" data-id="${e.id}" title="${escapeHtml(e.titulo)}">${escapeHtml(e.titulo)}</div>`
     ).join('');
     const more = evs.length > max ? `<div class="month-more">+${evs.length - max} más</div>` : '';
-    return `<div class="${cls}" data-date="${cell.iso}">${'<div class="month-cell-number">'+cell.day+'</div>'}${chips}${more}</div>`;
+    return `<div class="${cls}" data-date="${cell.iso}"><div class="month-cell-number">${cell.day}</div>${chips}${more}</div>`;
   }).join('');
 
-  // click en chip para abrir detalle
   document.getElementById('monthViewGrid').addEventListener('click', ev => {
     const chip = ev.target.closest('.month-event-chip[data-id]');
     if (chip) { verDetalle(chip.dataset.id); return; }
     const cell = ev.target.closest('.month-cell[data-date]');
-    if (cell) {
-      diaSeleccionado = cell.dataset.date || null;
-      cambiarVista('lista');
-    }
+    if (cell) { diaSeleccionado = cell.dataset.date || null; cambiarVista('lista'); }
   });
 }
 
 function isoFecha(year, month, day) {
-  const d = new Date(year, month, day);
-  return d.toISOString().slice(0,10);
+  return new Date(year, month, day).toISOString().slice(0,10);
 }
 
 /* ═══════════════════════════════════════════════
@@ -728,11 +773,9 @@ function renderMiniCal() {
   document.getElementById('calMonthTitle').textContent =
     `${MESES[month].charAt(0).toUpperCase() + MESES[month].slice(1)} ${year}`;
 
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDay  = new Date(year, month+1, 0).getDate();
-  const prevLast = new Date(year, month, 0).getDate();
-
-  // build event dates set for dot
+  const firstDay  = new Date(year, month, 1).getDay();
+  const lastDay   = new Date(year, month+1, 0).getDate();
+  const prevLast  = new Date(year, month, 0).getDate();
   const eventDates = new Set(todosEventos.map(e => isoDate(e.fecha)));
 
   const cells = [];
@@ -746,10 +789,10 @@ function renderMiniCal() {
 
   document.getElementById('calDays').innerHTML = cells.map(cell => {
     let cls = 'cal-day';
-    if (!cell.thisMonth) cls += ' other-month';
-    if (cell.iso === hoy) cls += ' today';
+    if (!cell.thisMonth)              cls += ' other-month';
+    if (cell.iso === hoy)             cls += ' today';
     if (cell.iso === diaSeleccionado) cls += ' selected';
-    if (eventDates.has(cell.iso)) cls += ' has-events';
+    if (eventDates.has(cell.iso))     cls += ' has-events';
     return `<div class="${cls}" data-date="${cell.iso}">${cell.day}</div>`;
   }).join('');
 
@@ -822,15 +865,15 @@ function verDetalle(id) {
   const c = cfg(e.tipo);
   const h = formatHora(e.hora);
 
-  document.getElementById('detailIcon').className    = `detail-event-icon ${c.iconClass}`;
-  document.getElementById('detailIcon').innerHTML    = `<i class="fas ${c.icon}"></i>`;
+  document.getElementById('detailIcon').className      = `detail-event-icon ${c.iconClass}`;
+  document.getElementById('detailIcon').innerHTML      = `<i class="fas ${c.icon}"></i>`;
   document.getElementById('detailTitulo').textContent  = e.titulo || 'Sin título';
   document.getElementById('detailSubtitle').textContent= e.caso   || '—';
-  document.getElementById('detailTipo').innerHTML    = `<span class="event-badge ${c.badgeClass}">${c.label}</span>`;
-  document.getElementById('detailCaso').textContent  = e.caso        || '—';
-  document.getElementById('detailFecha').textContent = formatFecha(e.fecha);
-  document.getElementById('detailHora').textContent  = e.hora ? `${h.display} ${h.ampm}` : '—';
-  document.getElementById('detailLugar').textContent = e.lugar       || '—';
+  document.getElementById('detailTipo').innerHTML      = `<span class="event-badge ${c.badgeClass}">${c.label}</span>`;
+  document.getElementById('detailCaso').textContent    = e.caso        || '—';
+  document.getElementById('detailFecha').textContent   = formatFecha(e.fecha);
+  document.getElementById('detailHora').textContent    = e.hora ? `${h.display} ${h.ampm}` : '—';
+  document.getElementById('detailLugar').textContent   = e.lugar       || '—';
   document.getElementById('detailDescripcion').textContent = e.descripcion || '—';
 
   abrirOverlay('modalDetalle');
@@ -886,7 +929,7 @@ function abrirEliminar(id) {
    EVENTOS DE LA TABLA (delegación)
 ═══════════════════════════════════════════════ */
 document.getElementById('eventsContainer').addEventListener('click', ev => {
-  const btn = ev.target.closest('button[data-action]');
+  const btn  = ev.target.closest('button[data-action]');
   const item = ev.target.closest('.event-item[data-id]');
   if (btn) {
     const { action, id } = btn.dataset;
@@ -912,9 +955,9 @@ document.getElementById('btnGuardarEvento').addEventListener('click', async () =
   if (!titulo) { toast('El título es obligatorio', 'error'); return; }
   if (!fecha)  { toast('La fecha es obligatoria', 'error');  return; }
 
-  const btn          = document.getElementById('btnGuardarEvento');
-  const modoEdicion  = Boolean(editandoId);
-  btn.disabled = true;
+  const btn         = document.getElementById('btnGuardarEvento');
+  const modoEdicion = Boolean(editandoId);
+  btn.disabled  = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
   const payload = { titulo, tipo, caso, fecha, hora, lugar, descripcion };
@@ -922,7 +965,7 @@ document.getElementById('btnGuardarEvento').addEventListener('click', async () =
   try {
     if (!modoEdicion) {
       await apiCrearEvento(payload);
-      toast('Evento creado correctamente', 'success');
+      toast(gcalConectado ? '¡Evento creado y sincronizado con Google Calendar!' : 'Evento creado correctamente', 'success');
     } else {
       await apiActualizarEvento(editandoId, payload);
       toast('Evento actualizado correctamente', 'success');
@@ -932,7 +975,7 @@ document.getElementById('btnGuardarEvento').addEventListener('click', async () =
   } catch (error) {
     toast(error.message, 'error');
   } finally {
-    btn.disabled = false;
+    btn.disabled  = false;
     btn.innerHTML = `<i class="fas fa-save"></i> <span id="btnGuardarTxt">${modoEdicion ? 'Guardar Cambios' : 'Crear Evento'}</span>`;
   }
 });
@@ -943,7 +986,7 @@ document.getElementById('btnGuardarEvento').addEventListener('click', async () =
 document.getElementById('btnConfirmarEliminar').addEventListener('click', async () => {
   if (!eliminandoId) return;
   const btn = document.getElementById('btnConfirmarEliminar');
-  btn.disabled = true;
+  btn.disabled  = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
   try {
     await apiEliminarEvento(eliminandoId);
@@ -954,9 +997,9 @@ document.getElementById('btnConfirmarEliminar').addEventListener('click', async 
   } catch (error) {
     toast(error.message, 'error');
   } finally {
-    btn.disabled = false;
+    btn.disabled  = false;
     btn.innerHTML = '<i class="fas fa-trash"></i> Eliminar';
-    eliminandoId = null;
+    eliminandoId  = null;
   }
 });
 
@@ -984,13 +1027,11 @@ document.getElementById('btnConfirmarEliminar').addEventListener('click', async 
 ['closeDetalle','cancelDetalle'].forEach(id => {
   document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalDetalle'));
 });
-
 ['modalEvento','modalEliminar','modalDetalle','logoutConfirm'].forEach(id => {
   document.getElementById(id).addEventListener('click', ev => {
     if (ev.target.id === id) cerrarOverlay(id);
   });
 });
-
 document.addEventListener('keydown', ev => {
   if (ev.key !== 'Escape') return;
   ['modalEvento','modalEliminar','modalDetalle','logoutConfirm'].forEach(cerrarOverlay);
@@ -1006,7 +1047,10 @@ document.getElementById('btnEliminarDesdeDetalle').addEventListener('click', () 
 });
 
 document.getElementById('btnNuevoEvento').addEventListener('click', () => abrirNuevoEvento());
-document.getElementById('btnRefresh').addEventListener('click', cargarEventos);
+document.getElementById('btnRefresh').addEventListener('click', () => {
+  cargarEventos();
+  cargarEstadoGcal();
+});
 
 /* ═══════════════════════════════════════════════
    LOGOUT
@@ -1033,6 +1077,7 @@ window.addEventListener('beforeunload', () => {
 
 /* ── INIT ── */
 calFecha = new Date();
+cargarEstadoGcal();
 cargarEventos();
 </script>
 </body>
