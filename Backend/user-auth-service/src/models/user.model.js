@@ -50,6 +50,18 @@ const userSchema = new mongoose.Schema(
       type: Boolean, 
       default: true 
     },
+    en_linea: {
+      type: Boolean,
+      default: false
+    },
+    ultimo_acceso: {
+      type: Date,
+      default: null
+    },
+    ultimo_logout: {
+      type: Date,
+      default: null
+    },
     fecha_ingreso: { 
       type: Date, 
       default: Date.now 

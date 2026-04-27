@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LEXIM — Agenda</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
+  <link rel="stylesheet" href="../Controller/styles/agenda.css"/>
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-ico"><i class="fas fa-balance-scale"></i></div>
+    <div class="brand-texts">
+      <div class="brand-name">LEXIM</div>
+      <div class="brand-role" id="sidebarRole">Administrador</div>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-chevron-left"></i></button>
+  </div>
+
+  <nav class="sidebar-nav" id="nav-admin">
+    <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item" href="tareas.html"><i class="fas fa-tasks"></i><span>Tareas</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Documentos</span></a>
+    <a class="nav-item" href="ingresos.html"><i class="fas fa-arrow-up"></i><span>Ingresos</span></a>
+    <a class="nav-item" href="egresos.html"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item" href="modulo.html?mod=conciliaciones"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
+    <a class="nav-item active" href="/api/agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" href="/api/usuarios.html"><i class="fas fa-users"></i><span>Usuarios</span></a>
+    <a class="nav-item" href="modulo.html?mod=reportes"><i class="fas fa-chart-bar"></i><span>Reportes</span></a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <a class="logout-btn" href="#" id="logoutBtn"><i class="fas fa-lock"></i><span>Cerrar Sesión</span></a>
+  </div>
+</aside>
+
+<!-- ── MAIN ─────────────────────────────────────────────────────────── -->
+<div class="main" id="mainContent">
+
+  <header class="topbar">
+    <div class="topbar-title">Agenda</div>
+    <button class="tb-btn"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
+    <button class="tb-btn" id="btnRefresh" title="Recargar"><i class="fas fa-sync-alt"></i></button>
+    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    <div class="user-pill">
+      <div class="u-avatar" id="uAvatar">AD</div>
+      <span class="u-name" id="uName">Administrador</span>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Agenda</h1>
+        <p>Gestiona audiencias, vencimientos y reuniones del despacho</p>
+        <div class="agenda-stats" id="agendaStats">
+          <div class="agenda-stat-card total">
+            <div class="agenda-stat-head">
+              <span class="agenda-stat-icon"><i class="fas fa-calendar-check"></i></span>
+              <span class="agenda-stat-label">Total</span>
+            </div>
+            <strong class="agenda-stat-value" id="statTotal">0</strong>
+            <span class="agenda-stat-hint">Eventos registrados</span>
+          </div>
+          <div class="agenda-stat-card hoy">
+            <div class="agenda-stat-head">
+              <span class="agenda-stat-icon"><i class="fas fa-star"></i></span>
+              <span class="agenda-stat-label">Hoy</span>
+            </div>
+            <strong class="agenda-stat-value" id="statHoy">0</strong>
+            <span class="agenda-stat-hint">Eventos del día</span>
+          </div>
+          <div class="agenda-stat-card prox">
+            <div class="agenda-stat-head">
+              <span class="agenda-stat-icon"><i class="fas fa-clock"></i></span>
+              <span class="agenda-stat-label">Próximos</span>
+            </div>
+            <strong class="agenda-stat-value" id="statProx">0</strong>
+            <span class="agenda-stat-hint">Siguientes 7 días</span>
+          </div>
+          <div class="agenda-stat-card venc">
+            <div class="agenda-stat-head">
+              <span class="agenda-stat-icon"><i class="fas fa-exclamation-circle"></i></span>
+              <span class="agenda-stat-label">Vencidos</span>
+            </div>
+            <strong class="agenda-stat-value" id="statVenc">0</strong>
+            <span class="agenda-stat-hint">Sin completar</span>
+          </div>
+        </div>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn-primary" id="btnNuevoEvento">
+          <i class="fas fa-plus"></i> Nuevo Evento
+        </button>
+      </div>
+    </div>
+
+    <!-- LAYOUT PRINCIPAL -->
+    <div class="agenda-layout">
+
+      <!-- ── COLUMNA IZQUIERDA: MINI CALENDARIO ──── -->
+      <div>
+        <div class="calendar-card">
+          <div class="calendar-head">
+            <button class="cal-nav-btn" id="calPrev"><i class="fas fa-chevron-left"></i></button>
+            <div class="calendar-head-title" id="calMonthTitle">—</div>
+            <button class="cal-nav-btn" id="calNext"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="calendar-grid">
+            <div class="cal-weekdays">
+              <div class="cal-weekday">Do</div>
+              <div class="cal-weekday">Lu</div>
+              <div class="cal-weekday">Ma</div>
+              <div class="cal-weekday">Mi</div>
+              <div class="cal-weekday">Ju</div>
+              <div class="cal-weekday">Vi</div>
+              <div class="cal-weekday">Sá</div>
+            </div>
+            <div class="cal-days" id="calDays"></div>
+          </div>
+          <div class="cal-legend">
+            <div class="cal-legend-title">Tipos de evento</div>
+            <div class="cal-legend-item"><span class="cal-legend-dot dot-audiencia"></span> Audiencia</div>
+            <div class="cal-legend-item"><span class="cal-legend-dot dot-vencimiento"></span> Vencimiento</div>
+            <div class="cal-legend-item"><span class="cal-legend-dot dot-reunion"></span> Reunión</div>
+            <div class="cal-legend-item"><span class="cal-legend-dot dot-otro"></span> Otro</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── COLUMNA DERECHA: EVENTOS ──── -->
+      <div class="events-panel">
+
+        <!-- Toolbar -->
+        <div class="agenda-toolbar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar evento, caso o descripción...">
+          </div>
+          <select class="filter-select" id="filterTipo">
+            <option value="">Todos los tipos</option>
+            <option value="audiencia">Audiencia</option>
+            <option value="vencimiento">Vencimiento</option>
+            <option value="reunion">Reunión</option>
+            <option value="otro">Otro</option>
+          </select>
+          <select class="filter-select" id="filterPeriodo">
+            <option value="todos">Todos</option>
+            <option value="hoy">Hoy</option>
+            <option value="semana">Esta semana</option>
+            <option value="mes">Este mes</option>
+          </select>
+        </div>
+
+        <!-- Tabs vista -->
+        <div class="view-tabs">
+          <button class="view-tab active" id="tabLista" data-tab="lista">
+            <i class="fas fa-list"></i> Lista
+          </button>
+          <button class="view-tab" id="tabMes" data-tab="mes">
+            <i class="fas fa-calendar"></i> Mes
+          </button>
+        </div>
+
+        <!-- Vista Lista -->
+        <div id="vistaLista">
+          <div class="events-wrap" id="eventsWrap">
+            <div class="loading-state" id="loadingState">
+              <i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando eventos...
+            </div>
+            <div id="eventsContainer"></div>
+            <div class="empty-events" id="emptyState" style="display:none">
+              <i class="fas fa-calendar-times"></i>
+              <p>No se encontraron eventos</p>
+              <span>Intenta con otro filtro o crea un nuevo evento</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista Mes -->
+        <div id="vistaMes" style="display:none">
+          <div class="month-view">
+            <div class="month-view-head" id="monthViewHead"></div>
+            <div class="month-view-grid" id="monthViewGrid"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: NUEVO / EDITAR EVENTO ───────────────────────────────── -->
+<div class="overlay" id="modalEvento">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalEventoTitle">
+        <i class="fas fa-calendar-plus" style="color:var(--color-primary);margin-right:8px"></i>Nuevo Evento
+      </h3>
+      <button class="modal-close" id="closeModalEvento"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Título del evento</label>
+        <input type="text" id="fTitulo" placeholder="Ej: Audiencia Caso 2024-001" maxlength="120">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="fTipo">
+            <option value="audiencia">Audiencia</option>
+            <option value="vencimiento">Vencimiento</option>
+            <option value="reunion">Reunión</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Caso / Referencia</label>
+          <input type="text" id="fCaso" placeholder="Ej: Exp. 2024-0123" maxlength="80">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="fFecha">
+        </div>
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" id="fHora">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Lugar / Despacho</label>
+        <input type="text" id="fLugar" placeholder="Ej: Juzgado 3 Civil del Circuito" maxlength="120">
+      </div>
+      <div class="form-group">
+        <label>Descripción / Notas</label>
+        <textarea id="fDescripcion" placeholder="Notas adicionales sobre el evento..." maxlength="500"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelModalEvento">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarEvento">
+        <i class="fas fa-save"></i> <span id="btnGuardarTxt">Crear Evento</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: VER DETALLE EVENTO ──────────────────────────────────── -->
+<div class="overlay" id="modalDetalle">
+  <div class="modal modal-detalle">
+    <div class="modal-head">
+      <h3><i class="fas fa-calendar-day" style="color:var(--color-primary);margin-right:8px"></i>Detalle del Evento</h3>
+      <button class="modal-close" id="closeDetalle"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="detail-event-header">
+      <div class="detail-event-icon" id="detailIcon"><i class="fas fa-calendar"></i></div>
+      <div class="detail-event-title-wrap">
+        <div class="detail-event-title" id="detailTitulo">—</div>
+        <div class="detail-event-sub" id="detailSubtitle">—</div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="detail-item-label"><i class="fas fa-tag"></i> Tipo</div>
+        <div class="detail-item-value" id="detailTipo">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label"><i class="fas fa-folder-open"></i> Caso / Ref.</div>
+        <div class="detail-item-value" id="detailCaso">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label"><i class="fas fa-calendar-alt"></i> Fecha</div>
+        <div class="detail-item-value" id="detailFecha">—</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label"><i class="fas fa-clock"></i> Hora</div>
+        <div class="detail-item-value" id="detailHora">—</div>
+      </div>
+      <div class="detail-item detail-full-row">
+        <div class="detail-item-label"><i class="fas fa-map-marker-alt"></i> Lugar</div>
+        <div class="detail-item-value" id="detailLugar">—</div>
+      </div>
+      <div class="detail-item detail-full-row">
+        <div class="detail-item-label"><i class="fas fa-sticky-note"></i> Descripción</div>
+        <div class="detail-item-value" id="detailDescripcion">—</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelDetalle">Cerrar</button>
+      <button class="btn-danger" id="btnEliminarDesdeDetalle"><i class="fas fa-trash"></i> Eliminar</button>
+      <button class="btn-primary" id="btnEditarDesdeDetalle"><i class="fas fa-pencil-alt"></i> Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: CONFIRMAR ELIMINAR ──────────────────────────────────── -->
+<div class="overlay" id="modalEliminar">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Confirmar eliminación</h3>
+      <button class="modal-close" id="closeEliminar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="confirm-body">
+      <i class="fas fa-exclamation-triangle"></i>
+      <h4>¿Eliminar este evento?</h4>
+      <p id="eliminarNombre" style="font-weight:700;color:var(--color-dark);margin:8px 0 4px"></p>
+      <p>Esta acción es permanente y no se puede deshacer.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelEliminar">Cancelar</button>
+      <button class="btn-danger" id="btnConfirmarEliminar"><i class="fas fa-trash"></i> Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LOGOUT ────────────────────────────────────────────────────────── -->
+<div class="session-overlay" id="logoutConfirm">
+  <div class="session-modal">
+    <i class="fas fa-sign-out-alt"></i>
+    <h3>Confirmar cierre de sesión</h3>
+    <p>¿Seguro que deseas cerrar tu sesión?</p>
+    <div class="session-actions">
+      <button class="session-btn cancel" id="cancelLogout">Cancelar</button>
+      <button class="session-btn confirm" id="confirmLogout">Sí, cerrar sesión</button>
+    </div>
+  </div>
+</div>
+<div class="session-overlay" id="logoutLoading">
+  <div class="logout-loader">
+    <div class="logout-spinner"></div>
+    <div style="font-weight:700;color:#0f1516;margin-bottom:6px">Cerrando sesión...</div>
+    <div style="font-size:.78rem;color:#5a7a84">Por favor espera un momento.</div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   SESIÓN
+═══════════════════════════════════════════════ */
+let usuario = null;
+try { usuario = JSON.parse(localStorage.getItem('usuario')); } catch (_) {}
+
+const tipoUsuario = localStorage.getItem('tipo_usuario') || 'administrador';
+const token       = localStorage.getItem('token') || '';
+
+if (!usuario || !token) {
+  window.location.replace('/api/login.html');
+  throw new Error('Sesion invalida');
+}
+
+const nombreCompleto = `${usuario?.nombre || ''} ${usuario?.apellido || ''}`.trim() || 'Administrador';
+const inicialesSesion = `${(usuario?.nombre || 'A')[0]}${(usuario?.apellido || 'D')[0]}`.toUpperCase();
+document.getElementById('uName').textContent   = nombreCompleto;
+document.getElementById('uAvatar').textContent = inicialesSesion;
+document.getElementById('sidebarRole').textContent = tipoUsuario === 'administrador' ? 'Administrador' : 'Judicante';
+
+/* ─ SIDEBAR ─ */
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+});
+
+/* ═══════════════════════════════════════════════
+   ESTADO LOCAL
+═══════════════════════════════════════════════ */
+let todosEventos   = [];
+let editandoId     = null;
+let eliminandoId   = null;
+let detalleEvento  = null;
+
+let calFecha       = new Date();          // mes mostrado en el mini-cal
+let diaSeleccionado = null;               // filtro por día al clicar calendario
+let vistaActual    = 'lista';             // 'lista' | 'mes'
+
+const MESES = ['enero','febrero','marzo','abril','mayo','junio',
+                'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+/* ═══════════════════════════════════════════════
+   UTILIDADES
+═══════════════════════════════════════════════ */
+function formatFecha(valor) {
+  if (!valor) return '—';
+  const d = new Date(valor);
+  if (Number.isNaN(d.getTime())) return String(valor);
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function formatHora(valor) {
+  if (!valor) return '—';
+  // "HH:MM" o datetime
+  if (/^\d{2}:\d{2}/.test(valor)) {
+    const [h, m] = valor.split(':');
+    const hNum = parseInt(h, 10);
+    const ampm = hNum >= 12 ? 'PM' : 'AM';
+    const h12  = hNum % 12 || 12;
+    return { display: `${String(h12).padStart(2,'0')}:${m}`, ampm };
+  }
+  const d = new Date(valor);
+  if (!Number.isNaN(d.getTime())) {
+    const hNum = d.getHours();
+    const m    = String(d.getMinutes()).padStart(2,'0');
+    const ampm = hNum >= 12 ? 'PM' : 'AM';
+    const h12  = hNum % 12 || 12;
+    return { display: `${String(h12).padStart(2,'0')}:${m}`, ampm };
+  }
+  return { display: valor, ampm: '' };
+}
+
+function escapeHtml(v) {
+  return String(v || '')
+    .replaceAll('&','&amp;').replaceAll('<','&lt;')
+    .replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+}
+
+function isoDate(val) {
+  // Retorna 'YYYY-MM-DD' de un campo fecha
+  if (!val) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+  const d = new Date(val);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toISOString().slice(0, 10);
+}
+
+function toast(msg, tipo = 'info') {
+  const wrap = document.getElementById('toastWrap');
+  const item = document.createElement('div');
+  item.className = `toast ${tipo}`;
+  const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+  item.innerHTML = `<i class="fas ${icons[tipo] || 'fa-info-circle'}"></i> ${escapeHtml(msg)}`;
+  wrap.appendChild(item);
+  setTimeout(() => item.remove(), 3200);
+}
+
+function abrirOverlay(id)  { document.getElementById(id)?.classList.add('active'); }
+function cerrarOverlay(id) { document.getElementById(id)?.classList.remove('active'); }
+
+const TIPO_CONFIG = {
+  audiencia:   { label: 'Audiencia',   icon: 'fa-gavel',        barClass: 'bar-audiencia',  badgeClass: 'badge-audiencia',  iconClass: 'icon-audiencia',  chipClass: 'chip-audiencia',  dotClass: 'dot-audiencia'  },
+  vencimiento: { label: 'Vencimiento', icon: 'fa-exclamation',  barClass: 'bar-vencimiento',badgeClass: 'badge-vencimiento',iconClass: 'icon-vencimiento',chipClass: 'chip-vencimiento',dotClass: 'dot-vencimiento' },
+  reunion:     { label: 'Reunión',     icon: 'fa-users',        barClass: 'bar-reunion',    badgeClass: 'badge-reunion',    iconClass: 'icon-reunion',    chipClass: 'chip-reunion',    dotClass: 'dot-reunion'    },
+  otro:        { label: 'Otro',        icon: 'fa-calendar-day', barClass: 'bar-otro',       badgeClass: 'badge-otro',       iconClass: 'icon-otro',       chipClass: 'chip-otro',       dotClass: 'dot-otro'       },
+};
+
+function cfg(tipo) { return TIPO_CONFIG[tipo] || TIPO_CONFIG.otro; }
+
+/* ═══════════════════════════════════════════════
+   API
+═══════════════════════════════════════════════ */
+async function apiFetch(url, opts = {}) {
+  const r = await fetch(url, {
+    ...opts,
+    headers: { Authorization: `Bearer ${token}`, ...(opts.headers || {}) }
+  });
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body?.mensaje || body?.error || body?.detalle || `Error HTTP ${r.status}`);
+  return body;
+}
+
+function apiListarEventos() { return apiFetch('/agenda/'); }
+
+function apiCrearEvento(data) {
+  return apiFetch('/agenda/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+}
+
+function apiActualizarEvento(id, data) {
+  return apiFetch(`/agenda/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+}
+
+function apiEliminarEvento(id) {
+  return apiFetch(`/agenda/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+/* ─ Normalizar desde API ─ */
+function normalizarEvento(raw) {
+  const tipo = String(raw?.tipo || 'otro').toLowerCase();
+  return {
+    id:          String(raw?.id || raw?._id || ''),
+    titulo:      raw?.titulo     || raw?.title       || '',
+    tipo:        TIPO_CONFIG[tipo] ? tipo : 'otro',
+    caso:        raw?.caso       || raw?.referencia   || '',
+    fecha:       raw?.fecha      || raw?.date         || '',
+    hora:        raw?.hora       || raw?.time         || '',
+    lugar:       raw?.lugar      || raw?.location     || '',
+    descripcion: raw?.descripcion|| raw?.description  || '',
+    createdAt:   raw?.createdAt  || null,
+  };
+}
+
+/* ═══════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════ */
+function actualizarStats(lista) {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const en7 = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+
+  document.getElementById('statTotal').textContent = String(lista.length);
+  document.getElementById('statHoy').textContent   = String(lista.filter(e => isoDate(e.fecha) === hoy).length);
+  document.getElementById('statProx').textContent  = String(lista.filter(e => { const f = isoDate(e.fecha); return f > hoy && f <= en7; }).length);
+  document.getElementById('statVenc').textContent  = String(lista.filter(e => isoDate(e.fecha) < hoy).length);
+}
+
+/* ═══════════════════════════════════════════════
+   FILTRADO
+═══════════════════════════════════════════════ */
+function getFiltrados() {
+  const q       = document.getElementById('searchInput').value.trim().toLowerCase();
+  const tipo    = document.getElementById('filterTipo').value;
+  const periodo = document.getElementById('filterPeriodo').value;
+  const hoy     = new Date().toISOString().slice(0,10);
+  const en7     = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
+
+  // inicio de semana (lunes)
+  const now = new Date();
+  const dow = now.getDay(); // 0=dom
+  const iniSem = new Date(now);
+  iniSem.setDate(now.getDate() - ((dow + 6) % 7));
+  const finSem = new Date(iniSem);
+  finSem.setDate(iniSem.getDate() + 6);
+  const iniSemStr = iniSem.toISOString().slice(0,10);
+  const finSemStr = finSem.toISOString().slice(0,10);
+  const iniMes = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  const finMes = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+
+  return todosEventos.filter(e => {
+    const texto = `${e.titulo} ${e.caso} ${e.descripcion} ${e.lugar}`.toLowerCase();
+    const fd    = isoDate(e.fecha);
+
+    if (q    && !texto.includes(q))    return false;
+    if (tipo && e.tipo !== tipo)        return false;
+    if (diaSeleccionado && fd !== diaSeleccionado) return false;
+
+    if (periodo === 'hoy'    && fd !== hoy)                           return false;
+    if (periodo === 'semana' && (fd < iniSemStr || fd > finSemStr))   return false;
+    if (periodo === 'mes'    && (fd < iniMes    || fd > finMes))      return false;
+
+    return true;
+  });
+}
+
+function eventosPorId(id) { return todosEventos.find(e => e.id === String(id)); }
+
+/* ═══════════════════════════════════════════════
+   RENDER LISTA
+═══════════════════════════════════════════════ */
+function agruparPorFecha(lista) {
+  const hoy     = new Date().toISOString().slice(0,10);
+  const manana  = new Date(Date.now()+86400000).toISOString().slice(0,10);
+  const grupos  = {};
+
+  lista.forEach(e => {
+    const fd = isoDate(e.fecha) || 'sin-fecha';
+    if (!grupos[fd]) grupos[fd] = [];
+    grupos[fd].push(e);
+  });
+
+  // Ordenar fechas
+  return Object.entries(grupos)
+    .sort(([a],[b]) => a.localeCompare(b))
+    .map(([fd, evs]) => {
+      let label;
+      if      (fd === 'sin-fecha') label = 'Sin fecha';
+      else if (fd === hoy)         label = 'Hoy';
+      else if (fd === manana)      label = 'Mañana';
+      else {
+        const d = new Date(fd + 'T12:00:00');
+        label = d.toLocaleDateString('es-CO', { weekday:'long', day:'2-digit', month:'long' });
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+      }
+      return { fd, label, evs };
+    });
+}
+
+function renderEventoItem(e) {
+  const c   = cfg(e.tipo);
+  const h   = formatHora(e.hora);
+  return `
+    <div class="event-item" data-id="${escapeHtml(e.id)}">
+      <div class="event-color-bar ${c.barClass}"></div>
+      <div class="event-time-col">
+        ${e.hora
+          ? `<span class="event-hour">${escapeHtml(h.display)}</span><span class="event-ampm">${h.ampm}</span>`
+          : '<span class="event-hour" style="font-size:.7rem;color:var(--color-secondary)">Sin hora</span>'}
+      </div>
+      <div class="event-info">
+        <div class="event-title">${escapeHtml(e.titulo || 'Sin título')}</div>
+        <div class="event-meta">
+          <span class="event-badge ${c.badgeClass}"><i class="fas ${c.icon}"></i> ${c.label}</span>
+          ${e.caso   ? `<span class="event-meta-item"><i class="fas fa-folder-open"></i> ${escapeHtml(e.caso)}</span>` : ''}
+          ${e.lugar  ? `<span class="event-meta-item"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(e.lugar)}</span>` : ''}
+        </div>
+      </div>
+      <div class="event-actions">
+        <button class="action-btn edit" data-action="edit" data-id="${escapeHtml(e.id)}" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+        <button class="action-btn del"  data-action="delete" data-id="${escapeHtml(e.id)}" title="Eliminar"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`;
+}
+
+function renderLista() {
+  const filtrados = getFiltrados().sort((a,b) => {
+    const fa = (isoDate(a.fecha) || '9999') + (a.hora || '');
+    const fb = (isoDate(b.fecha) || '9999') + (b.hora || '');
+    return fa.localeCompare(fb);
+  });
+
+  const loading = document.getElementById('loadingState');
+  const empty   = document.getElementById('emptyState');
+  const cont    = document.getElementById('eventsContainer');
+
+  loading.style.display = 'none';
+
+  if (!filtrados.length) {
+    cont.innerHTML = '';
+    empty.style.display = 'flex';
+    return;
+  }
+
+  empty.style.display = 'none';
+  const grupos = agruparPorFecha(filtrados);
+
+  cont.innerHTML = grupos.map(({ label, evs }) => `
+    <div class="events-section-title">
+      ${escapeHtml(label)}
+      <span class="ev-count">${evs.length}</span>
+    </div>
+    ${evs.map(renderEventoItem).join('')}
+  `).join('');
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER VISTA MES
+═══════════════════════════════════════════════ */
+function renderVistaMes() {
+  const year  = calFecha.getFullYear();
+  const month = calFecha.getMonth();
+  const dias  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const hoy   = new Date().toISOString().slice(0,10);
+
+  document.getElementById('monthViewHead').innerHTML =
+    dias.map(d => `<div class="month-view-weekday">${d}</div>`).join('');
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const lastDay  = new Date(year, month+1, 0).getDate();
+  const prevLast = new Date(year, month, 0).getDate();
+
+  const cells = [];
+
+  for (let i = firstDay - 1; i >= 0; i--) {
+    cells.push({ day: prevLast - i, thisMonth: false,
+      iso: isoFecha(year, month - 1, prevLast - i) });
+  }
+  for (let d = 1; d <= lastDay; d++) {
+    cells.push({ day: d, thisMonth: true, iso: isoFecha(year, month, d) });
+  }
+  const rem = 42 - cells.length;
+  for (let d = 1; d <= rem; d++) {
+    cells.push({ day: d, thisMonth: false, iso: isoFecha(year, month+1, d) });
+  }
+
+  const eventMap = {};
+  todosEventos.forEach(e => {
+    const fd = isoDate(e.fecha);
+    if (fd) {
+      if (!eventMap[fd]) eventMap[fd] = [];
+      eventMap[fd].push(e);
+    }
+  });
+
+  document.getElementById('monthViewGrid').innerHTML = cells.map(cell => {
+    const isToday  = cell.iso === hoy;
+    const cls      = `month-cell${!cell.thisMonth ? ' other-month' : ''}${isToday ? ' today' : ''}`;
+    const evs      = eventMap[cell.iso] || [];
+    const max      = 2;
+    const chips    = evs.slice(0, max).map(e =>
+      `<div class="month-event-chip ${cfg(e.tipo).chipClass}" data-id="${e.id}" title="${escapeHtml(e.titulo)}">${escapeHtml(e.titulo)}</div>`
+    ).join('');
+    const more = evs.length > max ? `<div class="month-more">+${evs.length - max} más</div>` : '';
+    return `<div class="${cls}" data-date="${cell.iso}">${'<div class="month-cell-number">'+cell.day+'</div>'}${chips}${more}</div>`;
+  }).join('');
+
+  // click en chip para abrir detalle
+  document.getElementById('monthViewGrid').addEventListener('click', ev => {
+    const chip = ev.target.closest('.month-event-chip[data-id]');
+    if (chip) { verDetalle(chip.dataset.id); return; }
+    const cell = ev.target.closest('.month-cell[data-date]');
+    if (cell) {
+      diaSeleccionado = cell.dataset.date || null;
+      cambiarVista('lista');
+    }
+  });
+}
+
+function isoFecha(year, month, day) {
+  const d = new Date(year, month, day);
+  return d.toISOString().slice(0,10);
+}
+
+/* ═══════════════════════════════════════════════
+   MINI CALENDARIO
+═══════════════════════════════════════════════ */
+function renderMiniCal() {
+  const year  = calFecha.getFullYear();
+  const month = calFecha.getMonth();
+  const hoy   = new Date().toISOString().slice(0,10);
+
+  document.getElementById('calMonthTitle').textContent =
+    `${MESES[month].charAt(0).toUpperCase() + MESES[month].slice(1)} ${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const lastDay  = new Date(year, month+1, 0).getDate();
+  const prevLast = new Date(year, month, 0).getDate();
+
+  // build event dates set for dot
+  const eventDates = new Set(todosEventos.map(e => isoDate(e.fecha)));
+
+  const cells = [];
+  for (let i = firstDay - 1; i >= 0; i--)
+    cells.push({ day: prevLast - i, thisMonth: false, iso: isoFecha(year, month-1, prevLast-i) });
+  for (let d = 1; d <= lastDay; d++)
+    cells.push({ day: d, thisMonth: true, iso: isoFecha(year, month, d) });
+  const rem = 42 - cells.length;
+  for (let d = 1; d <= rem; d++)
+    cells.push({ day: d, thisMonth: false, iso: isoFecha(year, month+1, d) });
+
+  document.getElementById('calDays').innerHTML = cells.map(cell => {
+    let cls = 'cal-day';
+    if (!cell.thisMonth) cls += ' other-month';
+    if (cell.iso === hoy) cls += ' today';
+    if (cell.iso === diaSeleccionado) cls += ' selected';
+    if (eventDates.has(cell.iso)) cls += ' has-events';
+    return `<div class="${cls}" data-date="${cell.iso}">${cell.day}</div>`;
+  }).join('');
+
+  document.getElementById('calDays').addEventListener('click', ev => {
+    const day = ev.target.closest('.cal-day[data-date]');
+    if (!day) return;
+    const date = day.dataset.date;
+    diaSeleccionado = diaSeleccionado === date ? null : date;
+    renderMiniCal();
+    renderLista();
+  });
+}
+
+document.getElementById('calPrev').addEventListener('click', () => {
+  calFecha.setMonth(calFecha.getMonth() - 1);
+  renderMiniCal();
+  if (vistaActual === 'mes') renderVistaMes();
+});
+document.getElementById('calNext').addEventListener('click', () => {
+  calFecha.setMonth(calFecha.getMonth() + 1);
+  renderMiniCal();
+  if (vistaActual === 'mes') renderVistaMes();
+});
+
+/* ═══════════════════════════════════════════════
+   CAMBIO DE VISTA
+═══════════════════════════════════════════════ */
+function cambiarVista(v) {
+  vistaActual = v;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === v));
+  document.getElementById('vistaLista').style.display = v === 'lista' ? 'block' : 'none';
+  document.getElementById('vistaMes').style.display   = v === 'mes'   ? 'block' : 'none';
+  if (v === 'mes') renderVistaMes();
+  else             renderLista();
+}
+
+document.querySelectorAll('.view-tab').forEach(btn => {
+  btn.addEventListener('click', () => cambiarVista(btn.dataset.tab));
+});
+
+/* ═══════════════════════════════════════════════
+   CARGAR DATOS
+═══════════════════════════════════════════════ */
+async function cargarEventos() {
+  document.getElementById('loadingState').style.display = 'flex';
+  document.getElementById('emptyState').style.display   = 'none';
+  document.getElementById('eventsContainer').innerHTML  = '';
+
+  try {
+    const result  = await apiListarEventos();
+    todosEventos  = (result?.data || []).map(normalizarEvento).filter(e => e.id);
+    actualizarStats(todosEventos);
+    renderMiniCal();
+    if (vistaActual === 'mes') renderVistaMes();
+    else renderLista();
+  } catch (error) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').style.display   = 'flex';
+    toast(`Error al cargar eventos: ${error.message}`, 'error');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   VER DETALLE
+═══════════════════════════════════════════════ */
+function verDetalle(id) {
+  const e = eventosPorId(id);
+  if (!e) return;
+  detalleEvento = e;
+  const c = cfg(e.tipo);
+  const h = formatHora(e.hora);
+
+  document.getElementById('detailIcon').className    = `detail-event-icon ${c.iconClass}`;
+  document.getElementById('detailIcon').innerHTML    = `<i class="fas ${c.icon}"></i>`;
+  document.getElementById('detailTitulo').textContent  = e.titulo || 'Sin título';
+  document.getElementById('detailSubtitle').textContent= e.caso   || '—';
+  document.getElementById('detailTipo').innerHTML    = `<span class="event-badge ${c.badgeClass}">${c.label}</span>`;
+  document.getElementById('detailCaso').textContent  = e.caso        || '—';
+  document.getElementById('detailFecha').textContent = formatFecha(e.fecha);
+  document.getElementById('detailHora').textContent  = e.hora ? `${h.display} ${h.ampm}` : '—';
+  document.getElementById('detailLugar').textContent = e.lugar       || '—';
+  document.getElementById('detailDescripcion').textContent = e.descripcion || '—';
+
+  abrirOverlay('modalDetalle');
+}
+
+/* ═══════════════════════════════════════════════
+   NUEVO / EDITAR
+═══════════════════════════════════════════════ */
+function abrirNuevoEvento(fechaPrefill) {
+  editandoId = null;
+  document.getElementById('modalEventoTitle').innerHTML =
+    '<i class="fas fa-calendar-plus" style="color:var(--color-primary);margin-right:8px"></i>Nuevo Evento';
+  document.getElementById('btnGuardarTxt').textContent = 'Crear Evento';
+
+  ['fTitulo','fCaso','fLugar','fDescripcion'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('fTipo').value  = 'audiencia';
+  document.getElementById('fFecha').value = fechaPrefill || new Date().toISOString().slice(0,10);
+  document.getElementById('fHora').value  = '';
+  abrirOverlay('modalEvento');
+}
+
+function abrirEditar(id) {
+  const e = eventosPorId(id);
+  if (!e) return;
+  editandoId = e.id;
+  cerrarOverlay('modalDetalle');
+
+  document.getElementById('modalEventoTitle').innerHTML =
+    '<i class="fas fa-pencil-alt" style="color:var(--color-primary);margin-right:8px"></i>Editar Evento';
+  document.getElementById('btnGuardarTxt').textContent = 'Guardar Cambios';
+
+  document.getElementById('fTitulo').value      = e.titulo;
+  document.getElementById('fTipo').value        = e.tipo;
+  document.getElementById('fCaso').value        = e.caso;
+  document.getElementById('fFecha').value       = isoDate(e.fecha);
+  document.getElementById('fHora').value        = e.hora || '';
+  document.getElementById('fLugar').value       = e.lugar;
+  document.getElementById('fDescripcion').value = e.descripcion;
+  abrirOverlay('modalEvento');
+}
+
+function abrirEliminar(id) {
+  const e = eventosPorId(id);
+  if (!e) return;
+  eliminandoId = e.id;
+  document.getElementById('eliminarNombre').textContent = e.titulo || 'Sin título';
+  abrirOverlay('modalEliminar');
+}
+
+/* ═══════════════════════════════════════════════
+   EVENTOS DE LA TABLA (delegación)
+═══════════════════════════════════════════════ */
+document.getElementById('eventsContainer').addEventListener('click', ev => {
+  const btn = ev.target.closest('button[data-action]');
+  const item = ev.target.closest('.event-item[data-id]');
+  if (btn) {
+    const { action, id } = btn.dataset;
+    if (action === 'edit')   abrirEditar(id);
+    if (action === 'delete') abrirEliminar(id);
+    return;
+  }
+  if (item) verDetalle(item.dataset.id);
+});
+
+/* ═══════════════════════════════════════════════
+   GUARDAR EVENTO
+═══════════════════════════════════════════════ */
+document.getElementById('btnGuardarEvento').addEventListener('click', async () => {
+  const titulo      = document.getElementById('fTitulo').value.trim();
+  const tipo        = document.getElementById('fTipo').value;
+  const caso        = document.getElementById('fCaso').value.trim();
+  const fecha       = document.getElementById('fFecha').value;
+  const hora        = document.getElementById('fHora').value;
+  const lugar       = document.getElementById('fLugar').value.trim();
+  const descripcion = document.getElementById('fDescripcion').value.trim();
+
+  if (!titulo) { toast('El título es obligatorio', 'error'); return; }
+  if (!fecha)  { toast('La fecha es obligatoria', 'error');  return; }
+
+  const btn          = document.getElementById('btnGuardarEvento');
+  const modoEdicion  = Boolean(editandoId);
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+  const payload = { titulo, tipo, caso, fecha, hora, lugar, descripcion };
+
+  try {
+    if (!modoEdicion) {
+      await apiCrearEvento(payload);
+      toast('Evento creado correctamente', 'success');
+    } else {
+      await apiActualizarEvento(editandoId, payload);
+      toast('Evento actualizado correctamente', 'success');
+    }
+    cerrarOverlay('modalEvento');
+    await cargarEventos();
+  } catch (error) {
+    toast(error.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fas fa-save"></i> <span id="btnGuardarTxt">${modoEdicion ? 'Guardar Cambios' : 'Crear Evento'}</span>`;
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   ELIMINAR EVENTO
+═══════════════════════════════════════════════ */
+document.getElementById('btnConfirmarEliminar').addEventListener('click', async () => {
+  if (!eliminandoId) return;
+  const btn = document.getElementById('btnConfirmarEliminar');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+  try {
+    await apiEliminarEvento(eliminandoId);
+    toast('Evento eliminado correctamente', 'success');
+    cerrarOverlay('modalEliminar');
+    cerrarOverlay('modalDetalle');
+    await cargarEventos();
+  } catch (error) {
+    toast(error.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-trash"></i> Eliminar';
+    eliminandoId = null;
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   FILTROS / BÚSQUEDA
+═══════════════════════════════════════════════ */
+['searchInput','filterTipo','filterPeriodo'].forEach(id => {
+  document.getElementById(id).addEventListener(id === 'searchInput' ? 'input' : 'change', () => {
+    if (id !== 'searchInput') diaSeleccionado = null;
+    renderMiniCal();
+    if (vistaActual === 'lista') renderLista();
+    else renderVistaMes();
+  });
+});
+
+/* ═══════════════════════════════════════════════
+   CIERRE DE MODALES
+═══════════════════════════════════════════════ */
+['closeModalEvento','cancelModalEvento'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalEvento'));
+});
+['closeEliminar','cancelEliminar'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalEliminar'));
+});
+['closeDetalle','cancelDetalle'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalDetalle'));
+});
+
+['modalEvento','modalEliminar','modalDetalle','logoutConfirm'].forEach(id => {
+  document.getElementById(id).addEventListener('click', ev => {
+    if (ev.target.id === id) cerrarOverlay(id);
+  });
+});
+
+document.addEventListener('keydown', ev => {
+  if (ev.key !== 'Escape') return;
+  ['modalEvento','modalEliminar','modalDetalle','logoutConfirm'].forEach(cerrarOverlay);
+});
+
+document.getElementById('btnEditarDesdeDetalle').addEventListener('click', () => {
+  if (detalleEvento) abrirEditar(detalleEvento.id);
+});
+document.getElementById('btnEliminarDesdeDetalle').addEventListener('click', () => {
+  if (!detalleEvento) return;
+  cerrarOverlay('modalDetalle');
+  abrirEliminar(detalleEvento.id);
+});
+
+document.getElementById('btnNuevoEvento').addEventListener('click', () => abrirNuevoEvento());
+document.getElementById('btnRefresh').addEventListener('click', cargarEventos);
+
+/* ═══════════════════════════════════════════════
+   LOGOUT
+═══════════════════════════════════════════════ */
+document.getElementById('logoutBtn').addEventListener('click', ev => {
+  ev.preventDefault();
+  abrirOverlay('logoutConfirm');
+});
+document.getElementById('cancelLogout').addEventListener('click',  () => cerrarOverlay('logoutConfirm'));
+document.getElementById('confirmLogout').addEventListener('click', async () => {
+  cerrarOverlay('logoutConfirm');
+  const tok = localStorage.getItem('token');
+  if (tok) {
+    try { await fetch('/auth/logout', { method:'POST', headers:{ 'Authorization':`Bearer ${tok}`, 'Content-Type':'application/json' } }); } catch(_) {}
+  }
+  ['usuario','tipo_usuario','token'].forEach(k => localStorage.removeItem(k));
+  abrirOverlay('logoutLoading');
+  setTimeout(() => { window.location.href = '/api/login.html'; }, 1200);
+});
+window.addEventListener('beforeunload', () => {
+  const tok = localStorage.getItem('token');
+  if (tok) { const b = new Blob([JSON.stringify({token:tok})], {type:'application/json'}); navigator.sendBeacon('/auth/logout', b); }
+});
+
+/* ── INIT ── */
+calFecha = new Date();
+cargarEventos();
+</script>
+</body>
+</html>

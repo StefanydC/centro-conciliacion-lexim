@@ -1,7 +1,7 @@
 const authService = require("../services/auth.service");
 
 /**
- * POST /auth/login - Inicio de sesión
+ * POST /auth/login
  */
 const login = async (req, res, next) => {
   try {
@@ -15,6 +15,19 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  login
+/**
+ * POST /auth/logout
+ * Marca al usuario como inactivo (activo=false).
+ * Acepta el token vía header Authorization O vía body.token (para sendBeacon).
+ */
+const logout = async (req, res, next) => {
+  try {
+    const userId = req.user?.sub;
+    await authService.logout(userId);
+    return res.json({ mensaje: "Sesión cerrada correctamente" });
+  } catch (error) {
+    return next(error);
+  }
 };
+
+module.exports = { login, logout };

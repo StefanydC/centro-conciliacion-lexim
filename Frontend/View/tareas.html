@@ -20,30 +20,27 @@
     </div>
     <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-chevron-left"></i></button>
   </div>
-
   <nav class="sidebar-nav" id="nav-admin">
     <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
     <a class="nav-item active" href="tareas.html"><i class="fas fa-tasks"></i><span>Tareas</span></a>
-    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Documentos</span><span class="notif-badge">3</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Documentos</span></a>
     <a class="nav-item" href="ingresos.html"><i class="fas fa-arrow-up"></i><span>Ingresos</span></a>
     <a class="nav-item" href="egresos.html"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
     <div class="sidebar-sep"></div>
     <a class="nav-item" href="modulo.html?mod=conciliaciones"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
-    <a class="nav-item" href="modulo.html?mod=agenda"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
-    <a class="nav-item" href="modulo.html?mod=usuarios"><i class="fas fa-users"></i><span>Usuarios</span></a>
+    <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" href="/api/usuarios.html"><i class="fas fa-users"></i><span>Usuarios</span></a>
     <a class="nav-item" href="modulo.html?mod=reportes"><i class="fas fa-chart-bar"></i><span>Reportes</span></a>
   </nav>
-
   <nav class="sidebar-nav" id="nav-judic" style="display:none">
     <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
     <a class="nav-item active" href="tareas.html"><i class="fas fa-tasks"></i><span>Mis Tareas</span></a>
     <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
-    <a class="nav-item" href="modulo.html?mod=agenda"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
-    <a class="nav-item" href="modulo.html?mod=notificaciones"><i class="fas fa-bell"></i><span>Notificaciones</span><span class="notif-badge">2</span></a>
+    <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" href="modulo.html?mod=notificaciones"><i class="fas fa-bell"></i><span>Notificaciones</span></a>
     <div class="sidebar-sep"></div>
     <a class="nav-item" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
   </nav>
-
   <div class="sidebar-bottom">
     <a class="logout-btn" href="#" id="logoutBtn"><i class="fas fa-lock"></i><span>Cerrar Sesión</span></a>
   </div>
@@ -51,12 +48,10 @@
 
 <!-- MAIN -->
 <div class="main" id="mainContent">
-
-  <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-title">Gestión de Tareas</div>
     <button class="tb-btn"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
-    <button class="tb-btn"><i class="fas fa-sync-alt"></i></button>
+    <button class="tb-btn" id="btnRefresh" title="Recargar"><i class="fas fa-sync-alt"></i></button>
     <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
     <div class="user-pill">
       <div class="u-avatar" id="uAvatar">AD</div>
@@ -64,10 +59,7 @@
     </div>
   </header>
 
-  <!-- CONTENT -->
   <div class="content">
-
-    <!-- PAGE HEADER -->
     <div class="page-header">
       <div class="page-header-left">
         <h1>Tareas</h1>
@@ -79,23 +71,12 @@
     </div>
 
     <!-- STATS -->
-    <div class="stats-row">
-      <div class="stat-card blue">
-        <div class="stat-label">Total Tareas</div>
-        <div class="stat-val" id="statTotal">0</div>
-      </div>
-      <div class="stat-card amber">
-        <div class="stat-label">Pendientes</div>
-        <div class="stat-val" id="statPendiente">0</div>
-      </div>
-      <div class="stat-card blue">
-        <div class="stat-label">En Proceso</div>
-        <div class="stat-val" id="statEnProceso">0</div>
-      </div>
-      <div class="stat-card green">
-        <div class="stat-label">Completadas</div>
-        <div class="stat-val" id="statCompletado">0</div>
-      </div>
+    <div class="stats-row" style="grid-template-columns:repeat(5,1fr)">
+      <div class="stat-card blue"><div class="stat-label">Total</div><div class="stat-val" id="statTotal">0</div></div>
+      <div class="stat-card amber"><div class="stat-label">Pendientes</div><div class="stat-val" id="statPendiente">0</div></div>
+      <div class="stat-card blue"><div class="stat-label">En Proceso</div><div class="stat-val" id="statEnProceso">0</div></div>
+      <div class="stat-card" style="--lc:#e67e22;--vc:#d35400"><div class="stat-label" style="color:var(--lc)">Revisión</div><div class="stat-val" style="color:var(--vc)" id="statRevision">0</div></div>
+      <div class="stat-card green"><div class="stat-label">Completadas</div><div class="stat-val" id="statCompletado">0</div></div>
     </div>
 
     <!-- FILTERS -->
@@ -107,6 +88,7 @@
       <button class="filter-btn active" data-filter="todos">Todos</button>
       <button class="filter-btn" data-filter="pendiente">Pendiente</button>
       <button class="filter-btn" data-filter="en_proceso">En Proceso</button>
+      <button class="filter-btn" data-filter="revision">Revisión</button>
       <button class="filter-btn" data-filter="completado">Completado</button>
       <button class="filter-btn" data-filter="cancelado">Cancelado</button>
     </div>
@@ -120,8 +102,6 @@
           <button class="view-btn" id="btnKanbanView" title="Vista kanban"><i class="fas fa-columns"></i></button>
         </div>
       </div>
-
-      <!-- LISTA -->
       <div id="listView">
         <table class="task-table">
           <thead>
@@ -131,16 +111,15 @@
               <th>Prioridad</th>
               <th id="thAsignadoCol">Asignado a</th>
               <th>Fecha Límite</th>
+              <th>Docs</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tasksBody">
-            <tr><td colspan="6"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando tareas...</p></div></td></tr>
+            <tr><td colspan="7"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando tareas...</p></div></td></tr>
           </tbody>
         </table>
       </div>
-
-      <!-- KANBAN -->
       <div class="kanban" id="kanbanView">
         <div class="kanban-col">
           <div class="kanban-col-head"><span class="kanban-col-title" style="color:#d68910">Pendiente</span><span class="kanban-count" id="k-pendiente">0</span></div>
@@ -149,6 +128,10 @@
         <div class="kanban-col">
           <div class="kanban-col-head"><span class="kanban-col-title" style="color:#2980b9">En Proceso</span><span class="kanban-count" id="k-en_proceso">0</span></div>
           <div id="k-col-en_proceso"></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-head"><span class="kanban-col-title" style="color:#e67e22">Revisión</span><span class="kanban-count" id="k-revision">0</span></div>
+          <div id="k-col-revision"></div>
         </div>
         <div class="kanban-col">
           <div class="kanban-col-head"><span class="kanban-col-title" style="color:#1e8449">Completado</span><span class="kanban-count" id="k-completado">0</span></div>
@@ -160,13 +143,12 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- MODAL NUEVA TAREA -->
+<!-- ═══ MODAL NUEVA TAREA ═══ -->
 <div class="overlay" id="modalOverlay">
-  <div class="modal">
+  <div class="modal modal-wide">
     <div class="modal-head">
       <h3>Nueva Tarea</h3>
       <button class="modal-close" id="modalClose"><i class="fas fa-xmark"></i></button>
@@ -193,13 +175,35 @@
       </div>
       <div class="form-group">
         <label>Asignar a</label>
-        <select id="fAsignado">
-          <option value="">Selecciona judicante...</option>
-        </select>
+        <select id="fAsignado"><option value="">Selecciona judicante...</option></select>
       </div>
       <div class="form-group">
         <label>Observaciones</label>
         <input type="text" id="fObs" placeholder="Observaciones opcionales">
+      </div>
+
+      <!-- DOC REFERENCIA (solo admin) -->
+      <div class="form-group">
+        <label>
+          Documento de referencia
+          <span style="font-size:.7rem;font-weight:400;color:var(--color-secondary)">(opcional)</span>
+        </label>
+        <div id="createDocPreview" style="display:none" class="doc-block" style="margin-bottom:8px">
+          <div class="doc-block-icon"><i class="fas fa-file-alt"></i></div>
+          <div class="doc-block-info">
+            <div class="doc-block-name" id="createDocName">—</div>
+            <div class="doc-block-meta" id="createDocMeta"></div>
+          </div>
+          <button class="doc-btn danger" onclick="quitarDocCreate()" style="flex-shrink:0"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="doc-btn" id="btnCreateDocPC" onclick="abrirUploadModalParaCrear('local')">
+            <i class="fas fa-upload"></i> Desde PC
+          </button>
+          <button type="button" class="doc-btn" id="btnCreateDocDrive" onclick="abrirUploadModalParaCrear('drive')">
+            <i class="fab fa-google-drive"></i> Desde Drive
+          </button>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -209,22 +213,143 @@
   </div>
 </div>
 
-<!-- MODAL DETALLE -->
+<!-- ═══ MODAL DETALLE ═══ -->
 <div class="overlay" id="detailOverlay">
-  <div class="modal">
+  <div class="modal modal-wide">
     <div class="modal-head">
-      <h3>Detalle de Tarea</h3>
+      <h3 id="detailTitle">Detalle de Tarea</h3>
       <button class="modal-close" id="detailClose"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="modal-body" id="detailBody"></div>
     <div class="modal-foot">
       <button class="btn-cancel" id="detailCancel">Cerrar</button>
-      <div id="detailActions"></div>
+      <div class="wf-actions" id="detailActions"></div>
     </div>
   </div>
 </div>
 
-<!-- LOGOUT -->
+<!-- ═══ MODAL ADJUNTAR DOCUMENTO (upload/drive) ═══ -->
+<div class="overlay" id="uploadOverlay">
+  <div class="modal modal-wide">
+    <div class="modal-head">
+      <h3 id="uploadTitle">Adjuntar Documento</h3>
+      <button class="modal-close" id="uploadClose"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-opts" id="uploadOpts">
+        <div class="upload-opt" id="optLocal" onclick="selectUploadOpt('local')">
+          <i class="fas fa-upload"></i>
+          <div class="upload-opt-title">Subir desde PC</div>
+          <div class="upload-opt-desc">Sube un archivo local a Google Drive y adjúntalo a la tarea</div>
+        </div>
+        <div class="upload-opt" id="optDrive" onclick="selectUploadOpt('drive')">
+          <i class="fab fa-google-drive"></i>
+          <div class="upload-opt-title">Seleccionar de Drive</div>
+          <div class="upload-opt-desc">Elige un archivo ya existente en Google Drive</div>
+        </div>
+      </div>
+
+      <!-- Panel local -->
+      <div id="panelLocal" style="display:none;margin-top:14px">
+        <div class="form-group">
+          <label>Archivo</label>
+          <input type="file" id="fileInput" style="border:1px solid rgba(35,76,88,.2);border-radius:10px;padding:8px 12px;font-family:var(--font-main);font-size:.82rem;background:#fafcfd;width:100%">
+        </div>
+        <div class="upload-progress" id="uploadProgress" style="display:none">
+          <div class="upload-bar-bg"><div class="upload-bar-fill" id="uploadBarFill" style="width:0%"></div></div>
+          <div class="upload-status" id="uploadStatusText">Subiendo...</div>
+        </div>
+      </div>
+
+      <!-- Panel Drive con navegación de carpetas -->
+      <div id="panelDrive" style="display:none;margin-top:14px">
+        <!-- Breadcrumb -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
+          <div id="driveBreadcrumb" class="drive-breadcrumb"></div>
+          <button class="doc-btn" onclick="recargarDriveActual()"><i class="fas fa-sync-alt"></i> Recargar</button>
+        </div>
+        <div class="drive-list" id="driveList">
+          <div style="padding:20px;text-align:center;color:var(--color-secondary);font-size:.82rem">
+            <i class="fas fa-spinner fa-spin"></i> Cargando...
+          </div>
+        </div>
+        <div id="driveSelectedInfo" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(35,76,88,.06);border-radius:8px;font-size:.82rem;font-weight:600;color:var(--color-primary)"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="uploadCancel">Cancelar</button>
+      <button class="btn-primary" id="btnConfirmUpload" disabled>
+        <i class="fas fa-paperclip"></i> Adjuntar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL OBSERVACIONES ═══ -->
+<div class="overlay" id="obsOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Agregar Observaciones</h3>
+      <button class="modal-close" id="obsClose"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Observaciones</label>
+        <textarea id="obsInput" placeholder="Describe el avance, hallazgos o evidencia..." style="min-height:120px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="obsCancel">Cancelar</button>
+      <button class="btn-primary" id="btnSaveObs"><i class="fas fa-save"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL RECHAZAR ═══ -->
+<div class="overlay" id="rechazarOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Rechazar Tarea</h3>
+      <button class="modal-close" id="rechazarClose"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.84rem;color:var(--color-secondary);margin-bottom:2px">
+        Indica al judicante qué debe corregir o mejorar:
+      </p>
+      <div class="form-group">
+        <label>Motivo del rechazo</label>
+        <textarea id="rechazarMotivo" placeholder="Ej: Falta completar el análisis de jurisprudencia..." style="min-height:110px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="rechazarCancel">Cancelar</button>
+      <button class="btn-primary btn-reject" id="btnConfirmRechazo">
+        <i class="fas fa-undo"></i> Rechazar y notificar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL VISTA PREVIA DOCUMENTO ═══ -->
+<div class="overlay" id="previewOverlay">
+  <div class="modal preview-modal">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <i class="fas fa-file-alt" style="color:var(--color-primary);flex-shrink:0"></i>
+        <h3 id="previewTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Vista previa</h3>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <button class="doc-btn primary" id="previewDownloadBtn"><i class="fas fa-download"></i> Descargar</button>
+        <button class="modal-close" id="previewClose"><i class="fas fa-xmark"></i></button>
+      </div>
+    </div>
+    <div id="previewBody" class="preview-body">
+      <div class="preview-loading"><i class="fas fa-spinner fa-spin"></i><span>Cargando documento...</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOGOUT ═══ -->
 <div class="session-overlay" id="logoutConfirm">
   <div class="session-modal">
     <i class="fas fa-sign-out-alt"></i>
@@ -245,161 +370,211 @@
 </div>
 
 <script>
-// ── SESSION ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
+//  SESSION
+// ═══════════════════════════════════════════════════════════════════════
 let usuario = null;
 try { usuario = JSON.parse(localStorage.getItem('usuario')); } catch(_) {}
 const tipoUsuario = localStorage.getItem('tipo_usuario') || 'administrador';
-const token = localStorage.getItem('token') || '';
+const token       = localStorage.getItem('token') || '';
+const esAdmin     = tipoUsuario === 'administrador';
+const userId      = usuario?._id || usuario?.id || '';
 
 if (!usuario) { window.location.href = 'login.html'; }
 
-const nombreCompleto = (usuario?.nombre || '') + ' ' + (usuario?.apellido || '');
-const iniciales = ((usuario?.nombre||'A')[0] + (usuario?.apellido||'D')[0]).toUpperCase();
-document.getElementById('uName').textContent = nombreCompleto;
+const nombreCompleto = [(usuario?.nombre||usuario?.Nombre||''),(usuario?.apellido||usuario?.Apellido||'')].filter(Boolean).join(' ');
+const iniciales      = ([(usuario?.nombre||usuario?.Nombre||'A')[0],(usuario?.apellido||usuario?.Apellido||'D')[0]]).join('').toUpperCase();
+document.getElementById('uName').textContent   = nombreCompleto || 'Usuario';
 document.getElementById('uAvatar').textContent = iniciales;
 
-// Nav según rol
 if (tipoUsuario === 'judicante') {
-  document.getElementById('nav-admin').style.display = 'none';
-  document.getElementById('nav-judic').style.display = 'grid';
-  document.getElementById('sidebar-role').textContent = 'Judicante';
+  document.getElementById('nav-admin').style.display   = 'none';
+  document.getElementById('nav-judic').style.display   = 'grid';
+  document.getElementById('sidebar-role').textContent  = 'Judicante';
   document.getElementById('thAsignadoCol').textContent = 'Asignado por';
 } else {
   document.getElementById('btnNuevaTarea').style.display = 'inline-flex';
 }
 
-// ── SIDEBAR TOGGLE ────────────────────────────────────────
-const sidebar = document.getElementById('sidebar');
-const mainContent = document.getElementById('mainContent');
+// ═══════════════════════════════════════════════════════════════════════
+//  SIDEBAR / TOPBAR
+// ═══════════════════════════════════════════════════════════════════════
+document.getElementById('sidebarToggle').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('collapsed'));
+document.getElementById('mobileMenuBtn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('mobile-open'));
+document.getElementById('btnRefresh').addEventListener('click', cargarTareas);
 
-document.getElementById('sidebarToggle').addEventListener('click', () => {
-  sidebar.classList.toggle('collapsed');
-});
-document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-  sidebar.classList.toggle('mobile-open');
-});
+// ═══════════════════════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ═══════════════════════════════════════════════════════════════════════
+let allTasks      = [];
+let filtroActual  = 'todos';
+let vistaActual   = 'lista';
+let tareaActiva   = null;
 
-// ── DATA ──────────────────────────────────────────────────
-let allTasks = [];
-let filtroActual = 'todos';
-let vistaActual = 'lista';
+// Upload modal state
+let uploadOpcion       = null;          // 'local' | 'drive'
+let currentUploadTipo  = 'judicante';   // 'admin' | 'judicante'
+let uploadModoCrear    = false;          // true = flujo de creación de tarea
+let driveItemSelected  = null;           // { id, name, mimeType, size }
 
-async function cargarJudicantes() {
-  try {
-    const res = await fetch('/tasks/judicantes', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!res.ok) return;
-    const { data } = await res.json();
-    const select = document.getElementById('fAsignado');
-    select.innerHTML = '<option value="">Selecciona judicante...</option>';
-    (data || []).forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u._id;
-      opt.textContent = `${u.Nombre || ''} ${u.Apellido || ''}`.trim();
-      select.appendChild(opt);
-    });
-  } catch (err) {
-    console.error('Error al cargar judicantes', err);
-  }
+// Drive navigation
+let driveStack = [{ id: null, name: 'Mi Drive' }];
+
+// Create modal pending doc
+let createDocPending   = null;  // { driveFileId, nombre, mimeType } | null
+let createLocalFile    = null;  // File object | null
+
+// ═══════════════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════════════
+const ESTADO_LABELS = { pendiente:'Pendiente', en_proceso:'En Proceso', revision:'Revisión', completado:'Completado', cancelado:'Cancelado' };
+const ESTADO_ICONS  = { pendiente:'fa-hourglass-half', en_proceso:'fa-spinner', revision:'fa-eye', completado:'fa-check', cancelado:'fa-times' };
+
+function badgeEstado(e) {
+  return `<span class="badge badge-${e}"><i class="fas ${ESTADO_ICONS[e]||'fa-circle'}"></i> ${ESTADO_LABELS[e]||e}</span>`;
+}
+function badgePrio(p) {
+  const L = { urgente:'Urgente', alta:'Alta', media:'Media', baja:'Baja' };
+  return `<span class="prio-badge prio-${p}">${L[p]||p}</span>`;
+}
+function formatFecha(f) {
+  if (!f) return '—';
+  return new Date(f).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+}
+function getIniciales(u) {
+  if (!u) return '??';
+  return ([(u.Nombre||u.nombre||'')[0],(u.Apellido||u.apellido||'')[0]]).join('').toUpperCase() || '?';
+}
+function getNombreCompleto(u) {
+  if (!u) return '—';
+  return [(u.Nombre||u.nombre||''),(u.Apellido||u.apellido||'')].filter(Boolean).join(' ') || '—';
+}
+function formatBytes(b) {
+  if (!b) return '';
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+function mimeIcon(mime) {
+  if (!mime) return 'fa-file';
+  if (mime === 'application/vnd.google-apps.folder') return 'fa-folder';
+  if (mime.includes('pdf'))   return 'fa-file-pdf';
+  if (mime.includes('word') || mime.includes('document')) return 'fa-file-word';
+  if (mime.includes('sheet') || mime.includes('excel'))   return 'fa-file-excel';
+  if (mime.includes('presentation') || mime.includes('powerpoint')) return 'fa-file-powerpoint';
+  if (mime.includes('image')) return 'fa-file-image';
+  if (mime.includes('zip') || mime.includes('compressed')) return 'fa-file-archive';
+  if (mime.includes('text')) return 'fa-file-alt';
+  return 'fa-file';
+}
+function esCarpetak(mime) { return mime === 'application/vnd.google-apps.folder'; }
+
+// ═══════════════════════════════════════════════════════════════════════
+//  API
+// ═══════════════════════════════════════════════════════════════════════
+async function apiFetch(url, opts = {}) {
+  return fetch(url, { ...opts, headers: { 'Authorization': `Bearer ${token}`, ...(opts.headers||{}) } });
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+//  CARGAR TAREAS
+// ═══════════════════════════════════════════════════════════════════════
 async function cargarTareas() {
   try {
-    const res = await fetch('/tasks', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (!res.ok) throw new Error('Error al cargar tareas');
-
+    const res = await apiFetch('/tasks');
+    if (!res.ok) throw new Error();
     const { data } = await res.json();
     allTasks = data;
     actualizarStats();
     renderTareas();
-  } catch (err) {
-    console.error(err);
+  } catch {
     document.getElementById('tasksBody').innerHTML =
-      `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error al cargar tareas</p></div></td></tr>`;
+      `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error al cargar tareas</p></div></td></tr>`;
   }
 }
 
+async function cargarJudicantes() {
+  try {
+    const res = await apiFetch('/tasks/judicantes');
+    if (!res.ok) return;
+    const { data } = await res.json();
+    const sel = document.getElementById('fAsignado');
+    sel.innerHTML = '<option value="">Selecciona judicante...</option>';
+    (data||[]).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u._id;
+      opt.textContent = getNombreCompleto(u);
+      sel.appendChild(opt);
+    });
+  } catch(e) { console.error(e); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  STATS + RENDER
+// ═══════════════════════════════════════════════════════════════════════
 function actualizarStats() {
-  document.getElementById('statTotal').textContent = allTasks.length;
-  document.getElementById('statPendiente').textContent = allTasks.filter(t => t.estado === 'pendiente').length;
-  document.getElementById('statEnProceso').textContent = allTasks.filter(t => t.estado === 'en_proceso').length;
-  document.getElementById('statCompletado').textContent = allTasks.filter(t => t.estado === 'completado').length;
+  document.getElementById('statTotal').textContent      = allTasks.length;
+  document.getElementById('statPendiente').textContent  = allTasks.filter(t=>t.estado==='pendiente').length;
+  document.getElementById('statEnProceso').textContent  = allTasks.filter(t=>t.estado==='en_proceso').length;
+  document.getElementById('statRevision').textContent   = allTasks.filter(t=>t.estado==='revision').length;
+  document.getElementById('statCompletado').textContent = allTasks.filter(t=>t.estado==='completado').length;
 }
 
 function tareasFiltradas() {
   const q = document.getElementById('searchInput').value.toLowerCase();
-  return allTasks.filter(t => {
-    const matchFiltro = filtroActual === 'todos' || t.estado === filtroActual;
-    const matchSearch = !q || t.descripcion.toLowerCase().includes(q);
-    return matchFiltro && matchSearch;
-  });
-}
-
-function badgeEstado(estado) {
-  const labels = { pendiente: 'Pendiente', en_proceso: 'En Proceso', completado: 'Completado', cancelado: 'Cancelado' };
-  const icons = { pendiente: 'fa-hourglass-half', en_proceso: 'fa-spinner', completado: 'fa-check', cancelado: 'fa-times' };
-  return `<span class="badge badge-${estado}"><i class="fas ${icons[estado]||'fa-circle'}"></i> ${labels[estado]||estado}</span>`;
-}
-
-function badgePrio(p) {
-  const labels = { urgente: 'Urgente', alta: 'Alta', media: 'Media', baja: 'Baja' };
-  return `<span class="prio-badge prio-${p}">${labels[p]||p}</span>`;
-}
-
-function formatFecha(f) {
-  if (!f) return '—';
-  const d = new Date(f);
-  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function getIniciales(u) {
-  if (!u) return '??';
-  const nombre = String(u.Nombre || '').trim();
-  const apellido = String(u.Apellido || '').trim();
-  const iniciales = `${nombre.charAt(0)}${apellido.charAt(0)}`.trim();
-  return (iniciales || '?').toUpperCase();
+  return allTasks.filter(t =>
+    (filtroActual === 'todos' || t.estado === filtroActual) &&
+    (!q || t.descripcion.toLowerCase().includes(q))
+  );
 }
 
 function renderTareas() {
   const tareas = tareasFiltradas();
-  document.getElementById('tasksCount').textContent = `${tareas.length} tarea${tareas.length !== 1 ? 's' : ''}`;
-
+  document.getElementById('tasksCount').textContent = `${tareas.length} tarea${tareas.length!==1?'s':''}`;
   if (vistaActual === 'lista') renderLista(tareas);
   else renderKanban(tareas);
+}
+
+function docIndicador(t) {
+  const a = t.documento_admin?.driveFileId;
+  const j = t.documento_judicante?.driveFileId;
+  if (!a && !j) return `<span style="color:#ddd;font-size:.82rem"><i class="fas fa-paperclip"></i></span>`;
+  let html = '';
+  if (a) html += `<span title="Doc. admin" style="color:#2980b9;font-size:.82rem"><i class="fas fa-paperclip"></i></span>`;
+  if (j) html += `<span title="Doc. judicante" style="color:#e67e22;font-size:.82rem;margin-left:3px"><i class="fas fa-paperclip"></i></span>`;
+  return html;
 }
 
 function renderLista(tareas) {
   const tbody = document.getElementById('tasksBody');
   if (!tareas.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-tasks"></i><p>No hay tareas que mostrar</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-tasks"></i><p>No hay tareas que mostrar</p></div></td></tr>`;
     return;
   }
   tbody.innerHTML = tareas.map(t => {
-    const persona = tipoUsuario === 'judicante' ? (t.creado_por || {}) : (t.asignado_a || {});
-    const canEdit = tipoUsuario === 'administrador';
+    const persona = tipoUsuario==='judicante' ? (t.creado_por||{}) : (t.asignado_a||{});
     return `<tr>
       <td>
         <div class="task-desc">${t.descripcion}</div>
-        <div class="task-meta">${t.observaciones || ''}</div>
+        ${t.observaciones ? `<div class="task-meta">${t.observaciones}</div>` : ''}
+        ${t.motivo_rechazo ? `<div class="task-meta" style="color:#c0392b"><i class="fas fa-exclamation-circle"></i> ${t.motivo_rechazo}</div>` : ''}
       </td>
       <td>${badgeEstado(t.estado)}</td>
       <td>${badgePrio(t.prioridad)}</td>
       <td>
         <div class="assignee">
           <div class="assignee-av">${getIniciales(persona)}</div>
-          <span class="assignee-name">${persona.Nombre||''} ${persona.Apellido||''}</span>
+          <span class="assignee-name">${getNombreCompleto(persona)}</span>
         </div>
       </td>
       <td style="font-size:.82rem;color:var(--color-secondary)">${formatFecha(t.fecha_limite)}</td>
+      <td style="text-align:center">${docIndicador(t)}</td>
       <td>
         <div class="action-btns">
           <button class="action-btn" onclick="verDetalle('${t._id}')" title="Ver detalle"><i class="fas fa-eye"></i></button>
-          ${canEdit ? `<button class="action-btn" onclick="cambiarEstado('${t._id}')" title="Cambiar estado"><i class="fas fa-exchange-alt"></i></button>` : ''}
-          ${canEdit && t.estado !== 'completado' && t.estado !== 'cancelado' ? `<button class="action-btn danger" onclick="cancelarTarea('${t._id}')" title="Cancelar"><i class="fas fa-ban"></i></button>` : ''}
+          ${esAdmin && t.estado!=='completado' && t.estado!=='cancelado'
+            ? `<button class="action-btn danger" onclick="confirmarCancelar('${t._id}')" title="Cancelar tarea"><i class="fas fa-ban"></i></button>`
+            : ''}
         </div>
       </td>
     </tr>`;
@@ -407,116 +582,727 @@ function renderLista(tareas) {
 }
 
 function renderKanban(tareas) {
-  const estados = ['pendiente', 'en_proceso', 'completado', 'cancelado'];
-  estados.forEach(e => {
-    const grupo = tareas.filter(t => t.estado === e);
-    document.getElementById(`k-${e}`).textContent = grupo.length;
-    document.getElementById(`k-col-${e}`).innerHTML = grupo.map(t => `
+  ['pendiente','en_proceso','revision','completado','cancelado'].forEach(e => {
+    const grupo = tareas.filter(t=>t.estado===e);
+    const cEl = document.getElementById(`k-${e}`);
+    const bEl = document.getElementById(`k-col-${e}`);
+    if (cEl) cEl.textContent = grupo.length;
+    if (bEl) bEl.innerHTML = grupo.map(t=>`
       <div class="kanban-card" onclick="verDetalle('${t._id}')">
         <div class="kanban-card-title">${t.descripcion}</div>
-        <div class="kanban-card-foot">
-          ${badgePrio(t.prioridad)}
-          <span class="kanban-date">${formatFecha(t.fecha_limite)}</span>
-        </div>
-      </div>
-    `).join('') || `<div style="padding:12px;font-size:.75rem;color:var(--color-secondary);text-align:center">Sin tareas</div>`;
+        <div class="kanban-card-foot">${badgePrio(t.prioridad)}<span class="kanban-date">${formatFecha(t.fecha_limite)}</span></div>
+        ${(t.documento_admin?.driveFileId || t.documento_judicante?.driveFileId)
+          ? `<div style="margin-top:5px;font-size:.7rem;color:var(--color-primary)"><i class="fas fa-paperclip"></i> Doc adjunto</div>` : ''}
+      </div>`).join('') || `<div style="padding:12px;font-size:.75rem;color:var(--color-secondary);text-align:center">Sin tareas</div>`;
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+//  MODAL DETALLE
+// ═══════════════════════════════════════════════════════════════════════
 function verDetalle(id) {
-  const t = allTasks.find(x => x._id === id);
+  const t = allTasks.find(x=>x._id===id);
   if (!t) return;
+  tareaActiva = t;
+
   const asig = t.asignado_a || {};
   const crea = t.creado_por || {};
+
+  // Bloque motivo rechazo
+  const motivoHtml = t.motivo_rechazo ? `
+    <div style="background:#fdf2f2;border:1px solid #f5b7b1;border-radius:10px;padding:12px 14px">
+      <div class="detail-label" style="color:#c0392b"><i class="fas fa-exclamation-circle"></i> Motivo del rechazo</div>
+      <div style="font-size:.85rem;color:#c0392b;margin-top:4px">${t.motivo_rechazo}</div>
+    </div>` : '';
+
+  // Bloque documento admin
+  const docAdminId = t.documento_admin?.driveFileId || t.documento_id;
+  const docAdminHtml = docAdminId ? `
+    <div>
+      <div class="detail-label"><i class="fas fa-user-shield" style="color:#2980b9"></i> Documento de referencia (admin)</div>
+      <div class="doc-block">
+        <div class="doc-block-icon" style="color:#2980b9"><i class="fas ${mimeIcon(t.documento_admin?.mimeType)}"></i></div>
+        <div class="doc-block-info">
+          <div class="doc-block-name">${t.documento_admin?.nombre || 'Documento de referencia'}</div>
+          <div class="doc-block-meta">Adjunto por el administrador</div>
+        </div>
+        <div class="doc-block-actions">
+          <button class="doc-btn" onclick="verDocumento('${docAdminId}','${(t.documento_admin?.nombre||'documento').replace(/'/g,"\\'")}','${t.documento_admin?.mimeType||''}')"><i class="fas fa-eye"></i> Ver</button>
+          <button class="doc-btn primary" onclick="descargarDocumento('${docAdminId}','${(t.documento_admin?.nombre||'documento').replace(/'/g,"\\'")}',this)"><i class="fas fa-download"></i></button>
+        </div>
+      </div>
+    </div>` : '';
+
+  // Bloque documento judicante (visible para admin siempre; para judicante solo si es el asignado)
+  const docJudId = t.documento_judicante?.driveFileId;
+  const puedeVerDocJud = esAdmin || String(t.asignado_a?._id||t.asignado_a) === String(userId);
+  const docJudHtml = (docJudId && puedeVerDocJud) ? `
+    <div>
+      <div class="detail-label"><i class="fas fa-user" style="color:#e67e22"></i> Documento del judicante</div>
+      <div class="doc-block">
+        <div class="doc-block-icon" style="color:#e67e22"><i class="fas ${mimeIcon(t.documento_judicante?.mimeType)}"></i></div>
+        <div class="doc-block-info">
+          <div class="doc-block-name">${t.documento_judicante?.nombre || 'Documento de trabajo'}</div>
+          <div class="doc-block-meta">Enviado por el judicante</div>
+        </div>
+        <div class="doc-block-actions">
+          <button class="doc-btn" onclick="verDocumento('${docJudId}','${(t.documento_judicante?.nombre||'documento').replace(/'/g,"\\'")}','${t.documento_judicante?.mimeType||''}')"><i class="fas fa-eye"></i> Ver</button>
+          <button class="doc-btn primary" onclick="descargarDocumento('${docJudId}','${(t.documento_judicante?.nombre||'documento').replace(/'/g,"\\'")}',this)"><i class="fas fa-download"></i></button>
+        </div>
+      </div>
+    </div>` : '';
+
   document.getElementById('detailBody').innerHTML = `
-    <div style="display:grid;gap:14px">
+    <div class="detail-grid">
       <div>
-        <div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Descripción</div>
-        <div style="font-weight:600;color:var(--color-dark)">${t.descripcion}</div>
+        <div class="detail-label">Descripción</div>
+        <div class="detail-value">${t.descripcion}</div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Estado</div>${badgeEstado(t.estado)}</div>
-        <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Prioridad</div>${badgePrio(t.prioridad)}</div>
+      <div class="detail-row-2">
+        <div><div class="detail-label">Estado</div>${badgeEstado(t.estado)}</div>
+        <div><div class="detail-label">Prioridad</div>${badgePrio(t.prioridad)}</div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        ${tipoUsuario === 'judicante'
-          ? `<div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Asignado por</div><div style="font-weight:600">${crea.Nombre||''} ${crea.Apellido||''}</div></div>`
-          : `<div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Asignado a</div><div style="font-weight:600">${asig.Nombre||''} ${asig.Apellido||''}</div></div>
-             <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Creado por</div><div style="font-weight:600">${crea.Nombre||''} ${crea.Apellido||''}</div></div>`
+      <div class="detail-row-2">
+        ${tipoUsuario==='judicante'
+          ? `<div><div class="detail-label">Asignado por</div><div class="detail-value">${getNombreCompleto(crea)}</div></div>`
+          : `<div><div class="detail-label">Asignado a</div><div class="detail-value">${getNombreCompleto(asig)}</div></div>
+             <div><div class="detail-label">Creado por</div><div class="detail-value">${getNombreCompleto(crea)}</div></div>`
         }
       </div>
-      <div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Fecha límite</div><div style="font-weight:600">${formatFecha(t.fecha_limite)}</div></div>
-      ${t.observaciones ? `<div><div style="font-size:.72rem;font-weight:700;color:var(--color-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Observaciones</div><div style="font-size:.85rem;color:var(--color-secondary)">${t.observaciones}</div></div>` : ''}
-    </div>
-  `;
+      <div class="detail-row-2">
+        <div><div class="detail-label">Fecha límite</div><div class="detail-value">${formatFecha(t.fecha_limite)}</div></div>
+        ${t.fecha_completado ? `<div><div class="detail-label">Completado</div><div class="detail-value">${formatFecha(t.fecha_completado)}</div></div>` : ''}
+      </div>
+      ${t.observaciones ? `<div><div class="detail-label">Observaciones</div><div style="font-size:.85rem;color:var(--color-secondary)">${t.observaciones}</div></div>` : ''}
+      ${motivoHtml}
+      ${docAdminHtml}
+      ${docJudHtml}
+    </div>`;
 
-  // Botones de estado para judicante
-  if (tipoUsuario === 'judicante' && (t.estado === 'pendiente' || t.estado === 'en_proceso')) {
-    const siguiente = t.estado === 'pendiente' ? 'en_proceso' : 'completado';
-    const label = t.estado === 'pendiente' ? 'Iniciar tarea' : 'Marcar completada';
-    document.getElementById('detailActions').innerHTML = `
-      <button class="btn-primary" onclick="actualizarEstado('${id}','${siguiente}')">
-        <i class="fas fa-check"></i> ${label}
-      </button>`;
-  } else {
-    document.getElementById('detailActions').innerHTML = '';
-  }
-
+  buildDetalleActions(t);
   document.getElementById('detailOverlay').classList.add('active');
 }
 
-async function actualizarEstado(id, nuevoEstado) {
-  try {
-    const res = await fetch(`/tasks/${id}/estado`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ estado: nuevoEstado })
-    });
+function buildDetalleActions(t) {
+  const actDiv = document.getElementById('detailActions');
+  actDiv.innerHTML = '';
 
-    if (!res.ok) throw new Error('Error al actualizar');
-
-    const { data } = await res.json();
-    const idx = allTasks.findIndex(t => t._id === id);
-    if (idx !== -1) allTasks[idx] = data;
-
-    actualizarStats();
-    renderTareas();
-    document.getElementById('detailOverlay').classList.remove('active');
-  } catch (err) {
-    console.error(err);
-    alert('Error al actualizar el estado');
+  if (tipoUsuario === 'judicante') {
+    if (t.estado === 'pendiente') {
+      actDiv.innerHTML = `
+        <button class="btn-primary" onclick="cambiarEstado('${t._id}','en_proceso')">
+          <i class="fas fa-play"></i> Recibir tarea
+        </button>`;
+    } else if (t.estado === 'en_proceso') {
+      const puedeEnviar = !!(t.documento_judicante?.driveFileId || t.observaciones);
+      actDiv.innerHTML = `
+        <button class="btn-primary" onclick="abrirSubirDoc('${t._id}','judicante')">
+          <i class="fas fa-upload"></i> Subir documento
+        </button>
+        <button class="btn-primary" style="background:linear-gradient(135deg,#5a7a84,#234c58)" onclick="abrirObservaciones('${t._id}')">
+          <i class="fas fa-comment"></i> Observaciones
+        </button>
+        <button class="btn-primary btn-send-review"
+          ${puedeEnviar?'':'disabled title="Sube un documento o agrega observaciones primero"'}
+          onclick="cambiarEstado('${t._id}','revision')">
+          <i class="fas fa-paper-plane"></i> Enviar a revisión
+        </button>`;
+    } else if (t.estado === 'completado') {
+      actDiv.innerHTML = `
+        <button class="btn-primary btn-delete-task" onclick="eliminarTarea('${t._id}')">
+          <i class="fas fa-trash"></i> Eliminar tarea
+        </button>`;
+    }
+  } else {
+    // Admin
+    if (t.estado === 'pendiente' || t.estado === 'en_proceso') {
+      actDiv.innerHTML += `
+        <button class="btn-primary" onclick="abrirSubirDoc('${t._id}','admin')" title="Adjuntar o cambiar doc de referencia">
+          <i class="fas fa-paperclip"></i> ${t.documento_admin?.driveFileId ? 'Cambiar doc.' : 'Adjuntar doc.'}
+        </button>`;
+    }
+    if (t.estado === 'revision') {
+      actDiv.innerHTML += `
+        <button class="btn-primary btn-approve" onclick="cambiarEstado('${t._id}','completado')">
+          <i class="fas fa-check"></i> Aprobar
+        </button>
+        <button class="btn-primary btn-reject" onclick="abrirRechazar('${t._id}')">
+          <i class="fas fa-undo"></i> Rechazar
+        </button>`;
+    }
+    if (t.estado !== 'completado' && t.estado !== 'cancelado') {
+      actDiv.innerHTML += `
+        <button class="btn-primary btn-delete-task" onclick="confirmarCancelar('${t._id}')">
+          <i class="fas fa-ban"></i> Cancelar
+        </button>`;
+    }
+    if (t.estado === 'completado' || t.estado === 'cancelado') {
+      actDiv.innerHTML += `
+        <button class="btn-primary btn-delete-task" onclick="eliminarTarea('${t._id}')">
+          <i class="fas fa-trash"></i> Eliminar
+        </button>`;
+    }
   }
 }
 
-function cambiarEstado(id) {
-  const t = allTasks.find(x => x._id === id);
-  if (!t) return;
-  const estados = ['pendiente', 'en_proceso', 'completado', 'cancelado'];
-  const idx = estados.indexOf(t.estado);
-  const siguiente = estados[(idx + 1) % estados.length];
-  actualizarEstado(id, siguiente);
+// ═══════════════════════════════════════════════════════════════════════
+//  ACCIONES DE ESTADO
+// ═══════════════════════════════════════════════════════════════════════
+async function cambiarEstado(id, nuevoEstado, motivo) {
+  try {
+    const body = { estado: nuevoEstado };
+    if (motivo !== undefined) body.motivo_rechazo = motivo;
+
+    const res  = await apiFetch(`/tasks/${id}/estado`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.mensaje || 'Error al actualizar'); return; }
+
+    const idx = allTasks.findIndex(t=>t._id===id);
+    if (idx !== -1) { allTasks[idx] = data.data; tareaActiva = data.data; }
+    actualizarStats();
+    renderTareas();
+    if (document.getElementById('detailOverlay').classList.contains('active')) verDetalle(id);
+  } catch { alert('Error de conexión al actualizar el estado'); }
 }
 
-function cancelarTarea(id) {
-  actualizarEstado(id, 'cancelado');
+function confirmarCancelar(id) {
+  if (confirm('¿Cancelar esta tarea? Esta acción la elimina del flujo activo.'))
+    cambiarEstado(id, 'cancelado');
 }
 
-// ── FILTERS ──────────────────────────────────────────────
+async function eliminarTarea(id) {
+  if (!confirm('¿Eliminar esta tarea definitivamente?')) return;
+  try {
+    const res  = await apiFetch(`/tasks/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) { alert(data.mensaje || 'Error al eliminar'); return; }
+    allTasks = allTasks.filter(t=>t._id!==id);
+    actualizarStats();
+    renderTareas();
+    document.getElementById('detailOverlay').classList.remove('active');
+  } catch { alert('Error al eliminar la tarea'); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  RECHAZAR CON MOTIVO
+// ═══════════════════════════════════════════════════════════════════════
+let rechazarTareaId = null;
+
+function abrirRechazar(id) {
+  rechazarTareaId = id;
+  document.getElementById('rechazarMotivo').value = '';
+  document.getElementById('rechazarOverlay').classList.add('active');
+}
+
+document.getElementById('btnConfirmRechazo').addEventListener('click', async () => {
+  const motivo = document.getElementById('rechazarMotivo').value.trim();
+  if (!motivo) { alert('Por favor ingresa el motivo del rechazo para informar al judicante.'); return; }
+  document.getElementById('rechazarOverlay').classList.remove('active');
+  await cambiarEstado(rechazarTareaId, 'en_proceso', motivo);
+});
+
+['rechazarClose','rechazarCancel'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => document.getElementById('rechazarOverlay').classList.remove('active'));
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+//  VISTA PREVIA — modal interno, sin abrir ventanas externas
+//  Siempre usamos apiFetch (con JWT) para que el gateway no rechace.
+// ═══════════════════════════════════════════════════════════════════════
+let _previewBlobUrl = null;   // para revocar al cerrar
+
+async function verDocumento(driveFileId, nombre, mimeType) {
+  // Abrir modal con estado de carga
+  document.getElementById('previewTitle').textContent = nombre || 'Vista previa';
+  const body = document.getElementById('previewBody');
+  body.innerHTML = '<div class="preview-loading"><i class="fas fa-spinner fa-spin"></i><span>Cargando documento...</span></div>';
+  document.getElementById('previewOverlay').classList.add('active');
+
+  // Botón descargar del modal de preview
+  document.getElementById('previewDownloadBtn').onclick = () =>
+    descargarDocumento(driveFileId, nombre, document.getElementById('previewDownloadBtn'));
+
+  // Revocar blob anterior si existía
+  if (_previewBlobUrl) { URL.revokeObjectURL(_previewBlobUrl); _previewBlobUrl = null; }
+
+  try {
+    // 1. Obtener metadata del backend (incluye mimeType real y webViewLink)
+    const metaRes = await apiFetch(`/documentos/file/${driveFileId}`);
+    const meta    = metaRes.ok ? (await metaRes.json()).data : null;
+    const tipo    = meta?.mimeType || mimeType || '';
+    const titulo  = meta?.name     || nombre   || 'Documento';
+    document.getElementById('previewTitle').textContent = titulo;
+
+    // 2. Elegir estrategia de preview según tipo
+    if (tipo.startsWith('image/')) {
+      // Imagen: fetch blob → <img>
+      const blob = await _fetchBlob(driveFileId);
+      _previewBlobUrl = URL.createObjectURL(blob);
+      body.innerHTML = `<img src="${_previewBlobUrl}" alt="${titulo}"
+        style="max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;border-radius:8px">`;
+
+    } else if (tipo === 'application/pdf' || tipo === '') {
+      // PDF o desconocido: fetch blob → iframe
+      const blob = await _fetchBlob(driveFileId);
+      _previewBlobUrl = URL.createObjectURL(blob);
+      body.innerHTML = `<iframe src="${_previewBlobUrl}#toolbar=1&navpanes=0"
+        style="width:100%;height:100%;border:none;border-radius:0 0 16px 16px"></iframe>`;
+
+    } else if (tipo.includes('google-apps') || tipo.includes('presentation') ||
+               tipo.includes('word') || tipo.includes('excel') ||
+               tipo.includes('sheet') || tipo.includes('document')) {
+      // Formato Office / Google Docs: usar Office Online o Drive embed
+      const embedSrc = `https://drive.google.com/file/d/${driveFileId}/preview`;
+      body.innerHTML = `<iframe src="${embedSrc}" allow="autoplay"
+        style="width:100%;height:100%;border:none;border-radius:0 0 16px 16px"></iframe>`;
+
+    } else {
+      // Cualquier otro (txt, zip, etc.): intentar blob → iframe
+      try {
+        const blob = await _fetchBlob(driveFileId);
+        _previewBlobUrl = URL.createObjectURL(blob);
+        body.innerHTML = `<iframe src="${_previewBlobUrl}"
+          style="width:100%;height:100%;border:none;border-radius:0 0 16px 16px"></iframe>`;
+      } catch {
+        body.innerHTML = `<div class="preview-loading" style="flex-direction:column;gap:14px">
+          <i class="fas fa-file" style="font-size:3rem;opacity:.35"></i>
+          <p style="font-size:.9rem;font-weight:600">Vista previa no disponible para este tipo de archivo</p>
+          <button class="btn-primary" onclick="descargarDocumento('${driveFileId}','${nombre||'documento'}',this)">
+            <i class="fas fa-download"></i> Descargar archivo
+          </button>
+        </div>`;
+      }
+    }
+  } catch(err) {
+    body.innerHTML = `<div class="preview-loading" style="flex-direction:column;gap:10px">
+      <i class="fas fa-exclamation-triangle" style="font-size:2rem;color:#e74c3c;opacity:.7"></i>
+      <p style="font-size:.88rem;font-weight:600;color:#c0392b">No se pudo cargar la vista previa</p>
+      <p style="font-size:.78rem;color:var(--color-secondary)">${err.message || ''}</p>
+    </div>`;
+  }
+}
+
+async function _fetchBlob(driveFileId) {
+  const res = await apiFetch(`/documentos/file/${driveFileId}?download=true`);
+  if (!res.ok) throw new Error(`Error ${res.status} al obtener el archivo`);
+  return res.blob();
+}
+
+// Cerrar preview y liberar blob URL
+function cerrarPreview() {
+  document.getElementById('previewOverlay').classList.remove('active');
+  document.getElementById('previewBody').innerHTML =
+    '<div class="preview-loading"><i class="fas fa-spinner fa-spin"></i><span>Cargando documento...</span></div>';
+  if (_previewBlobUrl) { URL.revokeObjectURL(_previewBlobUrl); _previewBlobUrl = null; }
+}
+
+document.getElementById('previewClose').addEventListener('click', cerrarPreview);
+document.getElementById('previewOverlay').addEventListener('click', e => {
+  if (e.target.id === 'previewOverlay') cerrarPreview();
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+//  DESCARGAR DOCUMENTO — fetch con JWT → blob → click
+// ═══════════════════════════════════════════════════════════════════════
+async function descargarDocumento(driveFileId, nombre, btnEl) {
+  const orig = btnEl?.innerHTML;
+  if (btnEl) { btnEl.disabled = true; btnEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+  try {
+    const blob = await _fetchBlob(driveFileId);
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = nombre || 'documento';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch(err) {
+    alert('Error al descargar el archivo: ' + err.message);
+  } finally {
+    if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = orig || '<i class="fas fa-download"></i>'; }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MODAL UPLOAD — abrir
+// ═══════════════════════════════════════════════════════════════════════
+function resetUploadModal() {
+  uploadOpcion      = null;
+  driveItemSelected = null;
+  driveStack        = [{ id: null, name: 'Mi Drive' }];
+  document.getElementById('optLocal').classList.remove('selected');
+  document.getElementById('optDrive').classList.remove('selected');
+  document.getElementById('panelLocal').style.display          = 'none';
+  document.getElementById('panelDrive').style.display          = 'none';
+  document.getElementById('fileInput').value                   = '';
+  document.getElementById('uploadProgress').style.display      = 'none';
+  document.getElementById('driveSelectedInfo').style.display   = 'none';
+  document.getElementById('btnConfirmUpload').disabled         = true;
+}
+
+function abrirSubirDoc(tareaId, tipo) {
+  const t = allTasks.find(x=>x._id===tareaId);
+  if (t) tareaActiva = t;
+  currentUploadTipo = tipo || 'judicante';
+  uploadModoCrear   = false;
+  resetUploadModal();
+  document.getElementById('uploadTitle').textContent = tipo === 'admin'
+    ? 'Adjuntar documento de referencia'
+    : 'Subir documento de trabajo';
+  document.getElementById('uploadOverlay').classList.add('active');
+}
+
+function abrirUploadModalParaCrear(opcionInicial) {
+  currentUploadTipo = 'admin';
+  uploadModoCrear   = true;
+  resetUploadModal();
+  document.getElementById('uploadTitle').textContent = 'Seleccionar documento de referencia';
+  document.getElementById('uploadOverlay').classList.add('active');
+  if (opcionInicial) selectUploadOpt(opcionInicial);
+}
+
+function selectUploadOpt(opt) {
+  uploadOpcion = opt;
+  document.getElementById('optLocal').classList.toggle('selected', opt==='local');
+  document.getElementById('optDrive').classList.toggle('selected', opt==='drive');
+  document.getElementById('panelLocal').style.display = opt==='local' ? 'block' : 'none';
+  document.getElementById('panelDrive').style.display = opt==='drive' ? 'block' : 'none';
+  document.getElementById('btnConfirmUpload').disabled = true;
+  if (opt === 'drive') cargarNivelDrive();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  DRIVE NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════
+function renderBreadcrumb() {
+  const bc = document.getElementById('driveBreadcrumb');
+  bc.innerHTML = driveStack.map((item, idx) => {
+    const isLast = idx === driveStack.length - 1;
+    if (isLast) return `<span class="bc-item bc-current">${item.name}</span>`;
+    return `<span class="bc-item bc-link" onclick="navegarBreadcrumb(${idx})">${item.name}</span>
+            <span class="bc-sep"><i class="fas fa-chevron-right"></i></span>`;
+  }).join('');
+}
+
+function navegarBreadcrumb(idx) {
+  driveStack = driveStack.slice(0, idx + 1);
+  driveItemSelected = null;
+  document.getElementById('driveSelectedInfo').style.display = 'none';
+  document.getElementById('btnConfirmUpload').disabled = true;
+  cargarNivelDrive();
+}
+
+function recargarDriveActual() {
+  driveItemSelected = null;
+  document.getElementById('driveSelectedInfo').style.display = 'none';
+  document.getElementById('btnConfirmUpload').disabled = true;
+  cargarNivelDrive();
+}
+
+async function cargarNivelDrive() {
+  const nivelActual = driveStack[driveStack.length - 1];
+  const folderId    = nivelActual.id;
+  const url         = folderId ? `/documentos/files/${folderId}` : '/documentos/files';
+  const list        = document.getElementById('driveList');
+
+  renderBreadcrumb();
+  list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--color-secondary);font-size:.82rem"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+
+  try {
+    const res   = await apiFetch(url);
+    const body  = await res.json();
+    const items = body.data || [];
+
+    if (!items.length) {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--color-secondary);font-size:.82rem"><i class="fas fa-folder-open"></i> Carpeta vacía</div>';
+      return;
+    }
+
+    list.innerHTML = items.map(f => {
+      const esCarpeta = esCarpetak(f.mimeType);
+      const iconClass = mimeIcon(f.mimeType);
+      const colorIcon = esCarpeta ? '#f39c12' : 'var(--color-primary)';
+      const extra     = esCarpeta ? `<i class="fas fa-chevron-right" style="color:#aaa;font-size:.7rem;margin-left:auto;flex-shrink:0"></i>` : `<span class="drive-item-size">${formatBytes(f.size)}</span>`;
+      const onclick   = esCarpeta
+        ? `navegarCarpeta('${f.id}','${(f.name||'Carpeta').replace(/'/g,"\\'")}')`
+        : `seleccionarDriveItem('${f.id}','${(f.name||'').replace(/'/g,"\\'")}','${f.mimeType||''}',${f.size||0})`;
+      return `<div class="drive-item${esCarpeta?' drive-folder':''}" id="di-${f.id}" onclick="${onclick}">
+        <i class="fas ${iconClass}" style="color:${colorIcon}"></i>
+        <span class="drive-item-name">${f.name||'Sin nombre'}</span>
+        ${extra}
+      </div>`;
+    }).join('');
+  } catch {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#c0392b;font-size:.82rem"><i class="fas fa-exclamation-triangle"></i> Error al cargar Drive</div>';
+  }
+}
+
+function navegarCarpeta(id, name) {
+  driveStack.push({ id, name });
+  driveItemSelected = null;
+  document.getElementById('driveSelectedInfo').style.display = 'none';
+  document.getElementById('btnConfirmUpload').disabled = true;
+  cargarNivelDrive();
+}
+
+function seleccionarDriveItem(id, name, mime, size) {
+  driveItemSelected = { id, name, mime, size };
+  document.querySelectorAll('.drive-item').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById(`di-${id}`);
+  if (el) el.classList.add('selected');
+  const selDiv = document.getElementById('driveSelectedInfo');
+  selDiv.style.display = 'block';
+  selDiv.innerHTML = `<i class="fas ${mimeIcon(mime)}" style="margin-right:6px"></i>${name} <span style="color:var(--color-secondary);font-size:.72rem">(${formatBytes(size)})</span>`;
+  document.getElementById('btnConfirmUpload').disabled = false;
+}
+
+document.getElementById('fileInput').addEventListener('change', () => {
+  document.getElementById('btnConfirmUpload').disabled = !document.getElementById('fileInput').files.length;
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+//  CONFIRMAR UPLOAD
+// ═══════════════════════════════════════════════════════════════════════
+document.getElementById('btnConfirmUpload').addEventListener('click', async () => {
+  if (uploadModoCrear) {
+    // Modo crear tarea: guardar selección y volver al modal de creación
+    if (uploadOpcion === 'local') {
+      createLocalFile  = document.getElementById('fileInput').files[0];
+      createDocPending = null;
+      mostrarDocEnCreateModal(createLocalFile.name, formatBytes(createLocalFile.size));
+    } else if (driveItemSelected) {
+      createDocPending = { driveFileId: driveItemSelected.id, nombre: driveItemSelected.name, mimeType: driveItemSelected.mime };
+      createLocalFile  = null;
+      mostrarDocEnCreateModal(driveItemSelected.name, formatBytes(driveItemSelected.size));
+    }
+    document.getElementById('uploadOverlay').classList.remove('active');
+    return;
+  }
+
+  // Modo adjuntar a tarea existente
+  if (uploadOpcion === 'local') await subirArchivoLocal();
+  else if (uploadOpcion === 'drive') await asociarDriveExistente();
+});
+
+async function subirArchivoLocal() {
+  const file = document.getElementById('fileInput').files[0];
+  if (!file) return;
+  const progressDiv = document.getElementById('uploadProgress');
+  const barFill     = document.getElementById('uploadBarFill');
+  const statusText  = document.getElementById('uploadStatusText');
+  progressDiv.style.display = 'block';
+  barFill.style.width = '20%';
+  statusText.textContent = 'Subiendo archivo a Drive...';
+  document.getElementById('btnConfirmUpload').disabled = true;
+
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    const res  = await fetch('/documentos/upload', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: form
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || 'Error al subir');
+
+    const driveId = body.data?.drive?.id || body.data?.metadata?.driveFileId;
+    const nombre  = file.name;
+    const mimeType= file.type;
+
+    barFill.style.width = '70%';
+    statusText.textContent = 'Asociando a la tarea...';
+
+    await _asociarDocumentoATarea(driveId, nombre, mimeType, currentUploadTipo);
+    barFill.style.width = '100%';
+    statusText.textContent = '¡Listo!';
+    setTimeout(() => {
+      document.getElementById('uploadOverlay').classList.remove('active');
+      verDetalle(tareaActiva._id);
+    }, 600);
+  } catch(err) {
+    statusText.textContent = 'Error: ' + err.message;
+    barFill.style.width = '0%';
+    document.getElementById('btnConfirmUpload').disabled = false;
+  }
+}
+
+async function asociarDriveExistente() {
+  if (!driveItemSelected) return;
+  document.getElementById('btnConfirmUpload').disabled = true;
+  try {
+    await _asociarDocumentoATarea(driveItemSelected.id, driveItemSelected.name, driveItemSelected.mime, currentUploadTipo);
+    document.getElementById('uploadOverlay').classList.remove('active');
+    verDetalle(tareaActiva._id);
+  } catch(err) {
+    alert('Error al asociar el documento: ' + err.message);
+    document.getElementById('btnConfirmUpload').disabled = false;
+  }
+}
+
+async function _asociarDocumentoATarea(driveFileId, nombre, mimeType, tipo) {
+  const res  = await apiFetch(`/tasks/${tareaActiva._id}/documento`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ documento_id: driveFileId, tipo, nombre, mimeType })
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.mensaje || 'Error al asociar');
+  const idx = allTasks.findIndex(t=>t._id===tareaActiva._id);
+  if (idx !== -1) { allTasks[idx] = body.data; tareaActiva = body.data; }
+  actualizarStats();
+  renderTareas();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  DOC EN MODAL CREAR
+// ═══════════════════════════════════════════════════════════════════════
+function mostrarDocEnCreateModal(nombre, meta) {
+  document.getElementById('createDocPreview').style.display = 'flex';
+  document.getElementById('createDocName').textContent = nombre;
+  document.getElementById('createDocMeta').textContent = meta || '';
+}
+function quitarDocCreate() {
+  createDocPending = null;
+  createLocalFile  = null;
+  document.getElementById('createDocPreview').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MODAL OBSERVACIONES
+// ═══════════════════════════════════════════════════════════════════════
+function abrirObservaciones(tareaId) {
+  const t = allTasks.find(x=>x._id===tareaId);
+  if (t) { tareaActiva = t; document.getElementById('obsInput').value = t.observaciones || ''; }
+  document.getElementById('obsOverlay').classList.add('active');
+}
+
+document.getElementById('btnSaveObs').addEventListener('click', async () => {
+  if (!tareaActiva) return;
+  const obs = document.getElementById('obsInput').value.trim();
+  const btn = document.getElementById('btnSaveObs');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+  try {
+    const res  = await apiFetch(`/tasks/${tareaActiva._id}/observaciones`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ observaciones: obs })
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.mensaje || 'Error al guardar');
+    const idx = allTasks.findIndex(t=>t._id===tareaActiva._id);
+    if (idx !== -1) { allTasks[idx] = body.data; tareaActiva = body.data; }
+    actualizarStats();
+    renderTareas();
+    document.getElementById('obsOverlay').classList.remove('active');
+    verDetalle(tareaActiva._id);
+  } catch(err) {
+    alert('Error al guardar observaciones: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+  }
+});
+
+['obsClose','obsCancel'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => document.getElementById('obsOverlay').classList.remove('active'));
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MODAL NUEVA TAREA — guardar
+// ═══════════════════════════════════════════════════════════════════════
+document.getElementById('btnNuevaTarea').addEventListener('click', () => {
+  quitarDocCreate();
+  document.getElementById('modalOverlay').classList.add('active');
+});
+['modalClose','modalCancel'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => {
+    document.getElementById('modalOverlay').classList.remove('active');
+    quitarDocCreate();
+  });
+});
+
+document.getElementById('btnGuardar').addEventListener('click', async () => {
+  const desc = document.getElementById('fDesc').value.trim();
+  if (!desc) { alert('La descripción es obligatoria'); return; }
+
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+  try {
+    let docAdmin = createDocPending;
+
+    // Si tiene archivo local pendiente, subirlo primero
+    if (!docAdmin && createLocalFile) {
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo documento...';
+      const form = new FormData();
+      form.append('file', createLocalFile);
+      const res  = await fetch('/documentos/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: form
+      });
+      const upBody = await res.json();
+      if (!res.ok) throw new Error(upBody.error || 'Error al subir documento');
+      const driveId = upBody.data?.drive?.id || upBody.data?.metadata?.driveFileId;
+      docAdmin = { driveFileId: driveId, nombre: createLocalFile.name, mimeType: createLocalFile.type };
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando tarea...';
+    }
+
+    const body = {
+      descripcion:    desc,
+      prioridad:      document.getElementById('fPrio').value,
+      fecha_limite:   document.getElementById('fFecha').value || undefined,
+      observaciones:  document.getElementById('fObs').value.trim() || undefined,
+      asignado_a:     document.getElementById('fAsignado').value || undefined,
+      ...(docAdmin ? { documento_admin: docAdmin } : {})
+    };
+
+    const res  = await apiFetch('/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.mensaje || 'Error al guardar');
+
+    allTasks.unshift(data.data);
+    actualizarStats();
+    renderTareas();
+    document.getElementById('modalOverlay').classList.remove('active');
+    // limpiar form
+    ['fDesc','fObs','fFecha'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fAsignado').value = '';
+    document.getElementById('fPrio').value = 'media';
+    quitarDocCreate();
+  } catch(err) {
+    alert(err.message || 'Error al guardar la tarea');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save"></i> Guardar Tarea';
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+//  FILTROS / VISTAS
+// ═══════════════════════════════════════════════════════════════════════
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     filtroActual = btn.dataset.filter;
     renderTareas();
   });
 });
-
 document.getElementById('searchInput').addEventListener('input', renderTareas);
 
-// ── VIEWS ─────────────────────────────────────────────────
 document.getElementById('btnListView').addEventListener('click', () => {
   vistaActual = 'lista';
   document.getElementById('btnListView').classList.add('active');
@@ -525,7 +1311,6 @@ document.getElementById('btnListView').addEventListener('click', () => {
   document.getElementById('kanbanView').classList.remove('active');
   renderTareas();
 });
-
 document.getElementById('btnKanbanView').addEventListener('click', () => {
   vistaActual = 'kanban';
   document.getElementById('btnKanbanView').classList.add('active');
@@ -535,108 +1320,57 @@ document.getElementById('btnKanbanView').addEventListener('click', () => {
   renderTareas();
 });
 
-// ── MODAL NUEVA TAREA ─────────────────────────────────────
-document.getElementById('btnNuevaTarea').addEventListener('click', () => {
-  document.getElementById('modalOverlay').classList.add('active');
+// ═══════════════════════════════════════════════════════════════════════
+//  CERRAR OVERLAYS
+// ═══════════════════════════════════════════════════════════════════════
+['detailClose','detailCancel'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => document.getElementById('detailOverlay').classList.remove('active'));
 });
-document.getElementById('modalClose').addEventListener('click', () => {
-  document.getElementById('modalOverlay').classList.remove('active');
-});
-document.getElementById('modalCancel').addEventListener('click', () => {
-  document.getElementById('modalOverlay').classList.remove('active');
-});
-document.getElementById('detailClose').addEventListener('click', () => {
-  document.getElementById('detailOverlay').classList.remove('active');
-});
-document.getElementById('detailCancel').addEventListener('click', () => {
-  document.getElementById('detailOverlay').classList.remove('active');
+['uploadClose','uploadCancel'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => document.getElementById('uploadOverlay').classList.remove('active'));
 });
 
-document.getElementById('btnGuardar').addEventListener('click', async () => {
-  const desc = document.getElementById('fDesc').value.trim();
-  if (!desc) { alert('La descripción es obligatoria'); return; }
-
-  const body = {
-    descripcion: desc,
-    prioridad: document.getElementById('fPrio').value,
-    fecha_limite: document.getElementById('fFecha').value || undefined,
-    observaciones: document.getElementById('fObs').value.trim() || undefined,
-    asignado_a: document.getElementById('fAsignado').value || undefined
-  };
-
-  const btnGuardar = document.getElementById('btnGuardar');
-  btnGuardar.disabled = true;
-  btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-
-  try {
-    const res = await fetch('/tasks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.mensaje || 'Error al guardar la tarea');
-    }
-
-    const { data } = await res.json();
-    allTasks.unshift(data);
-    actualizarStats();
-    renderTareas();
-    document.getElementById('modalOverlay').classList.remove('active');
-    document.getElementById('fDesc').value = '';
-    document.getElementById('fObs').value = '';
-    document.getElementById('fFecha').value = '';
-    document.getElementById('fAsignado').value = '';
-    document.getElementById('fPrio').value = 'media';
-  } catch (err) {
-    console.error(err);
-    alert(err.message || 'Error al guardar la tarea');
-  } finally {
-    btnGuardar.disabled = false;
-    btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Tarea';
-  }
-});
-
-// Cerrar overlay al click fuera
-['modalOverlay','detailOverlay'].forEach(id => {
+['modalOverlay','detailOverlay','uploadOverlay','obsOverlay','rechazarOverlay'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => {
     if (e.target.id === id) document.getElementById(id).classList.remove('active');
   });
 });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('previewOverlay').classList.contains('active')) { cerrarPreview(); return; }
+    ['modalOverlay','detailOverlay','uploadOverlay','obsOverlay','rechazarOverlay','logoutConfirm'].forEach(id =>
+      document.getElementById(id).classList.remove('active'));
+  }
+});
 
-// ── LOGOUT ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
+//  LOGOUT
+// ═══════════════════════════════════════════════════════════════════════
 document.getElementById('logoutBtn').addEventListener('click', e => {
   e.preventDefault();
   document.getElementById('logoutConfirm').classList.add('active');
 });
-document.getElementById('cancelLogout').addEventListener('click', () => {
+document.getElementById('cancelLogout').addEventListener('click', () => document.getElementById('logoutConfirm').classList.remove('active'));
+document.getElementById('confirmLogout').addEventListener('click', async () => {
   document.getElementById('logoutConfirm').classList.remove('active');
-});
-document.getElementById('confirmLogout').addEventListener('click', () => {
-  document.getElementById('logoutConfirm').classList.remove('active');
-  localStorage.removeItem('usuario');
-  localStorage.removeItem('tipo_usuario');
-  localStorage.removeItem('token');
+  const tok = localStorage.getItem('token');
+  if (tok) {
+    try { await fetch('/auth/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${tok}`, 'Content-Type': 'application/json' } }); } catch(_) {}
+  }
+  ['usuario','tipo_usuario','token'].forEach(k => localStorage.removeItem(k));
   document.getElementById('logoutLoading').classList.add('active');
   setTimeout(() => { window.location.href = 'login.html'; }, 2000);
 });
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    document.getElementById('modalOverlay').classList.remove('active');
-    document.getElementById('detailOverlay').classList.remove('active');
-    document.getElementById('logoutConfirm').classList.remove('active');
-  }
+window.addEventListener('beforeunload', () => {
+  const tok = localStorage.getItem('token');
+  if (tok) { const b = new Blob([JSON.stringify({ token: tok })], { type: 'application/json' }); navigator.sendBeacon('/auth/logout', b); }
 });
 
-// ── INIT ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════════════
 cargarTareas();
-if (tipoUsuario !== 'judicante') cargarJudicantes();
+if (esAdmin) cargarJudicantes();
 </script>
 </body>
 </html>

@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 5000;
 const USER_AUTH_SERVICE_URL    = process.env.USER_AUTH_SERVICE_URL    || 'http://user-auth-service:3001';
 const CONCILIACION_SERVICE_URL = process.env.CONCILIACION_SERVICE_URL || 'http://conciliacion-service:3002';
 const DOCUMENT_SERVICE_URL     = process.env.DOCUMENT_SERVICE_URL     || 'http://document-service:3004';
+const AGENDA_SERVICE_URL       = process.env.AGENDA_SERVICE_URL       || 'http://agenda-service:3003';
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
@@ -167,6 +168,23 @@ app.use('/documentos', requireJudicante, createProxyMiddleware({
   }
 }));
 
+// 📅 AGENDA — cualquier usuario autenticado
+app.use('/agenda', requireJudicante, createProxyMiddleware({
+  target: AGENDA_SERVICE_URL,
+  changeOrigin: true,
+  proxyTimeout: 10000,
+  pathRewrite: (path) => `/agenda${path}`,
+  on: {
+    proxyReq: (proxyReq, req) => {
+      console.log(`→ [AGENDA] ${req.method} ${req.originalUrl} | user: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      forwardBody(proxyReq, req);
+    },
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Agenda service', 'AGENDA_UNAVAILABLE', req, res, err)
+  }
+}));
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  RUTAS PRIVADAS — acceso exclusivo para administradores
 // ─────────────────────────────────────────────────────────────────────────────
@@ -217,11 +235,12 @@ app.get('/health', (_req, res) => {
     servicios: {
       userAuth:     USER_AUTH_SERVICE_URL,
       conciliacion: CONCILIACION_SERVICE_URL,
-      documentos:   DOCUMENT_SERVICE_URL
+      documentos:   DOCUMENT_SERVICE_URL,
+      agenda:       AGENDA_SERVICE_URL
     },
     rutas: {
       publicas:   ['/auth', '/health'],
-      protegidas: ['/tasks', '/finanzas', '/conciliacion', '/documentos'],
+      protegidas: ['/tasks', '/finanzas', '/conciliacion', '/documentos', '/agenda'],
       soloAdmin:  ['/usuarios', '/admin']
     }
   });

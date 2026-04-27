@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LEXIM — Usuarios</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
+  <link rel="stylesheet" href="../Controller/styles/usuarios.css"/>
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-ico"><i class="fas fa-balance-scale"></i></div>
+    <div class="brand-texts">
+      <div class="brand-name">LEXIM</div>
+      <div class="brand-role" id="sidebarRole">Administrador</div>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-chevron-left"></i></button>
+  </div>
+
+  <nav class="sidebar-nav" id="nav-admin">
+    <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item" href="tareas.html"><i class="fas fa-tasks"></i><span>Tareas</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Documentos</span></a>
+    <a class="nav-item" href="ingresos.html"><i class="fas fa-arrow-up"></i><span>Ingresos</span></a>
+    <a class="nav-item" href="egresos.html"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item" href="modulo.html?mod=conciliaciones"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
+    <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item active" href="/api/usuarios.html"><i class="fas fa-users"></i><span>Usuarios</span></a>
+    <a class="nav-item" href="modulo.html?mod=reportes"><i class="fas fa-chart-bar"></i><span>Reportes</span></a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <a class="logout-btn" href="#" id="logoutBtn"><i class="fas fa-lock"></i><span>Cerrar Sesión</span></a>
+  </div>
+</aside>
+
+<!-- ── MAIN ─────────────────────────────────────────────────────────── -->
+<div class="main" id="mainContent">
+
+  <header class="topbar">
+    <div class="topbar-title">Gestión de Usuarios</div>
+    <button class="tb-btn"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
+    <button class="tb-btn" id="btnRefresh" title="Recargar"><i class="fas fa-sync-alt"></i></button>
+    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    <div class="user-pill">
+      <div class="u-avatar" id="uAvatar">AD</div>
+      <span class="u-name" id="uName">Administrador</span>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Usuarios</h1>
+        <p>Gestiona los usuarios del sistema LEXIM</p>
+        <div class="users-stats" id="usersStats">
+          <div class="users-stat-card total">
+            <div class="users-stat-head">
+              <span class="users-stat-icon"><i class="fas fa-users"></i></span>
+              <span class="users-stat-label">Total</span>
+            </div>
+            <strong class="users-stat-value" id="statTotal">0</strong>
+            <span class="users-stat-hint">Usuarios registrados</span>
+          </div>
+          <div class="users-stat-card admin">
+            <div class="users-stat-head">
+              <span class="users-stat-icon"><i class="fas fa-user-shield"></i></span>
+              <span class="users-stat-label">Administradores</span>
+            </div>
+            <strong class="users-stat-value" id="statAdmin">0</strong>
+            <span class="users-stat-hint">Acceso completo</span>
+          </div>
+          <div class="users-stat-card judic">
+            <div class="users-stat-head">
+              <span class="users-stat-icon"><i class="fas fa-user-tie"></i></span>
+              <span class="users-stat-label">Judicantes</span>
+            </div>
+            <strong class="users-stat-value" id="statJudic">0</strong>
+            <span class="users-stat-hint">Acceso limitado</span>
+          </div>
+        </div>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn-primary" id="btnNuevoUsuario">
+          <i class="fas fa-user-plus"></i> Nuevo Usuario
+        </button>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="users-toolbar">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Buscar por nombre, email o documento...">
+      </div>
+      <select class="filter-select" id="filterRol">
+        <option value="">Todos los roles</option>
+        <option value="administrador">Administrador</option>
+        <option value="judicante">Judicante</option>
+      </select>
+    </div>
+
+    <!-- TABLA -->
+    <div class="users-table-wrap">
+      <div class="loading-state" id="loadingState">
+        <i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando usuarios...
+      </div>
+      <table class="users-table" id="usersTable" style="display:none">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Documento</th>
+            <th>Rol</th>
+            <th>Creado</th>
+            <th class="th-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody"></tbody>
+      </table>
+      <div class="empty-users" id="emptyState" style="display:none">
+        <i class="fas fa-users-slash"></i>
+        <p>No se encontraron usuarios</p>
+        <span>Intenta con otro filtro o crea un nuevo usuario</span>
+      </div>
+      <div class="pagination" id="paginationWrap">
+        <span class="pag-info" id="pagInfo"></span>
+        <div class="pag-btns" id="pagBtns"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── MODAL: NUEVO / EDITAR USUARIO ──────────────────────────────── -->
+<div class="overlay" id="modalUsuario">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalUsuarioTitle">
+        <i class="fas fa-user-plus" style="color:var(--color-primary);margin-right:8px"></i>Nuevo Usuario
+      </h3>
+      <button class="modal-close" id="closeModalUsuario"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="fNombre" placeholder="Ej: Carlos" maxlength="80">
+        </div>
+        <div class="form-group">
+          <label>Apellido</label>
+          <input type="text" id="fApellido" placeholder="Ej: Rodríguez" maxlength="80">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="fEmail" placeholder="usuario@ejemplo.com" maxlength="150">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Documento</label>
+          <input type="text" id="fDocumento" placeholder="Ej: 1234567890" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" id="fTelefono" placeholder="Ej: 3001234567" maxlength="20">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rol</label>
+          <select id="fRol">
+            <option value="administrador">Administrador</option>
+            <option value="judicante">Judicante</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" id="fPasswordGroup">
+        <label>Contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="fPassword" placeholder="Mínimo 8 caracteres" maxlength="100">
+          <button class="toggle-pass" id="togglePass" type="button">
+            <i class="fas fa-eye" id="togglePassIco"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelModalUsuario">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarUsuario">
+        <i class="fas fa-save"></i> <span id="btnGuardarTxt">Crear Usuario</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: VER DETALLE ──────────────────────────────────────────── -->
+<div class="overlay" id="modalDetalle">
+  <div class="modal modal-detalle">
+    <div class="modal-head">
+      <h3><i class="fas fa-id-card" style="color:var(--color-primary);margin-right:8px"></i>Detalle del Usuario</h3>
+      <button class="modal-close" id="closeDetalle"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="detail-header">
+      <div class="detail-avatar" id="detailAvatar"></div>
+      <div class="detail-header-info">
+        <div class="detail-name" id="detailName"></div>
+        <div class="detail-email" id="detailEmail"></div>
+        <div id="detailBadges" style="margin-top:8px;display:flex;gap:6px"></div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item"><div class="detail-item-label"><i class="fas fa-id-card"></i> Documento</div><div class="detail-item-value" id="detailDoc">—</div></div>
+      <div class="detail-item"><div class="detail-item-label"><i class="fas fa-phone"></i> Teléfono</div><div class="detail-item-value" id="detailTel">—</div></div>
+      <div class="detail-item"><div class="detail-item-label"><i class="fas fa-user-tag"></i> Rol</div><div class="detail-item-value" id="detailRol">—</div></div>
+      <div class="detail-item"><div class="detail-item-label"><i class="fas fa-calendar-plus"></i> Creado</div><div class="detail-item-value" id="detailCreado">—</div></div>
+      <div class="detail-item"><div class="detail-item-label"><i class="fas fa-clock"></i> Último acceso</div><div class="detail-item-value" id="detailAcceso">—</div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelDetalle">Cerrar</button>
+      <button class="btn-danger" id="btnEliminarDesdeDetalle"><i class="fas fa-trash"></i> Eliminar</button>
+      <button class="btn-primary" id="btnEditarDesdeDetalle"><i class="fas fa-pencil-alt"></i> Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: CONFIRMAR ELIMINAR ──────────────────────────────────── -->
+<div class="overlay" id="modalEliminar">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Confirmar eliminación</h3>
+      <button class="modal-close" id="closeEliminar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="confirm-body">
+      <i class="fas fa-exclamation-triangle"></i>
+      <h4>¿Eliminar este usuario?</h4>
+      <p id="eliminarNombre" style="font-weight:700;color:var(--color-dark);margin:8px 0 4px"></p>
+      <p>Esta acción es permanente y no se puede deshacer.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelEliminar">Cancelar</button>
+      <button class="btn-danger" id="btnConfirmarEliminar"><i class="fas fa-trash"></i> Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: CAMBIAR CONTRASEÑA ────────────────────────────────────── -->
+<div class="overlay" id="modalPassword">
+  <div class="modal">
+    <div class="modal-head">
+      <h3><i class="fas fa-key" style="color:var(--color-primary);margin-right:8px"></i>Cambiar Contraseña</h3>
+      <button class="modal-close" id="closePassword"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nueva contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="fNewPassword" placeholder="Mínimo 8 caracteres" maxlength="100">
+          <button class="toggle-pass" id="toggleNewPass" type="button"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Confirmar contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="fConfirmPassword" placeholder="Repite la contraseña" maxlength="100">
+          <button class="toggle-pass" id="toggleConfirmPass" type="button"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelPassword">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarPassword"><i class="fas fa-save"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LOGOUT ────────────────────────────────────────────────────────── -->
+<div class="session-overlay" id="logoutConfirm">
+  <div class="session-modal">
+    <i class="fas fa-sign-out-alt"></i>
+    <h3>Confirmar cierre de sesión</h3>
+    <p>¿Seguro que deseas cerrar tu sesión?</p>
+    <div class="session-actions">
+      <button class="session-btn cancel" id="cancelLogout">Cancelar</button>
+      <button class="session-btn confirm" id="confirmLogout">Sí, cerrar sesión</button>
+    </div>
+  </div>
+</div>
+<div class="session-overlay" id="logoutLoading">
+  <div class="logout-loader">
+    <div class="logout-spinner"></div>
+    <div style="font-weight:700;color:#0f1516;margin-bottom:6px">Cerrando sesión...</div>
+    <div style="font-size:.78rem;color:#5a7a84">Por favor espera un momento.</div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// SESION
+let usuario = null;
+try { usuario = JSON.parse(localStorage.getItem('usuario')); } catch (_) {}
+
+const tipoUsuario = localStorage.getItem('tipo_usuario') || 'administrador';
+const token = localStorage.getItem('token') || '';
+const esAdmin = tipoUsuario === 'administrador';
+
+if (!usuario || !token) {
+  window.location.replace('/api/login.html');
+  throw new Error('Sesion invalida');
+}
+if (!esAdmin) {
+  window.location.replace('/api/InicioPerfilesPanel.html');
+  throw new Error('Acceso solo administrador');
+}
+
+const nombreCompleto = `${usuario?.nombre || ''} ${usuario?.apellido || ''}`.trim() || 'Administrador';
+const inicialesSesion = `${(usuario?.nombre || 'A')[0]}${(usuario?.apellido || 'D')[0]}`.toUpperCase();
+document.getElementById('uName').textContent = nombreCompleto;
+document.getElementById('uAvatar').textContent = inicialesSesion;
+document.getElementById('sidebarRole').textContent = 'Administrador';
+
+// SIDEBAR
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+});
+
+// ESTADO LOCAL
+let todosUsuarios = [];
+let editandoId = null;
+let eliminandoId = null;
+let cambioPassId = null;
+let detalleUsuario = null;
+let paginaActual = 1;
+const POR_PAGINA = 10;
+
+// UTILIDADES
+function formatFecha(valor) {
+  if (!valor) return '—';
+  const date = new Date(valor);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function iniciales(nombre, apellido) {
+  return `${(nombre || '?')[0]}${(apellido || '?')[0]}`.toUpperCase();
+}
+
+function escapeHtml(valor) {
+  return String(valor || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function toast(msg, tipo = 'info') {
+  const wrap = document.getElementById('toastWrap');
+  const item = document.createElement('div');
+  item.className = `toast ${tipo}`;
+  const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+  item.innerHTML = `<i class="fas ${icons[tipo] || 'fa-info-circle'}"></i> ${escapeHtml(msg)}`;
+  wrap.appendChild(item);
+  setTimeout(() => item.remove(), 3200);
+}
+
+function abrirOverlay(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function cerrarOverlay(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('active');
+}
+
+function normalizarUsuario(raw) {
+  const rolRaw = String(raw?.tipo_usuario || raw?.rol || 'judicante').toLowerCase();
+  const rol = (rolRaw === 'administrador' || rolRaw === 'admin') ? 'administrador' : 'judicante';
+  const activo = raw?.activo !== undefined ? Boolean(raw.activo) : String(raw?.estado || '').toLowerCase() !== 'inactivo';
+
+  return {
+    id: String(raw?.id || raw?._id || ''),
+    nombre: raw?.nombre || raw?.Nombre || '',
+    apellido: raw?.apellido || raw?.Apellido || '',
+    email: String(raw?.email || raw?.Email || '').toLowerCase(),
+    documento: raw?.documento || '',
+    telefono: raw?.telefono || '',
+    rol,
+    estado: activo ? 'activo' : 'inactivo',
+    activo,
+    createdAt: raw?.createdAt || raw?.fecha_ingreso || null,
+    ultimoAcceso: raw?.ultimo_acceso || null
+  };
+}
+
+// API
+async function apiFetch(url, opts = {}) {
+  const response = await fetch(url, {
+    ...opts,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(opts.headers || {})
+    }
+  });
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body?.mensaje || body?.error || body?.detalle || `Error HTTP ${response.status}`);
+  }
+
+  return body;
+}
+
+function apiListarUsuarios() {
+  return apiFetch('/usuarios/');
+}
+
+function apiCrearUsuario(data) {
+  return apiFetch('/usuarios/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+}
+
+function apiActualizarUsuario(id, data) {
+  return apiFetch(`/usuarios/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+}
+
+function apiEliminarUsuario(id) {
+  return apiFetch(`/usuarios/${encodeURIComponent(id)}/permanent`, {
+    method: 'DELETE'
+  });
+}
+
+function apiCambiarPassword(id, newPassword) {
+  return apiFetch(`/usuarios/${encodeURIComponent(id)}/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newPassword })
+  });
+}
+
+// STATS
+function actualizarStats(lista) {
+  document.getElementById('statTotal').textContent = String(lista.length);
+  document.getElementById('statAdmin').textContent = String(lista.filter((u) => u.rol === 'administrador').length);
+  document.getElementById('statJudic').textContent = String(lista.filter((u) => u.rol === 'judicante').length);
+}
+
+// FILTRADO
+function getFiltrados() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const rol = document.getElementById('filterRol').value;
+  return todosUsuarios.filter((u) => {
+    const texto = `${u.nombre} ${u.apellido} ${u.email} ${u.documento}`.toLowerCase();
+    return (!q || texto.includes(q)) && (!rol || u.rol === rol);
+  });
+}
+
+function usuarioPorId(id) {
+  return todosUsuarios.find((u) => u.id === String(id));
+}
+
+// RENDER
+function renderTabla() {
+  const filtrados = getFiltrados();
+  const total = filtrados.length;
+  const totalPags = Math.max(1, Math.ceil(total / POR_PAGINA));
+  if (paginaActual > totalPags) paginaActual = 1;
+
+  const inicio = (paginaActual - 1) * POR_PAGINA;
+  const slice = filtrados.slice(inicio, inicio + POR_PAGINA);
+
+  const tbody = document.getElementById('usersTableBody');
+  const tabla = document.getElementById('usersTable');
+  const loading = document.getElementById('loadingState');
+  const empty = document.getElementById('emptyState');
+
+  loading.style.display = 'none';
+
+  if (!slice.length) {
+    tbody.innerHTML = '';
+    tabla.style.display = 'none';
+    empty.style.display = 'flex';
+  } else {
+    tabla.style.display = 'table';
+    empty.style.display = 'none';
+    tbody.innerHTML = slice.map((u) => {
+      const avatarClass = u.rol === 'administrador' ? 'avatar-admin' : 'avatar-judic';
+      const roleBadge = u.rol === 'administrador'
+        ? '<span class="badge badge-admin"><i class="fas fa-user-shield"></i> Administrador</span>'
+        : '<span class="badge badge-judic"><i class="fas fa-user-tie"></i> Judicante</span>';
+      return `
+        <tr>
+          <td>
+            <div class="user-info">
+              <div class="user-avatar ${avatarClass}">${escapeHtml(iniciales(u.nombre, u.apellido))}</div>
+              <div>
+                <div class="user-full-name">${escapeHtml(`${u.nombre} ${u.apellido}`.trim())}</div>
+                <div class="user-email">${escapeHtml(u.email)}</div>
+              </div>
+            </div>
+          </td>
+          <td class="td-doc">${escapeHtml(u.documento || '—')}</td>
+          <td>${roleBadge}</td>
+          <td class="td-fecha">${escapeHtml(formatFecha(u.createdAt))}</td>
+          <td>
+            <div class="action-btns">
+              <button class="action-btn view" type="button" data-action="view" data-id="${escapeHtml(u.id)}" title="Ver detalle"><i class="fas fa-eye"></i></button>
+              <button class="action-btn edit" type="button" data-action="edit" data-id="${escapeHtml(u.id)}" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+              <button class="action-btn key" type="button" data-action="pass" data-id="${escapeHtml(u.id)}" title="Contraseña"><i class="fas fa-key"></i></button>
+              <button class="action-btn del" type="button" data-action="delete" data-id="${escapeHtml(u.id)}" title="Eliminar"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('pagInfo').textContent = total
+    ? `Mostrando ${inicio + 1}-${Math.min(inicio + POR_PAGINA, total)} de ${total}`
+    : '0 resultados';
+
+  const pagBtns = document.getElementById('pagBtns');
+  pagBtns.innerHTML = '';
+  for (let i = 1; i <= totalPags; i += 1) {
+    const button = document.createElement('button');
+    button.className = `pag-btn${i === paginaActual ? ' active' : ''}`;
+    button.textContent = String(i);
+    button.addEventListener('click', () => {
+      paginaActual = i;
+      renderTabla();
+    });
+    pagBtns.appendChild(button);
+  }
+}
+
+async function cargarUsuarios() {
+  document.getElementById('loadingState').style.display = 'flex';
+  document.getElementById('usersTable').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'none';
+
+  try {
+    const result = await apiListarUsuarios();
+    todosUsuarios = (result?.data || []).map(normalizarUsuario).filter((u) => u.id);
+    actualizarStats(todosUsuarios);
+    renderTabla();
+  } catch (error) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'flex';
+    toast(`Error al cargar usuarios: ${error.message}`, 'error');
+  }
+}
+
+function verDetalle(id) {
+  const u = usuarioPorId(id);
+  if (!u) return;
+
+  detalleUsuario = u;
+  const avatar = document.getElementById('detailAvatar');
+  avatar.className = `detail-avatar ${u.rol === 'administrador' ? 'avatar-admin' : 'avatar-judic'}`;
+  avatar.textContent = iniciales(u.nombre, u.apellido);
+
+  document.getElementById('detailName').textContent = `${u.nombre} ${u.apellido}`.trim() || 'Sin nombre';
+  document.getElementById('detailEmail').textContent = u.email || '—';
+  document.getElementById('detailDoc').textContent = u.documento || '—';
+  document.getElementById('detailTel').textContent = u.telefono || '—';
+  document.getElementById('detailRol').textContent = u.rol === 'administrador' ? 'Administrador' : 'Judicante';
+  document.getElementById('detailCreado').textContent = formatFecha(u.createdAt);
+  document.getElementById('detailAcceso').textContent = formatFecha(u.ultimoAcceso);
+
+  const badges = document.getElementById('detailBadges');
+  badges.innerHTML = u.rol === 'administrador'
+    ? '<span class="badge badge-admin"><i class="fas fa-user-shield"></i> Administrador</span>'
+    : '<span class="badge badge-judic"><i class="fas fa-user-tie"></i> Judicante</span>';
+
+  abrirOverlay('modalDetalle');
+}
+
+function abrirNuevoUsuario() {
+  editandoId = null;
+  document.getElementById('modalUsuarioTitle').innerHTML = '<i class="fas fa-user-plus" style="color:var(--color-primary);margin-right:8px"></i>Nuevo Usuario';
+  document.getElementById('btnGuardarTxt').textContent = 'Crear Usuario';
+  document.getElementById('fPasswordGroup').style.display = 'flex';
+
+  ['fNombre', 'fApellido', 'fEmail', 'fDocumento', 'fTelefono', 'fPassword'].forEach((fieldId) => {
+    document.getElementById(fieldId).value = '';
+  });
+
+  document.getElementById('fRol').value = 'judicante';
+  abrirOverlay('modalUsuario');
+}
+
+function abrirEditar(id) {
+  const u = usuarioPorId(id);
+  if (!u) return;
+
+  editandoId = u.id;
+  cerrarOverlay('modalDetalle');
+  document.getElementById('modalUsuarioTitle').innerHTML = '<i class="fas fa-pencil-alt" style="color:var(--color-primary);margin-right:8px"></i>Editar Usuario';
+  document.getElementById('btnGuardarTxt').textContent = 'Guardar Cambios';
+  document.getElementById('fPasswordGroup').style.display = 'none';
+
+  document.getElementById('fNombre').value = u.nombre;
+  document.getElementById('fApellido').value = u.apellido;
+  document.getElementById('fEmail').value = u.email;
+  document.getElementById('fDocumento').value = u.documento;
+  document.getElementById('fTelefono').value = u.telefono;
+  document.getElementById('fRol').value = u.rol;
+  abrirOverlay('modalUsuario');
+}
+
+function abrirCambioPass(id) {
+  cambioPassId = String(id);
+  document.getElementById('fNewPassword').value = '';
+  document.getElementById('fConfirmPassword').value = '';
+  abrirOverlay('modalPassword');
+}
+
+function abrirEliminar(id) {
+  const u = usuarioPorId(id);
+  if (!u) return;
+  eliminandoId = u.id;
+  document.getElementById('eliminarNombre').textContent = `${u.nombre} ${u.apellido} - ${u.email}`.trim();
+  abrirOverlay('modalEliminar');
+}
+
+document.getElementById('usersTableBody').addEventListener('click', (event) => {
+  const btn = event.target.closest('button[data-action]');
+  if (!btn) return;
+
+  const { action, id } = btn.dataset;
+  if (!id) return;
+
+  if (action === 'view') verDetalle(id);
+  if (action === 'edit') abrirEditar(id);
+  if (action === 'pass') abrirCambioPass(id);
+  if (action === 'delete') abrirEliminar(id);
+});
+
+document.getElementById('btnNuevoUsuario').addEventListener('click', abrirNuevoUsuario);
+document.getElementById('btnRefresh').addEventListener('click', cargarUsuarios);
+
+document.getElementById('btnGuardarUsuario').addEventListener('click', async () => {
+  const nombre = document.getElementById('fNombre').value.trim();
+  const apellido = document.getElementById('fApellido').value.trim();
+  const email = document.getElementById('fEmail').value.trim().toLowerCase();
+  const documento = document.getElementById('fDocumento').value.trim();
+  const telefono = document.getElementById('fTelefono').value.trim();
+  const rol = document.getElementById('fRol').value;
+
+  if (!nombre || !apellido || !email) {
+    toast('Nombre, apellido y correo son obligatorios', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnGuardarUsuario');
+  const modoEdicion = Boolean(editandoId);
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+  try {
+    if (!modoEdicion) {
+      const password = document.getElementById('fPassword').value;
+      if (!password || password.length < 8) {
+        throw new Error('La contraseña debe tener al menos 8 caracteres');
+      }
+
+      await apiCrearUsuario({
+        nombre,
+        apellido,
+        email,
+        documento,
+        telefono,
+        rol,
+        tipo_usuario: rol,
+        password
+      });
+      toast('Usuario creado correctamente', 'success');
+    } else {
+      await apiActualizarUsuario(editandoId, {
+        nombre,
+        apellido,
+        email,
+        documento,
+        telefono,
+        rol,
+        tipo_usuario: rol
+      });
+      toast('Usuario actualizado correctamente', 'success');
+    }
+
+    cerrarOverlay('modalUsuario');
+    await cargarUsuarios();
+  } catch (error) {
+    toast(error.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fas fa-save"></i> <span id="btnGuardarTxt">${modoEdicion ? 'Guardar Cambios' : 'Crear Usuario'}</span>`;
+  }
+});
+
+document.getElementById('btnGuardarPassword').addEventListener('click', async () => {
+  const newPassword = document.getElementById('fNewPassword').value;
+  const confirmPassword = document.getElementById('fConfirmPassword').value;
+
+  if (!newPassword || newPassword.length < 8) {
+    toast('La contraseña debe tener al menos 8 caracteres', 'error');
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    toast('Las contraseñas no coinciden', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnGuardarPassword');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+  try {
+    await apiCambiarPassword(cambioPassId, newPassword);
+    toast('Contraseña actualizada correctamente', 'success');
+    cerrarOverlay('modalPassword');
+  } catch (error) {
+    toast(error.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+  }
+});
+
+document.getElementById('btnConfirmarEliminar').addEventListener('click', async () => {
+  if (!eliminandoId) return;
+
+  const btn = document.getElementById('btnConfirmarEliminar');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+
+  try {
+    await apiEliminarUsuario(eliminandoId);
+    toast('Usuario eliminado correctamente', 'success');
+    cerrarOverlay('modalEliminar');
+    cerrarOverlay('modalDetalle');
+    await cargarUsuarios();
+  } catch (error) {
+    toast(error.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-trash"></i> Eliminar';
+    eliminandoId = null;
+  }
+});
+
+['closeModalUsuario', 'cancelModalUsuario'].forEach((id) => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalUsuario'));
+});
+['closeEliminar', 'cancelEliminar'].forEach((id) => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalEliminar'));
+});
+['closeDetalle', 'cancelDetalle'].forEach((id) => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalDetalle'));
+});
+['closePassword', 'cancelPassword'].forEach((id) => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalPassword'));
+});
+
+document.getElementById('btnEditarDesdeDetalle').addEventListener('click', () => {
+  if (detalleUsuario) abrirEditar(detalleUsuario.id);
+});
+document.getElementById('btnEliminarDesdeDetalle').addEventListener('click', () => {
+  if (!detalleUsuario) return;
+  cerrarOverlay('modalDetalle');
+  abrirEliminar(detalleUsuario.id);
+});
+
+['modalUsuario', 'modalEliminar', 'modalDetalle', 'modalPassword', 'logoutConfirm'].forEach((id) => {
+  document.getElementById(id).addEventListener('click', (event) => {
+    if (event.target.id === id) cerrarOverlay(id);
+  });
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  ['modalUsuario', 'modalEliminar', 'modalDetalle', 'modalPassword', 'logoutConfirm'].forEach(cerrarOverlay);
+});
+
+function togglePassword(inputId, btnId) {
+  const input = document.getElementById(inputId);
+  const icon = document.querySelector(`#${btnId} i`);
+  if (!input || !icon) return;
+
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+
+document.getElementById('togglePass').addEventListener('click', () => togglePassword('fPassword', 'togglePass'));
+document.getElementById('toggleNewPass').addEventListener('click', () => togglePassword('fNewPassword', 'toggleNewPass'));
+document.getElementById('toggleConfirmPass').addEventListener('click', () => togglePassword('fConfirmPassword', 'toggleConfirmPass'));
+
+document.getElementById('searchInput').addEventListener('input', () => {
+  paginaActual = 1;
+  renderTabla();
+});
+document.getElementById('filterRol').addEventListener('change', () => {
+  paginaActual = 1;
+  renderTabla();
+});
+
+
+document.getElementById('logoutBtn').addEventListener('click', (event) => {
+  event.preventDefault();
+  abrirOverlay('logoutConfirm');
+});
+document.getElementById('cancelLogout').addEventListener('click', () => cerrarOverlay('logoutConfirm'));
+document.getElementById('confirmLogout').addEventListener('click', async () => {
+  cerrarOverlay('logoutConfirm');
+  const tok = localStorage.getItem('token');
+  if (tok) {
+    try { await fetch('/auth/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${tok}`, 'Content-Type': 'application/json' } }); } catch(_) {}
+  }
+  ['usuario', 'tipo_usuario', 'token'].forEach((key) => localStorage.removeItem(key));
+  abrirOverlay('logoutLoading');
+  setTimeout(() => {
+    window.location.href = '/api/login.html';
+  }, 1200);
+});
+window.addEventListener('beforeunload', () => {
+  const tok = localStorage.getItem('token');
+  if (tok) { const b = new Blob([JSON.stringify({ token: tok })], { type: 'application/json' }); navigator.sendBeacon('/auth/logout', b); }
+});
+
+cargarUsuarios();
+</script>
+</body>
+</html>

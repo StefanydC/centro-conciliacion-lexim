@@ -5,9 +5,10 @@ const userService = require("../services/user.service");
  */
 const getAllUsers = async (req, res, next) => {
   try {
-    const { search, limit, skip } = req.query;
+    const { search, limit, skip, estado } = req.query;
     const users = await userService.getAllUsers({
       search,
+      estado,
       limit: parseInt(limit) || 100,
       skip: parseInt(skip) || 0
     });
@@ -71,7 +72,16 @@ const updateUser = async (req, res, next) => {
  */
 const changePassword = async (req, res, next) => {
   try {
-    const result = await userService.changePassword(req.params.id, req.body);
+    const isAdmin = req.user?.tipo_usuario === "administrador" || req.user?.rol === "admin";
+    const isSelf = req.user?.sub === req.params.id;
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({
+        mensaje: "No tienes permisos para cambiar la contraseña de otro usuario"
+      });
+    }
+
+    const result = await userService.changePassword(req.params.id, req.body, { isAdmin });
     return res.status(200).json({
       mensaje: result.mensaje,
       data: result

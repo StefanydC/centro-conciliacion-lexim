@@ -14,6 +14,19 @@ services:
       - lexim-net
     restart: unless-stopped
 
+  # ─── Microservicio de agenda ──────────────────────────────────────────────
+  agenda-service:
+    build: ./backend/agenda-service
+    container_name: agenda_service
+    environment:
+      - PORT=3003
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - lexim-net
+    restart: unless-stopped
+
   # ─── Microservicio de conciliación ────────────────────────────────────────
   conciliacion-service:
     build: ./backend/conciliacion-service
@@ -57,10 +70,12 @@ services:
       - USER_AUTH_SERVICE_URL=http://user-auth-service:3001
       - CONCILIACION_SERVICE_URL=http://conciliacion-service:3002
       - DOCUMENT_SERVICE_URL=http://document-service:3004
+      - AGENDA_SERVICE_URL=http://agenda-service:3003
     depends_on:
       - user-auth-service
       - conciliacion-service
       - document-service
+      - agenda-service
     networks:
       - lexim-net
     restart: unless-stopped
