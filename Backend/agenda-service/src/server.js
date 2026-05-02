@@ -188,6 +188,158 @@ async function gcalDelete(userId, googleEventId) {
   }
 }
 
+function parseGoogleStart(start) {
+  if (!start) return { fecha: '', hora: '' };
+
+  if (start.date) {
+    return { fecha: start.date, hora: '' };
+  }
+
+  if (!start.dateTime) {
+    return { fecha: '', hora: '' };
+  }
+
+  const [fecha, rest] = String(start.dateTime).split('T');
+  const hora = rest ? rest.slice(0, 5) : '';
+  return { fecha: fecha || '', hora };
+}
+
+function inferirTipoGoogle(summary = '', description = '') {
+  const text = `${summary} ${description}`.toLowerCase();
+  if (text.includes('audiencia')) return 'audiencia';
+  if (text.includes('vencimiento') || text.includes('vence') || text.includes('plazo')) return 'vencimiento';
+  if (text.includes('reunion') || text.includes('reunión') || text.includes('meeting')) return 'reunion';
+  return 'otro';
+}
+
+function limpiarDescripcion(description = '') {
+  if (!description) return '';
+  const lines = description.split('\n').filter(Boolean);
+  const filtered = lines.filter(line => !/^\s*(caso|lugar)\s*:/i.test(line));
+  return filtered.join('\n').trim();
+}
+
+function extraerCampoDescripcion(description = '', fieldName = '') {
+  if (!description) return '';
+  const rx = new RegExp(`^\\s*${fieldName}\\s*:\\s*(.+)$`, 'im');
+  const match = description.match(rx);
+  return match?.[1]?.trim() || '';
+}
+
+function mapGoogleEventToAgenda(googleEvent) {
+  const summary = (googleEvent.summary || '').trim();
+  const description = googleEvent.description || '';
+  const { fecha, hora } = parseGoogleStart(googleEvent.start);
+
+  return {
+    titulo: summary || 'Evento sin título',
+    tipo: inferirTipoGoogle(summary, description),
+    caso: extraerCampoDescripcion(description, 'Caso'),
+    fecha,
+    hora,
+    lugar: (googleEvent.location || extraerCampoDescripcion(description, 'Lugar') || '').trim(),
+    descripcion: limpiarDescripcion(description),
+    google_event_id: googleEvent.id
+  };
+}
+
+async function syncGoogleToAgenda(userId) {
+  const client = await getAuthenticatedClient(userId);
+  if (!client) {
+    return { connected: false, totalGoogle: 0, creados: 0, actualizados: 0, eliminados: 0 };
+  }
+
+  const cal = google.calendar({ version: 'v3', auth: client });
+  const allEvents = [];
+  let pageToken = null;
+
+  do {
+    const res = await cal.events.list({
+      calendarId: 'primary',
+      maxResults: 250,
+      singleEvents: true,
+      showDeleted: false,
+      pageToken,
+      orderBy: 'startTime',
+      timeMin: '2000-01-01T00:00:00Z'
+    });
+    const items = res.data?.items || [];
+    allEvents.push(...items);
+    pageToken = res.data?.nextPageToken || null;
+  } while (pageToken);
+
+  let creados = 0;
+  let actualizados = 0;
+  let eliminados = 0;
+  const idsGoogleActivos = new Set();
+
+  for (const gEvent of allEvents) {
+    if (!gEvent?.id || gEvent.status === 'cancelled') continue;
+    idsGoogleActivos.add(gEvent.id);
+
+    const mapped = mapGoogleEventToAgenda(gEvent);
+    if (!mapped.fecha) continue;
+
+    let localEvent = await Evento.findOne({
+      creadoPor: userId,
+      google_event_id: mapped.google_event_id
+    });
+
+    if (!localEvent) {
+      // Evita duplicados cuando existía un evento local equivalente sin google_event_id
+      localEvent = await Evento.findOne({
+        creadoPor: userId,
+        google_event_id: null,
+        titulo: mapped.titulo,
+        fecha: mapped.fecha,
+        hora: mapped.hora
+      });
+    }
+
+    if (!localEvent) {
+      await Evento.create({ ...mapped, creadoPor: userId });
+      creados += 1;
+      continue;
+    }
+
+    await Evento.findByIdAndUpdate(localEvent._id, {
+      titulo: mapped.titulo,
+      tipo: mapped.tipo,
+      caso: mapped.caso,
+      fecha: mapped.fecha,
+      hora: mapped.hora,
+      lugar: mapped.lugar,
+      descripcion: mapped.descripcion,
+      google_event_id: mapped.google_event_id
+    });
+    actualizados += 1;
+  }
+
+  // Si un evento existia en sistema con google_event_id y ya no aparece en Google,
+  // se elimina para mantener espejo bidireccional.
+  const candidatosEliminar = await Evento.find({
+    creadoPor: userId,
+    google_event_id: { $ne: null }
+  }).select('_id google_event_id');
+
+  const idsLocalesEliminar = candidatosEliminar
+    .filter(item => !idsGoogleActivos.has(String(item.google_event_id)))
+    .map(item => item._id);
+
+  if (idsLocalesEliminar.length > 0) {
+    const delRes = await Evento.deleteMany({ _id: { $in: idsLocalesEliminar } });
+    eliminados = Number(delRes?.deletedCount || 0);
+  }
+
+  return {
+    connected: true,
+    totalGoogle: allEvents.length,
+    creados,
+    actualizados,
+    eliminados
+  };
+}
+
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 const router = express.Router();
 
@@ -219,6 +371,24 @@ router.post('/google/disconnect', requireAuth, async (req, res) => {
     res.json({ mensaje: 'Google Calendar desconectado correctamente' });
   } catch (err) {
     res.status(500).json({ error: 'Error al desconectar', detalle: err.message });
+  }
+});
+
+// POST /agenda/google/sync — sincroniza Google Calendar -> sistema (upsert)
+router.post('/google/sync', requireAuth, async (req, res) => {
+  try {
+    const result = await syncGoogleToAgenda(req.user.sub);
+    if (!result.connected) {
+      return res.status(409).json({ error: 'Google Calendar no conectado' });
+    }
+
+    res.json({
+      mensaje: 'Sincronización Google -> sistema completada',
+      data: result
+    });
+  } catch (err) {
+    console.error('[GCAL] Error al sincronizar Google -> sistema:', err.message);
+    res.status(500).json({ error: 'Error al sincronizar calendario', detalle: err.message });
   }
 });
 

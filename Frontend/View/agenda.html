@@ -541,6 +541,10 @@ function apiEliminarEvento(id) {
   return apiFetch(`/agenda/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
+function apiSincronizarGoogle() {
+  return apiFetch('/agenda/google/sync', { method: 'POST' });
+}
+
 /* ─ Normalizar desde API ─ */
 function normalizarEvento(raw) {
   const tipo = String(raw?.tipo || 'otro').toLowerCase();
@@ -567,6 +571,29 @@ async function cargarEstadoGcal() {
     document.getElementById('gcalConnectBar').style.display = data.connected ? 'none' : 'flex';
   } catch (err) {
     console.warn('[GCAL] Estado no disponible:', err.message);
+  }
+}
+
+async function sincronizarGoogleSiConectado({ silencioso = true } = {}) {
+  if (!gcalConectado) return null;
+
+  try {
+    const result = await apiSincronizarGoogle();
+    const creados = Number(result?.data?.creados || 0);
+    const actualizados = Number(result?.data?.actualizados || 0);
+    const eliminados = Number(result?.data?.eliminados || 0);
+
+    if (!silencioso) {
+      toast(`Google sincronizado: ${creados} nuevos, ${actualizados} actualizados, ${eliminados} eliminados`, 'success');
+    }
+
+    return result;
+  } catch (err) {
+    if (!silencioso) {
+      toast(`No fue posible sincronizar Google Calendar: ${err.message}`, 'error');
+    }
+    console.warn('[GCAL] Error de sincronización:', err.message);
+    return null;
   }
 }
 
@@ -871,12 +898,16 @@ document.querySelectorAll('.view-tab').forEach(btn => {
 /* ═══════════════════════════════════════════════
    CARGAR DATOS
 ═══════════════════════════════════════════════ */
-async function cargarEventos() {
+async function cargarEventos({ syncGoogle = false, mostrarToastSync = false } = {}) {
   document.getElementById('loadingState').style.display = 'flex';
   document.getElementById('emptyState').style.display   = 'none';
   document.getElementById('eventsContainer').innerHTML  = '';
 
   try {
+    if (syncGoogle) {
+      await sincronizarGoogleSiConectado({ silencioso: !mostrarToastSync });
+    }
+
     const result  = await apiListarEventos();
     todosEventos  = (result?.data || []).map(normalizarEvento).filter(e => e.id);
     actualizarStats(todosEventos);
@@ -1082,9 +1113,9 @@ document.getElementById('btnEliminarDesdeDetalle').addEventListener('click', () 
 });
 
 document.getElementById('btnNuevoEvento').addEventListener('click', () => abrirNuevoEvento());
-document.getElementById('btnRefresh').addEventListener('click', () => {
-  cargarEventos();
-  cargarEstadoGcal();
+document.getElementById('btnRefresh').addEventListener('click', async () => {
+  await cargarEstadoGcal();
+  await cargarEventos({ syncGoogle: true, mostrarToastSync: true });
 });
 
 /* ═══════════════════════════════════════════════
@@ -1111,9 +1142,13 @@ window.addEventListener('beforeunload', () => {
 });
 
 /* ── INIT ── */
-calFecha = new Date();
-cargarEstadoGcal();
-cargarEventos();
+async function initAgenda() {
+  calFecha = new Date();
+  await cargarEstadoGcal();
+  await cargarEventos({ syncGoogle: true });
+}
+
+initAgenda();
 </script>
 </body>
 </html>
