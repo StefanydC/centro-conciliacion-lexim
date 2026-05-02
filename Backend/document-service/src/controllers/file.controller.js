@@ -2,10 +2,34 @@ const driveService = require('../services/drive.service');
 const documentService = require('../services/document.service');
 const env = require('../config/env');
 
+function esJudicante(req) {
+  const roles = [req.user?.tipo_usuario, req.user?.tipoUsuario, req.user?.rol]
+    .map(v => String(v || '').trim().toLowerCase())
+    .filter(Boolean);
+  return roles.includes('judicante');
+}
+
+function carpetaJudicantes() {
+  return env.FOLDER_ID_JUDICANTES || env.JUDICANTE_FOLDER_ID || '';
+}
+
+function rootPorRol(req) {
+  if (esJudicante(req)) return carpetaJudicantes() || null;
+  return env.DRIVE_ROOT_FOLDER_ID;
+}
+
+async function validarAccesoJudicante(req, folderId) {
+  if (!esJudicante(req)) return true;
+  const root = carpetaJudicantes();
+  if (!root) return false;
+  return folderId === root || await driveService.estaEnCarpeta(folderId, root);
+}
+
 /**
  * POST /upload
  * Body (multipart/form-data): file, folderId?
  * Admin y judicante. Sube un archivo a Drive y guarda metadata en MongoDB.
+ * Judicante: solo puede subir dentro de JUDICANTE_FOLDER_ID (o sus subcarpetas).
  */
 const subirArchivo = async (req, res) => {
   try {
@@ -13,13 +37,34 @@ const subirArchivo = async (req, res) => {
       return res.status(400).json({ error: 'No se recibió ningún archivo' });
     }
 
-    const folderId = req.body.folderId || env.DRIVE_ROOT_FOLDER_ID;
+    const usuarioEsJudicante = esJudicante(req);
+    const judicanteRoot = carpetaJudicantes();
+
+    let targetFolder;
+
+    if (usuarioEsJudicante) {
+      if (!judicanteRoot) {
+        return res.status(503).json({ error: 'Carpeta de judicantes no configurada' });
+      }
+      const solicitado = req.body.folderId;
+      if (solicitado) {
+        const permitido = await driveService.estaEnCarpeta(solicitado, judicanteRoot);
+        if (!permitido) {
+          return res.status(403).json({ error: 'No puedes subir archivos fuera de tu espacio asignado' });
+        }
+        targetFolder = solicitado;
+      } else {
+        targetFolder = judicanteRoot;
+      }
+    } else {
+      targetFolder = req.body.folderId || env.DRIVE_ROOT_FOLDER_ID;
+    }
 
     const driveFile = await driveService.subirArchivo(
       req.file.buffer,
       req.file.originalname,
       req.file.mimetype,
-      folderId
+      targetFolder
     );
 
     const metadata = await documentService.guardarMetadata({
@@ -27,11 +72,11 @@ const subirArchivo = async (req, res) => {
       driveFileId: driveFile.id,
       mimeType:    req.file.mimetype,
       tamaño:      req.file.size,
-      folderId,
+      folderId:    targetFolder,
       subidoPor:   req.user.sub,
     });
 
-    console.log(`[Files] Archivo subido: "${driveFile.name}" (${driveFile.id}) por ${req.user.sub}`);
+    console.log(`[Files] Archivo subido: "${driveFile.name}" (${driveFile.id}) por ${req.user.sub} en carpeta ${targetFolder}`);
     res.status(201).json({ data: { drive: driveFile, metadata } });
   } catch (err) {
     console.error('[Files] Error al subir archivo:', err.message);
@@ -48,11 +93,29 @@ const subirArchivo = async (req, res) => {
 /**
  * GET /files/:folderId?
  * Lista archivos dentro de una carpeta en Drive.
- * Si no se pasa folderId, usa la raíz.
+ * Judicante: solo puede listar dentro de JUDICANTE_FOLDER_ID.
  */
 const listarArchivos = async (req, res) => {
   try {
-    const folderId = req.params.folderId || env.DRIVE_ROOT_FOLDER_ID;
+    const folderRaiz = rootPorRol(req);
+    if (esJudicante(req) && !folderRaiz) {
+      return res.status(503).json({ error: 'Carpeta de judicantes no configurada' });
+    }
+
+    let folderId;
+    if (esJudicante(req)) {
+      folderId = req.params.folderId || folderRaiz;
+    } else {
+      folderId = req.params.folderId || env.DRIVE_ROOT_FOLDER_ID;
+    }
+
+    if (esJudicante(req) && req.params.folderId) {
+      const permitido = await validarAccesoJudicante(req, folderId);
+      if (!permitido) {
+        return res.status(403).json({ error: 'Acceso denegado' });
+      }
+    }
+
     const archivos = await driveService.listarContenidoCarpeta(folderId);
 
     console.log(`[Files] Listado en carpeta ${folderId}: ${archivos.length} archivos`);

@@ -38,10 +38,19 @@
     <a class="nav-item" href="ingresos.html"><i class="fas fa-arrow-up"></i><span>Ingresos</span></a>
     <a class="nav-item" href="egresos.html"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
     <div class="sidebar-sep"></div>
-    <a class="nav-item" href="modulo.html?mod=conciliaciones"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
-    <a class="nav-item active" href="/api/agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" href="conciliaciones.html"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
+    <a class="nav-item active" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
     <a class="nav-item" href="/api/usuarios.html"><i class="fas fa-users"></i><span>Usuarios</span></a>
-    <a class="nav-item" href="modulo.html?mod=reportes"><i class="fas fa-chart-bar"></i><span>Reportes</span></a>
+  </nav>
+
+  <nav class="sidebar-nav" id="nav-judic" style="display:none">
+    <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item" href="tareas.html"><i class="fas fa-tasks"></i><span>Mis Tareas</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
+    <a class="nav-item active" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" href="modulo.html?mod=notificaciones"><i class="fas fa-bell"></i><span>Notificaciones</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
   </nav>
 
   <div class="sidebar-bottom">
@@ -383,6 +392,11 @@ document.getElementById('uName').textContent   = nombreCompleto;
 document.getElementById('uAvatar').textContent = inicialesSesion;
 document.getElementById('sidebarRole').textContent = tipoUsuario === 'administrador' ? 'Administrador' : 'Judicante';
 
+if (tipoUsuario === 'judicante') {
+  document.getElementById('nav-admin').style.display = 'none';
+  document.getElementById('nav-judic').style.display = 'grid';
+}
+
 /* ─ SIDEBAR ─ */
 document.getElementById('sidebarToggle').addEventListener('click', () => {
   document.getElementById('sidebar').classList.toggle('collapsed');
@@ -410,9 +424,18 @@ const MESES = ['enero','febrero','marzo','abril','mayo','junio',
 /* ═══════════════════════════════════════════════
    UTILIDADES
 ═══════════════════════════════════════════════ */
+// Devuelve "YYYY-MM-DD" usando la hora LOCAL del dispositivo (no UTC)
+// Evita el bug donde new Date().toISOString() puede devolver el día anterior
+// para usuarios en zonas UTC-X a partir de medianoche
+function fechaLocalISO(d) {
+  const f = d || new Date();
+  return `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`;
+}
+
 function formatFecha(valor) {
   if (!valor) return '—';
-  const d = new Date(valor);
+  // Forzar parseo como local (agregar T12:00:00 evita desfase UTC)
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(valor) ? new Date(valor + 'T12:00:00') : new Date(valor);
   if (Number.isNaN(d.getTime())) return String(valor);
   return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
 }
@@ -569,8 +592,8 @@ document.getElementById('gcalConnectBtn').addEventListener('click', () => {
    STATS
 ═══════════════════════════════════════════════ */
 function actualizarStats(lista) {
-  const hoy = new Date().toISOString().slice(0, 10);
-  const en7 = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+  const hoy = fechaLocalISO();
+  const en7 = fechaLocalISO(new Date(Date.now() + 7 * 86400000));
 
   document.getElementById('statTotal').textContent = String(lista.length);
   document.getElementById('statHoy').textContent   = String(lista.filter(e => isoDate(e.fecha) === hoy).length);
@@ -585,19 +608,21 @@ function getFiltrados() {
   const q       = document.getElementById('searchInput').value.trim().toLowerCase();
   const tipo    = document.getElementById('filterTipo').value;
   const periodo = document.getElementById('filterPeriodo').value;
-  const hoy     = new Date().toISOString().slice(0,10);
-  const en7     = new Date(Date.now() + 7*86400000).toISOString().slice(0,10);
+
+  // Usar fechaLocalISO() en todos los cálculos para evitar desfase UTC
+  const hoy = fechaLocalISO();
+  const en7 = fechaLocalISO(new Date(Date.now() + 7*86400000));
 
   const now = new Date();
   const dow = now.getDay();
   const iniSem = new Date(now);
-  iniSem.setDate(now.getDate() - ((dow + 6) % 7));
+  iniSem.setDate(now.getDate() - ((dow + 6) % 7)); // lunes como inicio de semana
   const finSem = new Date(iniSem);
   finSem.setDate(iniSem.getDate() + 6);
-  const iniSemStr = iniSem.toISOString().slice(0,10);
-  const finSemStr = finSem.toISOString().slice(0,10);
+  const iniSemStr = fechaLocalISO(iniSem);
+  const finSemStr = fechaLocalISO(finSem);
   const iniMes = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-  const finMes = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  const finMes = fechaLocalISO(new Date(now.getFullYear(), now.getMonth()+1, 0));
 
   return todosEventos.filter(e => {
     const texto = `${e.titulo} ${e.caso} ${e.descripcion} ${e.lugar}`.toLowerCase();
@@ -617,12 +642,22 @@ function getFiltrados() {
 
 function eventosPorId(id) { return todosEventos.find(e => e.id === String(id)); }
 
+// Aplica los filtros de tipo/búsqueda/período pero ignora diaSeleccionado,
+// para que los puntos del mini calendario y los chips del mes reflejen el tipo activo.
+function getFiltradosSinDia() {
+  const saved = diaSeleccionado;
+  diaSeleccionado = null;
+  const result = getFiltrados();
+  diaSeleccionado = saved;
+  return result;
+}
+
 /* ═══════════════════════════════════════════════
    RENDER LISTA
 ═══════════════════════════════════════════════ */
 function agruparPorFecha(lista) {
-  const hoy    = new Date().toISOString().slice(0,10);
-  const manana = new Date(Date.now()+86400000).toISOString().slice(0,10);
+  const hoy    = fechaLocalISO();
+  const manana = fechaLocalISO(new Date(Date.now()+86400000));
   const grupos = {};
 
   lista.forEach(e => {
@@ -711,7 +746,7 @@ function renderVistaMes() {
   const year  = calFecha.getFullYear();
   const month = calFecha.getMonth();
   const dias  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  const hoy   = new Date().toISOString().slice(0,10);
+  const hoy   = fechaLocalISO();
 
   document.getElementById('monthViewHead').innerHTML =
     dias.map(d => `<div class="month-view-weekday">${d}</div>`).join('');
@@ -730,7 +765,7 @@ function renderVistaMes() {
     cells.push({ day: d, thisMonth: false, iso: isoFecha(year, month+1, d) });
 
   const eventMap = {};
-  todosEventos.forEach(e => {
+  getFiltradosSinDia().forEach(e => {
     const fd = isoDate(e.fecha);
     if (fd) {
       if (!eventMap[fd]) eventMap[fd] = [];
@@ -768,7 +803,7 @@ function isoFecha(year, month, day) {
 function renderMiniCal() {
   const year  = calFecha.getFullYear();
   const month = calFecha.getMonth();
-  const hoy   = new Date().toISOString().slice(0,10);
+  const hoy   = fechaLocalISO();
 
   document.getElementById('calMonthTitle').textContent =
     `${MESES[month].charAt(0).toUpperCase() + MESES[month].slice(1)} ${year}`;
@@ -776,7 +811,7 @@ function renderMiniCal() {
   const firstDay  = new Date(year, month, 1).getDay();
   const lastDay   = new Date(year, month+1, 0).getDate();
   const prevLast  = new Date(year, month, 0).getDate();
-  const eventDates = new Set(todosEventos.map(e => isoDate(e.fecha)));
+  const eventDates = new Set(getFiltradosSinDia().map(e => isoDate(e.fecha)));
 
   const cells = [];
   for (let i = firstDay - 1; i >= 0; i--)

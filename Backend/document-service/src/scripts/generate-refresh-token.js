@@ -4,7 +4,7 @@ const http = require('http');
 const { google } = require('googleapis');
 
 function loadRootEnv() {
-  const envPath = path.resolve(__dirname, '../../../.env');
+  const envPath = path.resolve(__dirname, '../../../../.env');
   try {
     require('dotenv').config({ path: envPath, override: true });
     return;

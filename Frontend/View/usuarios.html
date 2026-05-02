@@ -8,6 +8,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
   <link rel="stylesheet" href="../Controller/styles/usuarios.css"/>
+  <style>
+    @media print {
+      .sidebar, .topbar, .page-header-actions, .action-btns,
+      .filters-bar, .toast-wrap, .overlay, .session-overlay { display: none !important; }
+      .main { margin-left: 0 !important; }
+      body  { background: #fff; }
+    }
+  </style>
 </head>
 <body>
 
@@ -29,10 +37,9 @@
     <a class="nav-item" href="ingresos.html"><i class="fas fa-arrow-up"></i><span>Ingresos</span></a>
     <a class="nav-item" href="egresos.html"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
     <div class="sidebar-sep"></div>
-    <a class="nav-item" href="modulo.html?mod=conciliaciones"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
+    <a class="nav-item" href="conciliaciones.html"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
     <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
     <a class="nav-item active" href="/api/usuarios.html"><i class="fas fa-users"></i><span>Usuarios</span></a>
-    <a class="nav-item" href="modulo.html?mod=reportes"><i class="fas fa-chart-bar"></i><span>Reportes</span></a>
   </nav>
 
   <div class="sidebar-bottom">
@@ -46,6 +53,7 @@
   <header class="topbar">
     <div class="topbar-title">Gestión de Usuarios</div>
     <button class="tb-btn"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
+    <button class="tb-btn" id="btnImprimir" title="Imprimir lista de usuarios"><i class="fas fa-print"></i></button>
     <button class="tb-btn" id="btnRefresh" title="Recargar"><i class="fas fa-sync-alt"></i></button>
     <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
     <div class="user-pill">
@@ -655,6 +663,7 @@ document.getElementById('usersTableBody').addEventListener('click', (event) => {
 
 document.getElementById('btnNuevoUsuario').addEventListener('click', abrirNuevoUsuario);
 document.getElementById('btnRefresh').addEventListener('click', cargarUsuarios);
+document.getElementById('btnImprimir').addEventListener('click', () => window.print());
 
 document.getElementById('btnGuardarUsuario').addEventListener('click', async () => {
   const nombre = document.getElementById('fNombre').value.trim();

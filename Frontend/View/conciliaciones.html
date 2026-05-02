@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LEXIM — Conciliaciones</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
+  <style>
+    /* ── Stats ── */
+    .conc-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+      width: min(860px, 100%);
+    }
+    .conc-stat {
+      border-radius: 14px;
+      border: 1px solid rgba(35,76,88,.14);
+      padding: 14px 16px;
+      box-shadow: 0 6px 18px rgba(15,21,22,.07);
+      transition: transform .18s, box-shadow .2s;
+    }
+    .conc-stat:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(15,21,22,.12); }
+    .conc-stat-head { display: flex; align-items: center; gap: 9px; }
+    .conc-stat-icon { width: 30px; height: 30px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: .78rem; box-shadow: 0 4px 10px rgba(15,21,22,.2); }
+    .conc-stat-label { font-size: .67rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #5e747d; }
+    .conc-stat-value { display: block; margin-top: 10px; font-size: 1.45rem; line-height: 1; font-weight: 800; color: #183540; }
+    .conc-stat-hint  { display: block; margin-top: 5px; font-size: .69rem; color: #5e747d; font-weight: 600; }
+
+    .s-total  { background: linear-gradient(145deg, #eef4f7 0%, #dce9ef 100%); border-color: rgba(35,76,88,.3); }
+    .s-total .conc-stat-icon { background: linear-gradient(135deg, #234c58, #2f6475); }
+    .s-reg    { background: linear-gradient(145deg, #ebf5fb 0%, #d6eaf8 100%); border-color: rgba(41,128,185,.3); }
+    .s-reg .conc-stat-icon { background: linear-gradient(135deg, #2980b9, #1a6fa0); }
+    .s-pend   { background: linear-gradient(145deg, #fef9e7 0%, #fdebd0 100%); border-color: rgba(214,137,16,.3); }
+    .s-pend .conc-stat-icon { background: linear-gradient(135deg, #d68910, #b7770d); }
+    .s-pot    { background: linear-gradient(145deg, #eafaf1 0%, #d5f5e3 100%); border-color: rgba(30,132,73,.3); }
+    .s-pot .conc-stat-icon  { background: linear-gradient(135deg, #1e8449, #196f3d); }
+
+    /* ── Toolbar ── */
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .toolbar .search-box { flex: 1; min-width: 220px; }
+    .filter-select {
+      padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(35,76,88,.18);
+      background: #fff; font-family: var(--font-main); font-size: .82rem;
+      color: var(--color-dark); outline: none; cursor: pointer;
+    }
+
+    /* ── Tabla ── */
+    .table-wrap {
+      background: rgba(255,255,255,.92);
+      border-radius: 16px;
+      border: 1px solid rgba(35,76,88,.12);
+      box-shadow: 0 4px 20px rgba(15,21,22,.07);
+      overflow: hidden;
+    }
+    .table-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid rgba(35,76,88,.1);
+    }
+    .table-head h2 { font-size: 1rem; font-weight: 700; color: var(--color-primary); }
+    .conc-table { width: 100%; border-collapse: collapse; }
+    .conc-table th {
+      text-align: left; padding: 10px 16px; font-size: .71rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em; color: var(--color-secondary);
+      background: rgba(35,76,88,.04); border-bottom: 1px solid rgba(35,76,88,.1);
+      white-space: nowrap;
+    }
+    .conc-table td { padding: 13px 16px; border-bottom: 1px solid rgba(35,76,88,.06); vertical-align: middle; }
+    .conc-table tr:last-child td { border-bottom: none; }
+    .conc-table tr:hover td { background: rgba(35,76,88,.025); }
+    .conc-table .exp { font-weight: 700; font-size: .88rem; color: var(--color-primary); }
+    .conc-table .tema-txt { font-weight: 600; font-size: .85rem; color: var(--color-dark); margin-bottom: 2px; }
+    .conc-table .parte-txt { font-size: .76rem; color: var(--color-secondary); }
+
+    /* Estado badges */
+    .badge-registrado { background: #ebf5fb; color: #2980b9; border: 1px solid #aed6f1; }
+    .badge-pendiente  { background: #fef9e7; color: #d68910; border: 1px solid #f9e79f; }
+    .badge-potencial  { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+
+    /* ── Modal wider ── */
+    .modal-conc { width: min(700px, 100%); }
+    .section-label {
+      font-size: .7rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .09em; color: var(--color-secondary);
+      margin: 4px 0 10px; padding-bottom: 6px;
+      border-bottom: 1px solid rgba(35,76,88,.12);
+    }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+    /* ── Toast ── */
+    .toast-wrap { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 800; }
+    .toast {
+      display: flex; align-items: center; gap: 9px;
+      background: #1c3540; color: #fff; padding: 11px 16px;
+      border-radius: 10px; font-size: .83rem; font-weight: 600;
+      box-shadow: 0 8px 24px rgba(15,21,22,.25);
+      animation: toastIn .28s ease;
+    }
+    .toast.success { background: #196f3d; }
+    .toast.error   { background: #922b21; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Empty ── */
+    .empty-conc { display: flex; flex-direction: column; align-items: center; padding: 60px 20px; color: var(--color-secondary); }
+    .empty-conc i { font-size: 2.4rem; margin-bottom: 12px; opacity: .35; }
+    .empty-conc p { font-size: .9rem; font-weight: 600; }
+
+    /* ── Detail modal ── */
+    .detail-section { margin-bottom: 16px; }
+    .detail-section-title {
+      font-size: .7rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .09em; color: var(--color-secondary);
+      margin-bottom: 10px; padding-bottom: 5px;
+      border-bottom: 1px solid rgba(35,76,88,.1);
+    }
+    .detail-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .d-item { display: grid; gap: 3px; }
+    .d-label { font-size: .7rem; font-weight: 700; color: var(--color-secondary); text-transform: uppercase; letter-spacing: .05em; }
+    .d-value { font-weight: 600; font-size: .88rem; color: var(--color-dark); }
+
+    /* Print */
+    @media print {
+      .sidebar, .topbar, .toolbar, .table-head .btn-primary, .action-btns,
+      .toast-wrap, .overlay, .session-overlay { display: none !important; }
+      .main { margin-left: 0 !important; }
+      body { background: #fff; }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .conc-stats { grid-template-columns: repeat(2, 1fr); }
+      .form-row-3, .detail-row-3 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .form-row-3, .detail-row-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-ico"><i class="fas fa-balance-scale"></i></div>
+    <div class="brand-texts">
+      <div class="brand-name">LEXIM</div>
+      <div class="brand-role" id="sidebarRole">Administrador</div>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-chevron-left"></i></button>
+  </div>
+
+  <nav class="sidebar-nav" id="nav-admin">
+    <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item" href="tareas.html"><i class="fas fa-tasks"></i><span>Tareas</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Documentos</span></a>
+    <a class="nav-item" href="ingresos.html"><i class="fas fa-arrow-up"></i><span>Ingresos</span></a>
+    <a class="nav-item" href="egresos.html"><i class="fas fa-arrow-down"></i><span>Egresos</span></a>
+    <div class="sidebar-sep"></div>
+    <a class="nav-item active" href="conciliaciones.html"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
+    <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+    <a class="nav-item" href="/api/usuarios.html"><i class="fas fa-users"></i><span>Usuarios</span></a>
+  </nav>
+
+  <nav class="sidebar-nav" id="nav-judic" style="display:none">
+    <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
+    <a class="nav-item" href="tareas.html"><i class="fas fa-tasks"></i><span>Mis Tareas</span></a>
+    <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
+    <a class="nav-item active" href="conciliaciones.html"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
+    <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <a class="logout-btn" href="#" id="logoutBtn"><i class="fas fa-lock"></i><span>Cerrar Sesión</span></a>
+  </div>
+</aside>
+
+<!-- ── MAIN ─────────────────────────────────────────────────────────── -->
+<div class="main" id="mainContent">
+
+  <header class="topbar">
+    <div class="topbar-title">Conciliaciones</div>
+    <button class="tb-btn" id="btnImprimir" title="Imprimir"><i class="fas fa-print"></i></button>
+    <button class="tb-btn" id="btnRefresh" title="Recargar"><i class="fas fa-sync-alt"></i></button>
+    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    <div class="user-pill">
+      <div class="u-avatar" id="uAvatar">AD</div>
+      <span class="u-name" id="uName">Administrador</span>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Conciliaciones</h1>
+        <p>Registro y seguimiento de expedientes de conciliación</p>
+
+        <div class="conc-stats" id="concStats">
+          <div class="conc-stat s-total">
+            <div class="conc-stat-head">
+              <span class="conc-stat-icon"><i class="fas fa-handshake"></i></span>
+              <span class="conc-stat-label">Total</span>
+            </div>
+            <strong class="conc-stat-value" id="statTotal">0</strong>
+            <span class="conc-stat-hint">Expedientes registrados</span>
+          </div>
+          <div class="conc-stat s-reg">
+            <div class="conc-stat-head">
+              <span class="conc-stat-icon"><i class="fas fa-file-alt"></i></span>
+              <span class="conc-stat-label">Registrado</span>
+            </div>
+            <strong class="conc-stat-value" id="statReg">0</strong>
+            <span class="conc-stat-hint">En estado registrado</span>
+          </div>
+          <div class="conc-stat s-pend">
+            <div class="conc-stat-head">
+              <span class="conc-stat-icon"><i class="fas fa-clock"></i></span>
+              <span class="conc-stat-label">Pendiente</span>
+            </div>
+            <strong class="conc-stat-value" id="statPend">0</strong>
+            <span class="conc-stat-hint">Requieren acción</span>
+          </div>
+          <div class="conc-stat s-pot">
+            <div class="conc-stat-head">
+              <span class="conc-stat-icon"><i class="fas fa-star"></i></span>
+              <span class="conc-stat-label">Potencial</span>
+            </div>
+            <strong class="conc-stat-value" id="statPot">0</strong>
+            <span class="conc-stat-hint">Con potencial acuerdo</span>
+          </div>
+        </div>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn-primary" id="btnNuevo">
+          <i class="fas fa-plus"></i> Nueva Conciliación
+        </button>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Buscar expediente, tema, partes...">
+      </div>
+      <select class="filter-select" id="filterEstado">
+        <option value="">Todos los estados</option>
+        <option value="registrado">Registrado</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="potencial">Potencial</option>
+      </select>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-wrap">
+      <div class="table-head">
+        <h2 id="tableTitle">Conciliaciones</h2>
+      </div>
+
+      <div id="loadingState" style="display:flex;align-items:center;gap:10px;padding:40px 20px;color:var(--color-secondary);font-size:.85rem;font-weight:600;">
+        <i class="fas fa-spinner fa-spin"></i> Cargando conciliaciones...
+      </div>
+
+      <table class="conc-table" id="concTable" style="display:none">
+        <thead>
+          <tr>
+            <th>Expediente</th>
+            <th>Tema</th>
+            <th>Convocante</th>
+            <th>Convocado</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="concBody"></tbody>
+      </table>
+
+      <div class="empty-conc" id="emptyState" style="display:none">
+        <i class="fas fa-handshake-slash"></i>
+        <p>No se encontraron conciliaciones</p>
+        <span style="font-size:.8rem;margin-top:4px">Crea una nueva o ajusta el filtro</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── MODAL: NUEVA / EDITAR CONCILIACIÓN ─────────────────────────── -->
+<div class="overlay" id="modalConc">
+  <div class="modal modal-conc">
+    <div class="modal-head">
+      <h3 id="modalTitle"><i class="fas fa-handshake" style="color:var(--color-primary);margin-right:8px"></i>Nueva Conciliación</h3>
+      <button class="modal-close" id="closeModal"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="form-group">
+        <label>Número de Expediente *</label>
+        <input type="text" id="fExpediente" placeholder="Ej: 2024-CONC-001" maxlength="80">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tema de la Conciliación *</label>
+          <input type="text" id="fTema" placeholder="Ej: Deuda comercial, Linderos..." maxlength="200">
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select id="fEstado">
+            <option value="registrado">Registrado</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="potencial">Potencial</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Parte convocante -->
+      <p class="section-label"><i class="fas fa-user" style="margin-right:5px"></i>Parte Convocante</p>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Nombre completo *</label>
+          <input type="text" id="fCvtNombre" placeholder="Nombre o razón social">
+        </div>
+        <div class="form-group">
+          <label>Documento (C.C / NIT)</label>
+          <input type="text" id="fCvtDoc" placeholder="Ej: 1234567890">
+        </div>
+        <div class="form-group">
+          <label>Contacto (tel / email)</label>
+          <input type="text" id="fCvtContacto" placeholder="Ej: 3001234567">
+        </div>
+      </div>
+
+      <!-- Parte convocada -->
+      <p class="section-label"><i class="fas fa-user-tie" style="margin-right:5px"></i>Parte Convocada</p>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Nombre completo *</label>
+          <input type="text" id="fCvdNombre" placeholder="Nombre o razón social">
+        </div>
+        <div class="form-group">
+          <label>Documento (C.C / NIT)</label>
+          <input type="text" id="fCvdDoc" placeholder="Ej: 9876543210">
+        </div>
+        <div class="form-group">
+          <label>Contacto (tel / email)</label>
+          <input type="text" id="fCvdContacto" placeholder="Ej: 3109876543">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Descripción general</label>
+        <textarea id="fDescripcion" placeholder="Contexto, antecedentes o notas del caso..." maxlength="2000" style="min-height:90px"></textarea>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelModal">Cancelar</button>
+      <button class="btn-primary" id="btnGuardar">
+        <i class="fas fa-save"></i> <span id="btnGuardarTxt">Crear Conciliación</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: DETALLE ─────────────────────────────────────────────── -->
+<div class="overlay" id="modalDetalle">
+  <div class="modal modal-conc">
+    <div class="modal-head">
+      <h3><i class="fas fa-file-contract" style="color:var(--color-primary);margin-right:8px"></i>Detalle del Expediente</h3>
+      <button class="modal-close" id="closeDetalle"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+
+      <div class="detail-section">
+        <div class="detail-section-title">Información general</div>
+        <div class="detail-row-3">
+          <div class="d-item">
+            <span class="d-label">Expediente</span>
+            <span class="d-value" id="dExp">—</span>
+          </div>
+          <div class="d-item">
+            <span class="d-label">Estado</span>
+            <span class="d-value" id="dEstado">—</span>
+          </div>
+          <div class="d-item">
+            <span class="d-label">Fecha de registro</span>
+            <span class="d-value" id="dFecha">—</span>
+          </div>
+        </div>
+        <div class="d-item" style="margin-top:12px">
+          <span class="d-label">Tema</span>
+          <span class="d-value" id="dTema">—</span>
+        </div>
+        <div class="d-item" style="margin-top:12px">
+          <span class="d-label">Descripción</span>
+          <span class="d-value" id="dDescripcion" style="white-space:pre-wrap;line-height:1.55">—</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title"><i class="fas fa-user" style="margin-right:5px"></i>Parte Convocante</div>
+        <div class="detail-row-3">
+          <div class="d-item"><span class="d-label">Nombre</span><span class="d-value" id="dCvtNombre">—</span></div>
+          <div class="d-item"><span class="d-label">Documento</span><span class="d-value" id="dCvtDoc">—</span></div>
+          <div class="d-item"><span class="d-label">Contacto</span><span class="d-value" id="dCvtContacto">—</span></div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title"><i class="fas fa-user-tie" style="margin-right:5px"></i>Parte Convocada</div>
+        <div class="detail-row-3">
+          <div class="d-item"><span class="d-label">Nombre</span><span class="d-value" id="dCvdNombre">—</span></div>
+          <div class="d-item"><span class="d-label">Documento</span><span class="d-value" id="dCvdDoc">—</span></div>
+          <div class="d-item"><span class="d-label">Contacto</span><span class="d-value" id="dCvdContacto">—</span></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelDetalle">Cerrar</button>
+      <button class="btn-danger" id="btnEliminarDesdeDetalle" style="padding:9px 16px;border-radius:10px;border:1px solid #f5b7b1;background:#fff;color:#c0392b;font-family:var(--font-main);font-size:.82rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+        <i class="fas fa-trash"></i> Eliminar
+      </button>
+      <button class="btn-primary" id="btnEditarDesdeDetalle">
+        <i class="fas fa-pencil-alt"></i> Editar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: CONFIRMAR ELIMINAR ──────────────────────────────────── -->
+<div class="overlay" id="modalEliminar">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Confirmar eliminación</h3>
+      <button class="modal-close" id="closeEliminar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div style="padding:26px 22px;text-align:center">
+      <i class="fas fa-exclamation-triangle" style="font-size:2rem;color:#e67e22;margin-bottom:12px;display:block"></i>
+      <h4 style="margin-bottom:8px;color:var(--color-dark)">¿Eliminar este expediente?</h4>
+      <p id="eliminarNombre" style="font-weight:700;color:var(--color-primary);margin-bottom:6px"></p>
+      <p style="font-size:.83rem;color:var(--color-secondary)">Esta acción es permanente y no se puede deshacer.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelEliminar">Cancelar</button>
+      <button id="btnConfirmarEliminar" style="padding:9px 18px;border-radius:10px;border:none;background:#c0392b;color:#fff;font-family:var(--font-main);font-size:.82rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;">
+        <i class="fas fa-trash"></i> Eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LOGOUT ─────────────────────────────────────────────────────── -->
+<div class="session-overlay" id="logoutConfirm">
+  <div class="session-modal">
+    <i class="fas fa-sign-out-alt"></i>
+    <h3>Confirmar cierre de sesión</h3>
+    <p>¿Seguro que deseas cerrar tu sesión?</p>
+    <div class="session-actions">
+      <button class="session-btn cancel" id="cancelLogout">Cancelar</button>
+      <button class="session-btn confirm" id="confirmLogout">Sí, cerrar sesión</button>
+    </div>
+  </div>
+</div>
+<div class="session-overlay" id="logoutLoading">
+  <div class="logout-loader">
+    <div class="logout-spinner"></div>
+    <div style="font-weight:700;color:#0f1516;margin-bottom:6px">Cerrando sesión...</div>
+    <div style="font-size:.78rem;color:#5a7a84">Por favor espera un momento.</div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   SESIÓN
+═══════════════════════════════════════════ */
+let usuario = null;
+try { usuario = JSON.parse(localStorage.getItem('usuario')); } catch (_) {}
+
+const tipoUsuario = localStorage.getItem('tipo_usuario') || 'administrador';
+const token       = localStorage.getItem('token') || '';
+
+if (!usuario || !token) {
+  window.location.replace('/api/login.html');
+  throw new Error('Sesión inválida');
+}
+
+const esAdmin = tipoUsuario === 'administrador';
+const nombreCompleto = `${usuario?.nombre || ''} ${usuario?.apellido || ''}`.trim() || 'Usuario';
+const iniciales      = `${(usuario?.nombre || 'U')[0]}${(usuario?.apellido || 'S')[0]}`.toUpperCase();
+
+document.getElementById('uName').textContent   = nombreCompleto;
+document.getElementById('uAvatar').textContent = iniciales;
+document.getElementById('sidebarRole').textContent = esAdmin ? 'Administrador' : 'Judicante';
+
+// Mostrar nav correcto
+document.getElementById('nav-admin').style.display = esAdmin  ? 'grid' : 'none';
+document.getElementById('nav-judic').style.display = !esAdmin ? 'grid' : 'none';
+
+// Sidebar toggle
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+});
+
+/* ═══════════════════════════════════════════
+   ESTADO
+═════════════════════��═════════════════════ */
+let todosItems   = [];
+let editandoId   = null;
+let eliminandoId = null;
+let detalleItem  = null;
+
+/* ═══════════════════════════════════════════
+   UTILIDADES
+═══════════════════════════════════════════ */
+function escapeHtml(v) {
+  return String(v || '')
+    .replaceAll('&','&amp;').replaceAll('<','&lt;')
+    .replaceAll('>','&gt;').replaceAll('"','&quot;');
+}
+
+function toast(msg, tipo = 'info') {
+  const wrap = document.getElementById('toastWrap');
+  const el   = document.createElement('div');
+  el.className = `toast ${tipo}`;
+  const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+  el.innerHTML = `<i class="fas ${icons[tipo] || 'fa-info-circle'}"></i> ${escapeHtml(msg)}`;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3400);
+}
+
+function abrirOverlay(id)  { document.getElementById(id)?.classList.add('active'); }
+function cerrarOverlay(id) { document.getElementById(id)?.classList.remove('active'); }
+
+function formatFecha(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+const ESTADO_CFG = {
+  registrado: { label: 'Registrado', cls: 'badge-registrado', icon: 'fa-file-alt'  },
+  pendiente:  { label: 'Pendiente',  cls: 'badge-pendiente',  icon: 'fa-clock'     },
+  potencial:  { label: 'Potencial',  cls: 'badge-potencial',  icon: 'fa-star'      },
+};
+function estadoBadge(estado) {
+  const c = ESTADO_CFG[estado] || { label: estado, cls: 'badge-registrado', icon: 'fa-circle' };
+  return `<span class="badge ${c.cls}"><i class="fas ${c.icon}"></i> ${c.label}</span>`;
+}
+
+/* ═══════════════════════════════════════════
+   API
+════════════════════════���══════════════════ */
+async function apiFetch(url, opts = {}) {
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const r = await fetch(url, {
+      ...opts,
+      signal: ctrl.signal,
+      headers: { Authorization: `Bearer ${token}`, ...(opts.headers || {}) }
+    });
+    clearTimeout(tid);
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(body?.error || body?.mensaje || `Error ${r.status}`);
+    return body;
+  } catch (err) {
+    clearTimeout(tid);
+    if (err.name === 'AbortError') throw new Error('Tiempo de espera agotado');
+    throw err;
+  }
+}
+
+async function apiListar(q, estado) {
+  const params = new URLSearchParams({ limit: 200 });
+  if (q)      params.set('q', q);
+  if (estado) params.set('estado', estado);
+  return apiFetch(`/conciliacion?${params}`);
+}
+
+function apiCrear(data)      { return apiFetch('/conciliacion',        { method: 'POST',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }); }
+function apiActualizar(id, d){ return apiFetch(`/conciliacion/${id}`,  { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) }); }
+function apiEliminar(id)     { return apiFetch(`/conciliacion/${id}`,  { method: 'DELETE' }); }
+
+/* ═══════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════ */
+function actualizarStats(lista) {
+  document.getElementById('statTotal').textContent = String(lista.length);
+  document.getElementById('statReg').textContent   = String(lista.filter(i => i.estado === 'registrado').length);
+  document.getElementById('statPend').textContent  = String(lista.filter(i => i.estado === 'pendiente').length);
+  document.getElementById('statPot').textContent   = String(lista.filter(i => i.estado === 'potencial').length);
+}
+
+/* ═══════════════════════════════════════════
+   RENDER TABLA
+═══════════════════════════════════════════ */
+function getFiltrados() {
+  const q      = document.getElementById('searchInput').value.trim().toLowerCase();
+  const estado = document.getElementById('filterEstado').value;
+
+  return todosItems.filter(item => {
+    if (estado && item.estado !== estado) return false;
+    if (q) {
+      const texto = [
+        item.nro_expediente,
+        item.tema,
+        item.parte_convocante?.nombre,
+        item.parte_convocada?.nombre,
+        item.descripcion
+      ].join(' ').toLowerCase();
+      if (!texto.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderTabla() {
+  const filtrados = getFiltrados();
+  const loading   = document.getElementById('loadingState');
+  const tabla     = document.getElementById('concTable');
+  const empty     = document.getElementById('emptyState');
+  const titulo    = document.getElementById('tableTitle');
+
+  loading.style.display = 'none';
+
+  if (!filtrados.length) {
+    tabla.style.display = 'none';
+    empty.style.display = 'flex';
+    titulo.textContent  = 'Conciliaciones (0)';
+    return;
+  }
+
+  empty.style.display  = 'none';
+  tabla.style.display  = 'table';
+  titulo.textContent   = `Conciliaciones (${filtrados.length})`;
+
+  document.getElementById('concBody').innerHTML = filtrados.map(item => `
+    <tr data-id="${escapeHtml(item._id)}" style="cursor:pointer">
+      <td><span class="exp">${escapeHtml(item.nro_expediente)}</span></td>
+      <td>
+        <div class="tema-txt">${escapeHtml(item.tema)}</div>
+      </td>
+      <td>
+        <div class="parte-txt">${escapeHtml(item.parte_convocante?.nombre || '—')}</div>
+        ${item.parte_convocante?.documento ? `<div class="parte-txt" style="font-size:.7rem;margin-top:1px">${escapeHtml(item.parte_convocante.documento)}</div>` : ''}
+      </td>
+      <td>
+        <div class="parte-txt">${escapeHtml(item.parte_convocada?.nombre || '—')}</div>
+        ${item.parte_convocada?.documento ? `<div class="parte-txt" style="font-size:.7rem;margin-top:1px">${escapeHtml(item.parte_convocada.documento)}</div>` : ''}
+      </td>
+      <td>${estadoBadge(item.estado)}</td>
+      <td style="font-size:.8rem;color:var(--color-secondary);white-space:nowrap">
+        ${formatFecha(item.createdAt)}
+      </td>
+      <td>
+        <div class="action-btns">
+          <button class="action-btn" data-action="edit" data-id="${escapeHtml(item._id)}" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+          ${esAdmin ? `<button class="action-btn danger" data-action="delete" data-id="${escapeHtml(item._id)}" title="Eliminar"><i class="fas fa-trash"></i></button>` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ═══════════════════════════════════════════
+   CARGAR
+═══════════════════════════════════════════ */
+async function cargar() {
+  document.getElementById('loadingState').style.display = 'flex';
+  document.getElementById('concTable').style.display    = 'none';
+  document.getElementById('emptyState').style.display   = 'none';
+  try {
+    const result  = await apiListar();
+    todosItems    = result?.data || [];
+    actualizarStats(todosItems);
+    renderTabla();
+  } catch (err) {
+    document.getElementById('loadingState').style.display = 'none';
+    toast(`Error al cargar: ${err.message}`, 'error');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   DETALLE
+═══════════════════════════════════════════ */
+function verDetalle(id) {
+  const item = todosItems.find(i => i._id === id);
+  if (!item) return;
+  detalleItem = item;
+
+  document.getElementById('dExp').textContent         = item.nro_expediente || '—';
+  document.getElementById('dEstado').innerHTML        = estadoBadge(item.estado);
+  document.getElementById('dFecha').textContent       = formatFecha(item.createdAt);
+  document.getElementById('dTema').textContent        = item.tema || '—';
+  document.getElementById('dDescripcion').textContent = item.descripcion || '—';
+  document.getElementById('dCvtNombre').textContent   = item.parte_convocante?.nombre    || '—';
+  document.getElementById('dCvtDoc').textContent      = item.parte_convocante?.documento || '—';
+  document.getElementById('dCvtContacto').textContent = item.parte_convocante?.contacto  || '—';
+  document.getElementById('dCvdNombre').textContent   = item.parte_convocada?.nombre     || '—';
+  document.getElementById('dCvdDoc').textContent      = item.parte_convocada?.documento  || '—';
+  document.getElementById('dCvdContacto').textContent = item.parte_convocada?.contacto   || '—';
+
+  // Ocultar botón eliminar para no-admin
+  document.getElementById('btnEliminarDesdeDetalle').style.display = esAdmin ? 'inline-flex' : 'none';
+
+  abrirOverlay('modalDetalle');
+}
+
+/* ═══════════════════════════════════════════
+   FORMULARIO NUEVO / EDITAR
+═══════════════════════════════════════════ */
+function abrirNuevo() {
+  editandoId = null;
+  document.getElementById('modalTitle').innerHTML =
+    '<i class="fas fa-handshake" style="color:var(--color-primary);margin-right:8px"></i>Nueva Conciliación';
+  document.getElementById('btnGuardarTxt').textContent = 'Crear Conciliación';
+  ['fExpediente','fTema','fCvtNombre','fCvtDoc','fCvtContacto',
+   'fCvdNombre','fCvdDoc','fCvdContacto','fDescripcion'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('fEstado').value = 'registrado';
+  abrirOverlay('modalConc');
+  setTimeout(() => document.getElementById('fExpediente').focus(), 80);
+}
+
+function abrirEditar(id) {
+  const item = todosItems.find(i => i._id === id);
+  if (!item) return;
+  editandoId = item._id;
+  cerrarOverlay('modalDetalle');
+
+  document.getElementById('modalTitle').innerHTML =
+    '<i class="fas fa-pencil-alt" style="color:var(--color-primary);margin-right:8px"></i>Editar Conciliación';
+  document.getElementById('btnGuardarTxt').textContent = 'Guardar Cambios';
+
+  document.getElementById('fExpediente').value    = item.nro_expediente || '';
+  document.getElementById('fTema').value          = item.tema           || '';
+  document.getElementById('fEstado').value        = item.estado         || 'registrado';
+  document.getElementById('fCvtNombre').value     = item.parte_convocante?.nombre    || '';
+  document.getElementById('fCvtDoc').value        = item.parte_convocante?.documento || '';
+  document.getElementById('fCvtContacto').value   = item.parte_convocante?.contacto  || '';
+  document.getElementById('fCvdNombre').value     = item.parte_convocada?.nombre     || '';
+  document.getElementById('fCvdDoc').value        = item.parte_convocada?.documento  || '';
+  document.getElementById('fCvdContacto').value   = item.parte_convocada?.contacto   || '';
+  document.getElementById('fDescripcion').value   = item.descripcion    || '';
+
+  abrirOverlay('modalConc');
+}
+
+function abrirEliminar(id) {
+  const item = todosItems.find(i => i._id === id);
+  if (!item) return;
+  eliminandoId = item._id;
+  document.getElementById('eliminarNombre').textContent =
+    `Exp. ${item.nro_expediente} — ${item.tema}`;
+  abrirOverlay('modalEliminar');
+}
+
+/* ═══════════════════════════════════════════
+   GUARDAR
+═══════════════════════════════════════════ */
+document.getElementById('btnGuardar').addEventListener('click', async () => {
+  const nro_expediente = document.getElementById('fExpediente').value.trim();
+  const tema           = document.getElementById('fTema').value.trim();
+  const estado         = document.getElementById('fEstado').value;
+  const cvtNombre      = document.getElementById('fCvtNombre').value.trim();
+  const cvtDoc         = document.getElementById('fCvtDoc').value.trim();
+  const cvtContacto    = document.getElementById('fCvtContacto').value.trim();
+  const cvdNombre      = document.getElementById('fCvdNombre').value.trim();
+  const cvdDoc         = document.getElementById('fCvdDoc').value.trim();
+  const cvdContacto    = document.getElementById('fCvdContacto').value.trim();
+  const descripcion    = document.getElementById('fDescripcion').value.trim();
+
+  if (!nro_expediente) { toast('El número de expediente es obligatorio', 'error'); return; }
+  if (!tema)           { toast('El tema es obligatorio', 'error');                 return; }
+  if (!cvtNombre)      { toast('El nombre de la parte convocante es obligatorio', 'error'); return; }
+  if (!cvdNombre)      { toast('El nombre de la parte convocada es obligatorio',  'error'); return; }
+
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled  = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+  const payload = {
+    nro_expediente,
+    tema,
+    estado,
+    descripcion,
+    parte_convocante: { nombre: cvtNombre, documento: cvtDoc,  contacto: cvtContacto },
+    parte_convocada:  { nombre: cvdNombre, documento: cvdDoc,  contacto: cvdContacto }
+  };
+
+  try {
+    if (!editandoId) {
+      await apiCrear(payload);
+      toast('Conciliación creada correctamente', 'success');
+    } else {
+      await apiActualizar(editandoId, payload);
+      toast('Conciliación actualizada correctamente', 'success');
+    }
+    cerrarOverlay('modalConc');
+    await cargar();
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = `<i class="fas fa-save"></i> <span id="btnGuardarTxt">${editandoId ? 'Guardar Cambios' : 'Crear Conciliación'}</span>`;
+  }
+});
+
+/* ═══════════════════════════════════════════
+   ELIMINAR
+═══════════════════════════════════════════ */
+document.getElementById('btnConfirmarEliminar').addEventListener('click', async () => {
+  if (!eliminandoId) return;
+  const btn = document.getElementById('btnConfirmarEliminar');
+  btn.disabled  = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+  try {
+    await apiEliminar(eliminandoId);
+    toast('Expediente eliminado correctamente', 'success');
+    cerrarOverlay('modalEliminar');
+    cerrarOverlay('modalDetalle');
+    await cargar();
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fas fa-trash"></i> Eliminar';
+    eliminandoId  = null;
+  }
+});
+
+/* ═══════════════════════════════════════════
+   DELEGACIÓN DE EVENTOS EN TABLA
+═══════════════════════════════════════════ */
+document.getElementById('concBody').addEventListener('click', ev => {
+  const btn = ev.target.closest('button[data-action]');
+  if (btn) {
+    ev.stopPropagation();
+    const { action, id } = btn.dataset;
+    if (action === 'edit')   abrirEditar(id);
+    if (action === 'delete') abrirEliminar(id);
+    return;
+  }
+  const row = ev.target.closest('tr[data-id]');
+  if (row) verDetalle(row.dataset.id);
+});
+
+/* ═══════════════════════════════════════════
+   BOTONES HEADER
+═══════════════════════════════════════════ */
+document.getElementById('btnNuevo').addEventListener('click', abrirNuevo);
+document.getElementById('btnRefresh').addEventListener('click', cargar);
+document.getElementById('btnImprimir').addEventListener('click', () => window.print());
+
+document.getElementById('btnEditarDesdeDetalle').addEventListener('click', () => {
+  if (detalleItem) abrirEditar(detalleItem._id);
+});
+document.getElementById('btnEliminarDesdeDetalle').addEventListener('click', () => {
+  if (!detalleItem) return;
+  cerrarOverlay('modalDetalle');
+  abrirEliminar(detalleItem._id);
+});
+
+/* ═══════════════════════════════════════════
+   FILTROS
+═══════════════════════════════════════════ */
+document.getElementById('searchInput').addEventListener('input',  renderTabla);
+document.getElementById('filterEstado').addEventListener('change', renderTabla);
+
+/* ═══════════════════════════════════════════
+   CIERRE DE MODALES
+═══════════════════════════════════════════ */
+['closeModal','cancelModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalConc'));
+});
+['closeDetalle','cancelDetalle'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalDetalle'));
+});
+['closeEliminar','cancelEliminar'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => cerrarOverlay('modalEliminar'));
+});
+['modalConc','modalDetalle','modalEliminar','logoutConfirm'].forEach(id => {
+  document.getElementById(id).addEventListener('click', ev => {
+    if (ev.target.id === id) cerrarOverlay(id);
+  });
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key !== 'Escape') return;
+  ['modalConc','modalDetalle','modalEliminar','logoutConfirm'].forEach(cerrarOverlay);
+});
+
+/* ═══════════════════════════════════════════
+   LOGOUT
+═══════════════════════════════════════════ */
+document.getElementById('logoutBtn').addEventListener('click', ev => {
+  ev.preventDefault();
+  abrirOverlay('logoutConfirm');
+});
+document.getElementById('cancelLogout').addEventListener('click', () => cerrarOverlay('logoutConfirm'));
+document.getElementById('confirmLogout').addEventListener('click', async () => {
+  cerrarOverlay('logoutConfirm');
+  const tok = localStorage.getItem('token');
+  if (tok) {
+    try { await fetch('/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' } }); } catch(_) {}
+  }
+  ['usuario','tipo_usuario','token'].forEach(k => localStorage.removeItem(k));
+  abrirOverlay('logoutLoading');
+  setTimeout(() => { window.location.href = '/api/login.html'; }, 1200);
+});
+window.addEventListener('beforeunload', () => {
+  const tok = localStorage.getItem('token');
+  if (tok) { const b = new Blob([JSON.stringify({token:tok})], {type:'application/json'}); navigator.sendBeacon('/auth/logout', b); }
+});
+
+/* ── INIT ── */
+cargar();
+</script>
+</body>
+</html>

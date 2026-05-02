@@ -1,10 +1,34 @@
 const driveService = require('../services/drive.service');
 const env = require('../config/env');
 
+function esJudicante(req) {
+  const roles = [req.user?.tipo_usuario, req.user?.tipoUsuario, req.user?.rol]
+    .map(v => String(v || '').trim().toLowerCase())
+    .filter(Boolean);
+  return roles.includes('judicante');
+}
+
+function carpetaJudicantes() {
+  return env.FOLDER_ID_JUDICANTES || env.JUDICANTE_FOLDER_ID || '';
+}
+
+function rootPorRol(req) {
+  if (esJudicante(req)) return carpetaJudicantes() || null;
+  return env.DRIVE_ROOT_FOLDER_ID;
+}
+
+async function validarAccesoJudicante(req, folderId) {
+  if (!esJudicante(req)) return true;
+  const root = carpetaJudicantes();
+  if (!root) return false;
+  return folderId === root || await driveService.estaEnCarpeta(folderId, root);
+}
+
 /**
  * POST /folders
  * Body: { nombre, parentId? }
- * Solo admin. Crea una carpeta en Drive (en parentId o en la raíz).
+ * Admin: cualquier parentId o raíz admin.
+ * Judicante: parentId debe estar dentro de JUDICANTE_FOLDER_ID (o usa esa raíz).
  */
 const crearCarpeta = async (req, res) => {
   try {
@@ -14,10 +38,30 @@ const crearCarpeta = async (req, res) => {
       return res.status(400).json({ error: 'El nombre de la carpeta es requerido' });
     }
 
-    const parent = parentId || env.DRIVE_ROOT_FOLDER_ID;
+    const usuarioEsJudicante = esJudicante(req);
+    let parent;
+
+    if (usuarioEsJudicante) {
+      const judicanteRoot = carpetaJudicantes();
+      if (!judicanteRoot) {
+        return res.status(503).json({ error: 'Carpeta de judicantes no configurada' });
+      }
+      if (parentId) {
+        const permitido = await driveService.estaEnCarpeta(parentId, judicanteRoot);
+        if (!permitido) {
+          return res.status(403).json({ error: 'No puedes crear carpetas fuera de tu espacio asignado' });
+        }
+        parent = parentId;
+      } else {
+        parent = judicanteRoot;
+      }
+    } else {
+      parent = parentId || env.DRIVE_ROOT_FOLDER_ID;
+    }
+
     const carpeta = await driveService.crearCarpeta(nombre.trim(), parent);
 
-    console.log(`[Folders] Carpeta creada: "${carpeta.name}" (${carpeta.id}) por admin ${req.user.sub}`);
+    console.log(`[Folders] Carpeta creada: "${carpeta.name}" (${carpeta.id}) por ${req.user.sub} (${req.user.tipo_usuario})`);
     res.status(201).json({ data: carpeta });
   } catch (err) {
     console.error('[Folders] Error al crear carpeta:', err.message);
@@ -27,12 +71,31 @@ const crearCarpeta = async (req, res) => {
 
 /**
  * GET /folders/:parentId?
- * Lista el contenido (archivos + subcarpetas) de una carpeta.
- * Si no se pasa parentId, usa la carpeta raíz configurada.
+ * Lista el contenido de una carpeta.
+ * Judicante: solo puede listar dentro de JUDICANTE_FOLDER_ID.
+ * Si no se pasa parentId, se devuelve la raíz correspondiente al rol.
  */
 const listarContenido = async (req, res) => {
   try {
-    const folderId = req.params.parentId || env.DRIVE_ROOT_FOLDER_ID;
+    const folderRaiz = rootPorRol(req);
+    if (esJudicante(req) && !folderRaiz) {
+      return res.status(503).json({ error: 'Carpeta de judicantes no configurada' });
+    }
+
+    let folderId;
+    if (esJudicante(req)) {
+      folderId = req.params.parentId || folderRaiz;
+    } else {
+      folderId = req.params.parentId || env.DRIVE_ROOT_FOLDER_ID;
+    }
+
+    if (esJudicante(req) && req.params.parentId) {
+      const permitido = await validarAccesoJudicante(req, folderId);
+      if (!permitido) {
+        return res.status(403).json({ error: 'Acceso denegado' });
+      }
+    }
+
     const items = await driveService.listarContenidoCarpeta(folderId);
 
     console.log(`[Folders] Listado de carpeta ${folderId}: ${items.length} items`);

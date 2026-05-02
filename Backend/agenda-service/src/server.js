@@ -222,12 +222,11 @@ router.post('/google/disconnect', requireAuth, async (req, res) => {
   }
 });
 
-// GET /agenda/ — listar eventos
+// GET /agenda/ — listar eventos (cada usuario ve solo los suyos)
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const esAdmin = req.user.tipo_usuario === 'administrador';
-    const filter  = esAdmin ? {} : { creadoPor: req.user.sub };
-    const items   = await Evento.find(filter).sort({ fecha: 1, hora: 1 });
+    const filter = { creadoPor: req.user.sub };
+    const items  = await Evento.find(filter).sort({ fecha: 1, hora: 1 });
     res.json({ data: items });
   } catch (err) {
     console.error('[AGENDA] Error al listar:', err.message);

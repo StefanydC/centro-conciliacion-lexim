@@ -74,13 +74,39 @@ body {
 }
 .logout-btn:hover { background: rgba(192,57,43,.28); }
 
-.sidebar.collapsed .brand-texts,
+/* ── Estado colapsado ── */
+.sidebar.collapsed .brand-texts {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-6px);
+  /* Ancho 0 para que no empuje el ícono y el toggle en el flex row */
+  width: 0;
+  overflow: hidden;
+  flex-shrink: 1;
+  min-width: 0;
+}
 .sidebar.collapsed .nav-item span,
-.sidebar.collapsed .nav-item .notif-badge { opacity: 0; pointer-events: none; transform: translateX(-6px); }
-.sidebar.collapsed .nav-item { justify-content: center; padding: 11px 0; border-left: 0; border-radius: 12px; }
-.sidebar.collapsed .logout-btn { justify-content: center; }
-.sidebar.collapsed .sidebar-brand { justify-content: center; }
-.sidebar.collapsed .sidebar-toggle { margin: 0 auto; }
+.sidebar.collapsed .nav-item .notif-badge {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-6px);
+  width: 0;
+  overflow: hidden;
+}
+/* Logout: ocultar texto igual que nav-items */
+.sidebar.collapsed .logout-btn span {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  overflow: hidden;
+}
+.sidebar.collapsed .nav-item    { justify-content: center; padding: 11px 0; border-left: 0; border-radius: 12px; }
+.sidebar.collapsed .logout-btn  { justify-content: center; }
+.sidebar.collapsed .sidebar-brand { justify-content: center; gap: 0; }
+.sidebar.collapsed .sidebar-toggle { margin: 0; }
+/* Rotar el chevron al colapsar para indicar dirección de acción */
+.sidebar-toggle i              { transition: transform .45s cubic-bezier(.2,1,.3,1); }
+.sidebar.collapsed .sidebar-toggle i { transform: rotate(180deg); }
 
 /* ── MAIN ── */
 .main {

@@ -10,6 +10,8 @@ const env = {
   GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET || '',
   GOOGLE_OAUTH_REFRESH_TOKEN: process.env.GOOGLE_OAUTH_REFRESH_TOKEN || '',
   DRIVE_ROOT_FOLDER_ID:    process.env.DRIVE_ROOT_FOLDER_ID    || '1se9ekY8ULFvUu9DWsD1axrH_gW-2e3ca',
+  FOLDER_ID_JUDICANTES:    process.env.FOLDER_ID_JUDICANTES    || process.env.JUDICANTE_FOLDER_ID || '',
+  JUDICANTE_FOLDER_ID:     process.env.JUDICANTE_FOLDER_ID     || '',
 };
 
 ['MONGO_URI', 'JWT_SECRET'].forEach(key => {

@@ -935,16 +935,37 @@ body.sidebar-collapsed .sidebar {
   padding-right: 10px;
 }
 
-body.sidebar-collapsed .brand-texts,
+body.sidebar-collapsed .brand-texts {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-6px);
+  /* Eliminar el espacio que ocupa cuando está invisible */
+  width: 0;
+  overflow: hidden;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
 body.sidebar-collapsed .nav-item span,
 body.sidebar-collapsed .nav-item .notif-badge {
   opacity: 0;
   pointer-events: none;
   transform: translateX(-6px);
+  width: 0;
+  overflow: hidden;
+}
+
+/* Ocultar texto del botón logout igual que los nav items */
+body.sidebar-collapsed .logout-btn span {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  overflow: hidden;
 }
 
 body.sidebar-collapsed .sidebar-brand {
   justify-content: center;
+  gap: 0;
 }
 
 body.sidebar-collapsed .nav-item {
@@ -959,7 +980,16 @@ body.sidebar-collapsed .logout-btn {
 }
 
 body.sidebar-collapsed .sidebar-toggle {
-  margin: 0 auto;
+  margin: 0;
+}
+
+/* Rotar el chevron para indicar dirección */
+.sidebar-toggle i {
+  transition: transform 0.45s cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+body.sidebar-collapsed .sidebar-toggle i {
+  transform: rotate(180deg);
 }
 
 @keyframes fade-up {

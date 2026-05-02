@@ -27,7 +27,7 @@ async function listarContenidoCarpeta(folderId) {
   const res = await drive.files.list({
     supportsAllDrives: true,
     includeItemsFromAllDrives: true,
-    q: `'${folderId}' in parents and trashed = false`,
+    q: `'${folderId}' in parents and trashed=false`,
     fields: 'files(id, name, mimeType, size, createdTime, modifiedTime, webViewLink, webContentLink)',
     orderBy: 'folder, name',
     pageSize: 500,
@@ -37,38 +37,27 @@ async function listarContenidoCarpeta(folderId) {
 
 /**
  * Sube un archivo a Google Drive dentro del folder indicado.
- * @param {Buffer} buffer  - Contenido del archivo
- * @param {string} nombre  - Nombre original del archivo
- * @param {string} mimeType
- * @param {string} folderId
+ * El caller (controller) es responsable de calcular el folderId correcto
+ * y de validar que el usuario tenga permisos sobre esa carpeta.
+ * Los archivos NO son públicos: heredan permisos de la carpeta padre.
  */
 async function subirArchivo(buffer, nombre, mimeType, folderId) {
   const drive = getDriveClient();
   const stream = Readable.from(buffer);
+  const targetFolder = folderId || process.env.DRIVE_ROOT_FOLDER_ID;
 
   const res = await drive.files.create({
     supportsAllDrives: true,
     requestBody: {
-      name: nombre,
-      parents: [folderId],
+      name:    nombre,
+      parents: [targetFolder],
     },
     media: {
       mimeType: mimeType || 'application/octet-stream',
-      body: stream,
+      body:     stream,
     },
     fields: 'id, name, mimeType, size, webViewLink, webContentLink, createdTime',
   });
-
-  // Hacer el archivo accesible para vista previa (anyone with link can view)
-  try {
-    await drive.permissions.create({
-      fileId: res.data.id,
-      supportsAllDrives: true,
-      requestBody: { role: 'reader', type: 'anyone' },
-    });
-  } catch (_) {
-    // Si falla el permiso público no bloquea la subida
-  }
 
   return res.data;
 }
@@ -120,6 +109,37 @@ async function renombrarArchivo(fileId, nuevoNombre) {
   return res.data;
 }
 
+/**
+ * Verifica que `folderId` sea `rootFolderId` o un descendiente directo de él.
+ * Sube la cadena de padres en Drive hasta 5 niveles para evitar bucles infinitos.
+ * Devuelve true si está dentro, false si no.
+ */
+async function estaEnCarpeta(folderId, rootFolderId) {
+  if (!folderId || !rootFolderId) return false;
+  if (folderId === rootFolderId) return true;
+
+  const drive = getDriveClient();
+  let current = folderId;
+
+  for (let i = 0; i < 5; i++) {
+    let parents;
+    try {
+      const res = await drive.files.get({
+        fileId: current,
+        fields: 'parents',
+        supportsAllDrives: true,
+      });
+      parents = res.data.parents || [];
+    } catch {
+      return false;
+    }
+    if (parents.includes(rootFolderId)) return true;
+    if (parents.length === 0) return false;
+    current = parents[0];
+  }
+  return false;
+}
+
 module.exports = {
   crearCarpeta,
   listarContenidoCarpeta,
@@ -128,4 +148,5 @@ module.exports = {
   obtenerStream,
   eliminarArchivo,
   renombrarArchivo,
+  estaEnCarpeta,
 };

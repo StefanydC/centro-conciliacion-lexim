@@ -60,6 +60,7 @@ services:
       - GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
       - GOOGLE_OAUTH_REFRESH_TOKEN=${GOOGLE_OAUTH_REFRESH_TOKEN}
       - DRIVE_ROOT_FOLDER_ID=${DRIVE_ROOT_FOLDER_ID}
+      - JUDICANTE_FOLDER_ID=${JUDICANTE_FOLDER_ID}
     volumes:
       - ./backend/document-service/credentials:/app/credentials:ro
     networks:
