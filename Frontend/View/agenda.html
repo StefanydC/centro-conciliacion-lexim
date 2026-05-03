@@ -857,15 +857,6 @@ function renderMiniCal() {
     if (eventDates.has(cell.iso))     cls += ' has-events';
     return `<div class="${cls}" data-date="${cell.iso}">${cell.day}</div>`;
   }).join('');
-
-  document.getElementById('calDays').addEventListener('click', ev => {
-    const day = ev.target.closest('.cal-day[data-date]');
-    if (!day) return;
-    const date = day.dataset.date;
-    diaSeleccionado = diaSeleccionado === date ? null : date;
-    renderMiniCal();
-    renderLista();
-  });
 }
 
 document.getElementById('calPrev').addEventListener('click', () => {
@@ -877,6 +868,16 @@ document.getElementById('calNext').addEventListener('click', () => {
   calFecha.setMonth(calFecha.getMonth() + 1);
   renderMiniCal();
   if (vistaActual === 'mes') renderVistaMes();
+});
+
+// Delegación de eventos para clicks en días del mini calendario (agregado una sola vez)
+document.getElementById('calDays').addEventListener('click', ev => {
+  const day = ev.target.closest('.cal-day[data-date]');
+  if (!day) return;
+  const date = day.dataset.date;
+  diaSeleccionado = diaSeleccionado === date ? null : date;
+  renderMiniCal();
+  renderLista();
 });
 
 /* ═══════════════════════════════════════════════
