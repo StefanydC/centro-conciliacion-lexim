@@ -38,8 +38,8 @@
     <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
     <a class="nav-item" href="tareas.html"><i class="fas fa-tasks"></i><span>Mis Tareas</span></a>
     <a class="nav-item active" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
+    <a class="nav-item" href="conciliaciones.html"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
     <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
-    <a class="nav-item" href="modulo.html?mod=notificaciones"><i class="fas fa-bell"></i><span>Notificaciones</span></a>
     <div class="sidebar-sep"></div>
     <a class="nav-item" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
   </nav>
@@ -335,8 +335,6 @@ let usuario = null;
 try { usuario = JSON.parse(localStorage.getItem('usuario')); } catch(_) {}
 const tipoUsuario = localStorage.getItem('rol') || localStorage.getItem('tipo_usuario') || 'administrador';
 const token       = localStorage.getItem('token') || '';
-const esAdmin     = tipoUsuario === 'administrador';
-const esJudicante = tipoUsuario === 'judicante';
 
 if (!usuario) { window.location.href = 'login.html'; }
 
@@ -349,24 +347,12 @@ if (tipoUsuario === 'judicante') {
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('nav-judic').style.display = 'grid';
   document.getElementById('sidebarRole').textContent = 'Judicante';
-  document.querySelector('.folder-tree').style.display = 'none';
-  document.getElementById('docsStats').style.display = 'grid';
-  document.querySelector('.topbar-title').textContent = 'Carpeta Judicantes';
-  document.querySelector('.page-header-left h1').textContent = 'Carpeta Judicantes';
-  document.querySelector('.page-header-left p').textContent = 'Acceso directo a tu carpeta asignada';
-  document.title = 'LEXIM — Carpeta Judicantes';
 }
 
-// Judicantes pueden crear carpetas dentro de su espacio asignado
 document.getElementById('btnNuevaCarpeta').style.display = 'inline-flex';
-
-if (esAdmin) {
-  document.getElementById('btnRename').style.display           = 'flex';
-  document.getElementById('btnDeleteFromPreview').style.display = 'flex';
-  document.querySelectorAll('.ctx-admin').forEach(el => el.style.display = 'flex');
-} else {
-  document.querySelectorAll('.ctx-admin').forEach(el => el.style.display = 'none');
-}
+document.getElementById('btnRename').style.display = 'flex';
+document.getElementById('btnDeleteFromPreview').style.display = 'flex';
+document.querySelectorAll('.ctx-admin').forEach(el => el.style.display = 'flex');
 
 // ── SIDEBAR ───────────────────────────────────────────────────────────
 document.getElementById('sidebarToggle').addEventListener('click', () =>
@@ -511,19 +497,25 @@ async function apiRenombrar(id, nombre) {
   });
 }
 
+async function apiMover(id, destinationFolderId) {
+  return apiFetch(`/documentos/file/${id}/move`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ destinationFolderId })
+  });
+}
+
 // ── RENDER ────────────────────────────────────────────────────────────
 function renderBreadcrumb() {
   const bar = document.getElementById('breadcrumbBar');
   bar.innerHTML = '';
-  const items = esJudicante
-    ? [{ id: null, nombre: 'Carpeta Judicantes' }, ...navStack]
-    : [{ id: null, nombre: 'Inicio' }, ...navStack];
+  const items = [{ id: null, nombre: 'Inicio' }, ...navStack];
   items.forEach((item, i) => {
     const span = document.createElement('span');
     const esCurrent = i === items.length - 1;
     span.className = 'bc-item' + (esCurrent ? ' current' : '');
     span.innerHTML = i === 0
-      ? `<i class="fas ${esJudicante ? 'fa-folder-open' : 'fa-home'}"></i> ${item.nombre}`
+      ? `<i class="fas fa-home"></i> ${item.nombre}`
       : item.nombre;
     if (!esCurrent) span.onclick = () => navegarA(item.id, item.nombre, i);
     bar.appendChild(span);
@@ -537,7 +529,6 @@ function renderBreadcrumb() {
 }
 
 function renderArbol(carpetas) {
-  if (esJudicante) return;
   const tc = document.getElementById('treeContent');
   const currentId = estadoActual.folderId;
   tc.innerHTML = `
@@ -574,7 +565,7 @@ function renderGrid(items) {
     const { ico, cls } = iconoArchivo(item.mimeType);
     const folder = esFolder(item);
     return `
-      <div class="file-card ${folder ? 'is-folder' : ''}" ${attrItem(item)}>
+      <div class="file-card ${folder ? 'is-folder' : ''}" ${attrItem(item)} draggable="true">
         <button class="file-card-menu" title="Opciones"><i class="fas fa-ellipsis-v"></i></button>
         <div class="file-card-ico"><i class="${ico} ${cls}"></i></div>
         <div class="file-card-name">${item.name}</div>
@@ -583,16 +574,64 @@ function renderGrid(items) {
   }).join('');
 
   grid.querySelectorAll('.file-card').forEach(card => {
+    const item = itemDesdeEl(card);
+    const folder = esFolder(item);
+
+    // Drag events para mover archivos
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('application/json', JSON.stringify(item));
+      card.style.opacity = '0.5';
+    });
+    card.addEventListener('dragend', () => {
+      card.style.opacity = '1';
+      card.classList.remove('drag-over');
+    });
+
+    // Si es carpeta, permitir drop
+    if (folder) {
+      card.addEventListener('dragenter', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        card.classList.add('drag-over');
+      });
+      card.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+      card.addEventListener('dragleave', e => {
+        if (e.target === card) card.classList.remove('drag-over');
+      });
+      card.addEventListener('drop', async e => {
+        e.preventDefault();
+        card.classList.remove('drag-over');
+        try {
+          const draggedData = JSON.parse(e.dataTransfer.getData('application/json'));
+          if (draggedData.id === item.id) {
+            toast('No puedes mover un archivo a sí mismo', 'error');
+            return;
+          }
+          toast('Moviendo archivo...', 'info');
+          await apiMover(draggedData.id, item.id);
+          toast(`${draggedData.name} movido a ${item.name}`, 'success');
+          cargarCarpeta(estadoActual.folderId);
+        } catch (err) {
+          toast('Error: ' + err.message, 'error');
+        }
+      });
+    }
+
+    // Click events
     card.addEventListener('dblclick', e => {
-      if (!e.target.closest('.file-card-menu')) abrirItem(itemDesdeEl(card));
+      if (!e.target.closest('.file-card-menu')) abrirItem(item);
     });
     card.querySelector('.file-card-menu').addEventListener('click', e => {
       e.stopPropagation();
-      abrirCtxMenu(e, itemDesdeEl(card));
+      abrirCtxMenu(e, item);
     });
     card.addEventListener('contextmenu', e => {
       e.preventDefault();
-      abrirCtxMenu(e, itemDesdeEl(card));
+      abrirCtxMenu(e, item);
     });
   });
 }
@@ -603,7 +642,7 @@ function renderLista(items) {
     const { ico, cls } = iconoArchivo(item.mimeType);
     const folder = esFolder(item);
     return `
-      <div class="file-row" ${attrItem(item)}>
+      <div class="file-row" ${attrItem(item)} draggable="true">
         <div class="fr-name">
           <i class="${ico} ${cls} fr-name-ico"></i>
           <span class="fr-name-text">${item.name}</span>
@@ -619,10 +658,58 @@ function renderLista(items) {
   }).join('');
 
   list.querySelectorAll('.file-row').forEach(row => {
-    row.addEventListener('dblclick', () => abrirItem(itemDesdeEl(row)));
-    row.addEventListener('contextmenu', e => { e.preventDefault(); abrirCtxMenu(e, itemDesdeEl(row)); });
-    row.querySelectorAll('.action-btn')[0].addEventListener('click', e => { e.stopPropagation(); abrirItem(itemDesdeEl(row)); });
-    row.querySelectorAll('.action-btn')[1].addEventListener('click', e => { e.stopPropagation(); abrirCtxMenu(e, itemDesdeEl(row)); });
+    const item = itemDesdeEl(row);
+    const folder = esFolder(item);
+
+    // Drag events para mover archivos
+    row.addEventListener('dragstart', e => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('application/json', JSON.stringify(item));
+      row.style.opacity = '0.5';
+    });
+    row.addEventListener('dragend', () => {
+      row.style.opacity = '1';
+      row.classList.remove('drag-over');
+    });
+
+    // Si es carpeta, permitir drop
+    if (folder) {
+      row.addEventListener('dragenter', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        row.classList.add('drag-over');
+      });
+      row.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+      row.addEventListener('dragleave', e => {
+        if (e.target === row) row.classList.remove('drag-over');
+      });
+      row.addEventListener('drop', async e => {
+        e.preventDefault();
+        row.classList.remove('drag-over');
+        try {
+          const draggedData = JSON.parse(e.dataTransfer.getData('application/json'));
+          if (draggedData.id === item.id) {
+            toast('No puedes mover un archivo a sí mismo', 'error');
+            return;
+          }
+          toast('Moviendo archivo...', 'info');
+          await apiMover(draggedData.id, item.id);
+          toast(`${draggedData.name} movido a ${item.name}`, 'success');
+          cargarCarpeta(estadoActual.folderId);
+        } catch (err) {
+          toast('Error: ' + err.message, 'error');
+        }
+      });
+    }
+
+    // Click events
+    row.addEventListener('dblclick', () => abrirItem(item));
+    row.addEventListener('contextmenu', e => { e.preventDefault(); abrirCtxMenu(e, item); });
+    row.querySelectorAll('.action-btn')[0].addEventListener('click', e => { e.stopPropagation(); abrirItem(item); });
+    row.querySelectorAll('.action-btn')[1].addEventListener('click', e => { e.stopPropagation(); abrirCtxMenu(e, item); });
   });
 }
 
@@ -667,9 +754,6 @@ async function cargarCarpeta(folderId) {
     const { data, folderId: rootId } = await apiListarCarpeta(folderId);
     if (!folderId) {
       estadoActual.folderId = rootId;
-      if (esJudicante) {
-        estadoActual.nombre = 'Carpeta Judicantes';
-      }
       renderArbol(data.filter(esFolder));
     } else {
       // Actualizar árbol izquierdo para reflejar carpeta activa

@@ -18,6 +18,8 @@ const taskSchema = new mongoose.Schema(
     fecha_revision:      { type: Date },
     fecha_completado:    { type: Date },
     observaciones:       { type: String },
+    observaciones_admin: { type: String, default: null },
+    observaciones_judicante: { type: String, default: null },
     motivo_rechazo:      { type: String, default: null },
     documento_admin:     { type: docSubSchema, default: () => ({}) },
     documento_judicante: { type: docSubSchema, default: () => ({}) },

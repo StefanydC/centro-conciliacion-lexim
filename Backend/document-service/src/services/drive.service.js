@@ -110,6 +110,20 @@ async function renombrarArchivo(fileId, nuevoNombre) {
 }
 
 /**
+ * Mueve un archivo a una nueva carpeta padre.
+ */
+async function moverArchivo(fileId, newParentId) {
+  const drive = getDriveClient();
+  const res = await drive.files.update({
+    fileId,
+    supportsAllDrives: true,
+    requestBody: { parents: [newParentId] },
+    fields: 'id, name, mimeType, modifiedTime, parents',
+  });
+  return res.data;
+}
+
+/**
  * Verifica que `folderId` sea `rootFolderId` o un descendiente directo de él.
  * Sube la cadena de padres en Drive hasta 5 niveles para evitar bucles infinitos.
  * Devuelve true si está dentro, false si no.
@@ -148,5 +162,6 @@ module.exports = {
   obtenerStream,
   eliminarArchivo,
   renombrarArchivo,
+  moverArchivo,
   estaEnCarpeta,
 };

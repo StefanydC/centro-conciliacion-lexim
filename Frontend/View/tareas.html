@@ -35,8 +35,8 @@
     <a class="nav-item" href="InicioPerfilesPanel.html"><i class="fas fa-home"></i><span>Inicio</span></a>
     <a class="nav-item active" href="tareas.html"><i class="fas fa-tasks"></i><span>Mis Tareas</span></a>
     <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
+    <a class="nav-item" href="conciliaciones.html"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
     <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
-    <a class="nav-item" href="modulo.html?mod=notificaciones"><i class="fas fa-bell"></i><span>Notificaciones</span></a>
     <div class="sidebar-sep"></div>
     <a class="nav-item" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
   </nav>
@@ -454,6 +454,12 @@ function formatBytes(b) {
   if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
   return (b/1048576).toFixed(1) + ' MB';
 }
+function getObsAdmin(t) {
+  return (t?.observaciones_admin ?? t?.observaciones ?? '').trim();
+}
+function getObsJudicante(t) {
+  return (t?.observaciones_judicante ?? '').trim();
+}
 function mimeIcon(mime) {
   if (!mime) return 'fa-file';
   if (mime === 'application/vnd.google-apps.folder') return 'fa-folder';
@@ -552,10 +558,13 @@ function renderLista(tareas) {
   }
   tbody.innerHTML = tareas.map(t => {
     const persona = tipoUsuario==='judicante' ? (t.creado_por||{}) : (t.asignado_a||{});
+    const obsAdmin = getObsAdmin(t);
+    const obsJudic = getObsJudicante(t);
     return `<tr>
       <td>
         <div class="task-desc">${t.descripcion}</div>
-        ${t.observaciones ? `<div class="task-meta">${t.observaciones}</div>` : ''}
+        ${obsAdmin ? `<div class="task-meta"><strong>Admin:</strong> ${obsAdmin}</div>` : ''}
+        ${obsJudic ? `<div class="task-meta"><strong>Judicante:</strong> ${obsJudic}</div>` : ''}
         ${t.motivo_rechazo ? `<div class="task-meta" style="color:#c0392b"><i class="fas fa-exclamation-circle"></i> ${t.motivo_rechazo}</div>` : ''}
       </td>
       <td>${badgeEstado(t.estado)}</td>
@@ -606,6 +615,8 @@ function verDetalle(id) {
 
   const asig = t.asignado_a || {};
   const crea = t.creado_por || {};
+  const obsAdmin = getObsAdmin(t);
+  const obsJudic = getObsJudicante(t);
 
   // Bloque motivo rechazo
   const motivoHtml = t.motivo_rechazo ? `
@@ -672,7 +683,8 @@ function verDetalle(id) {
         <div><div class="detail-label">Fecha límite</div><div class="detail-value">${formatFecha(t.fecha_limite)}</div></div>
         ${t.fecha_completado ? `<div><div class="detail-label">Completado</div><div class="detail-value">${formatFecha(t.fecha_completado)}</div></div>` : ''}
       </div>
-      ${t.observaciones ? `<div><div class="detail-label">Observaciones</div><div style="font-size:.85rem;color:var(--color-secondary)">${t.observaciones}</div></div>` : ''}
+      ${obsAdmin ? `<div><div class="detail-label">Observación del administrador</div><div style="font-size:.85rem;color:var(--color-secondary)">${obsAdmin}</div></div>` : ''}
+      ${obsJudic ? `<div><div class="detail-label">Observación del judicante</div><div style="font-size:.85rem;color:var(--color-secondary)">${obsJudic}</div></div>` : ''}
       ${motivoHtml}
       ${docAdminHtml}
       ${docJudHtml}
@@ -693,7 +705,7 @@ function buildDetalleActions(t) {
           <i class="fas fa-play"></i> Recibir tarea
         </button>`;
     } else if (t.estado === 'en_proceso') {
-      const puedeEnviar = !!(t.documento_judicante?.driveFileId || t.observaciones);
+      const puedeEnviar = !!(t.documento_judicante?.driveFileId || getObsJudicante(t));
       actDiv.innerHTML = `
         <button class="btn-primary" onclick="abrirSubirDoc('${t._id}','judicante')">
           <i class="fas fa-upload"></i> Subir documento
@@ -1177,7 +1189,12 @@ function quitarDocCreate() {
 // ═══════════════════════════════════════════════════════════════════════
 function abrirObservaciones(tareaId) {
   const t = allTasks.find(x=>x._id===tareaId);
-  if (t) { tareaActiva = t; document.getElementById('obsInput').value = t.observaciones || ''; }
+  if (t) {
+    tareaActiva = t;
+    document.getElementById('obsInput').value = tipoUsuario === 'administrador'
+      ? getObsAdmin(t)
+      : getObsJudicante(t);
+  }
   document.getElementById('obsOverlay').classList.add('active');
 }
 

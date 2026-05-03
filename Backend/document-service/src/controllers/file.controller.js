@@ -157,16 +157,24 @@ const obtenerArchivo = async (req, res) => {
 
 /**
  * DELETE /file/:id
- * Solo admin. Elimina el archivo de Drive y lo marca inactivo en MongoDB.
+ * Admin puede eliminar cualquier archivo.
+ * Judicante solo puede eliminar archivos dentro de su espacio asignado.
  */
 const eliminarArchivo = async (req, res) => {
   try {
     const { id } = req.params;
 
+    if (esJudicante(req)) {
+      const permitido = await validarAccesoJudicante(req, id);
+      if (!permitido) {
+        return res.status(403).json({ error: 'No puedes eliminar archivos fuera de tu espacio asignado' });
+      }
+    }
+
     await driveService.eliminarArchivo(id);
     await documentService.marcarEliminado(id);
 
-    console.log(`[Files] Archivo eliminado: ${id} por admin ${req.user.sub}`);
+    console.log(`[Files] Archivo eliminado: ${id} por ${req.user.sub} (${req.user.tipo_usuario || req.user.rol})`);
     res.json({ mensaje: 'Archivo eliminado correctamente' });
   } catch (err) {
     console.error('[Files] Error al eliminar archivo:', err.message);
@@ -176,7 +184,8 @@ const eliminarArchivo = async (req, res) => {
 
 /**
  * PATCH /file/:id
- * Solo admin. Renombra un archivo en Drive y actualiza MongoDB.
+ * Admin puede renombrar cualquier archivo.
+ * Judicante solo puede renombrar archivos dentro de su espacio asignado.
  */
 const renombrarArchivo = async (req, res) => {
   try {
@@ -185,11 +194,19 @@ const renombrarArchivo = async (req, res) => {
     if (!nombre?.trim()) {
       return res.status(400).json({ error: 'El nuevo nombre es requerido' });
     }
+
+    if (esJudicante(req)) {
+      const permitido = await validarAccesoJudicante(req, id);
+      if (!permitido) {
+        return res.status(403).json({ error: 'No puedes renombrar archivos fuera de tu espacio asignado' });
+      }
+    }
+
     const archivo = await driveService.renombrarArchivo(id, nombre.trim());
     await documentService.obtenerPorDriveId(id).then(doc => {
       if (doc) doc.set({ nombre: nombre.trim() }).save().catch(() => {});
     });
-    console.log(`[Files] Renombrado: ${id} → "${nombre}" por admin ${req.user.sub}`);
+    console.log(`[Files] Renombrado: ${id} → "${nombre}" por ${req.user.sub} (${req.user.tipo_usuario || req.user.rol})`);
     res.json({ data: archivo });
   } catch (err) {
     console.error('[Files] Error al renombrar:', err.message);
@@ -197,4 +214,35 @@ const renombrarArchivo = async (req, res) => {
   }
 };
 
-module.exports = { subirArchivo, listarArchivos, obtenerArchivo, eliminarArchivo, renombrarArchivo };
+/**
+ * PUT /file/:id/move
+ * Admin puede mover cualquier archivo.
+ * Judicante solo puede mover archivos dentro de su espacio asignado.
+ */
+const moverArchivo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { destinationFolderId } = req.body;
+    if (!destinationFolderId?.trim()) {
+      return res.status(400).json({ error: 'La carpeta de destino es requerida' });
+    }
+
+    if (esJudicante(req)) {
+      const root = carpetaJudicantes();
+      const permitido1 = await validarAccesoJudicante(req, id);
+      const permitido2 = await validarAccesoJudicante(req, destinationFolderId);
+      if (!permitido1 || !permitido2) {
+        return res.status(403).json({ error: 'No puedes mover archivos fuera de tu espacio asignado' });
+      }
+    }
+
+    const archivo = await driveService.moverArchivo(id, destinationFolderId);
+    console.log(`[Files] Movido: ${id} → ${destinationFolderId} por ${req.user.sub} (${req.user.tipo_usuario || req.user.rol})`);
+    res.json({ data: archivo });
+  } catch (err) {
+    console.error('[Files] Error al mover archivo:', err.message);
+    res.status(500).json({ error: 'Error al mover el archivo', detalle: err.message });
+  }
+};
+
+module.exports = { subirArchivo, listarArchivos, obtenerArchivo, eliminarArchivo, renombrarArchivo, moverArchivo };

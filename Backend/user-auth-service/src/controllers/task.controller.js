@@ -33,6 +33,7 @@ const listar = async (req, res, next) => {
 const crear = async (req, res, next) => {
   try {
     const { descripcion, prioridad, fecha_limite, observaciones, asignado_a, documento_admin } = req.body;
+    const obsAdmin = observaciones?.trim() || null;
 
     const docAdmin = documento_admin?.driveFileId
       ? { driveFileId: documento_admin.driveFileId, nombre: documento_admin.nombre || "Documento", mimeType: documento_admin.mimeType || "" }
@@ -42,7 +43,8 @@ const crear = async (req, res, next) => {
       descripcion,
       prioridad: prioridad || "media",
       fecha_limite,
-      observaciones,
+      observaciones: obsAdmin,
+      observaciones_admin: obsAdmin,
       asignado_a,
       creado_por:     req.user.sub,
       estado:         "pendiente",
@@ -82,7 +84,11 @@ const actualizarEstado = async (req, res, next) => {
       if (!(TRANS_JUDICANTE[estadoActual] || []).includes(estado)) {
         return res.status(400).json({ mensaje: `Transición no permitida: ${estadoActual} → ${estado}` });
       }
-      if (estado === "revision" && !tarea.documento_judicante?.driveFileId && !tarea.observaciones) {
+      const tieneObsJudicante = !!(
+        tarea.observaciones_judicante?.trim() ||
+        (!tarea.observaciones_admin && tarea.observaciones?.trim())
+      );
+      if (estado === "revision" && !tarea.documento_judicante?.driveFileId && !tieneObsJudicante) {
         return res.status(400).json({ mensaje: "Debes subir un documento o agregar observaciones antes de enviar a revisión" });
       }
     } else {
@@ -154,6 +160,7 @@ const asociarDocumento = async (req, res, next) => {
 const actualizarObservaciones = async (req, res, next) => {
   try {
     const { observaciones } = req.body;
+    const obs = observaciones?.trim() || null;
     const esAdmin = req.user.tipo_usuario === "administrador";
     const tarea   = await Task.findById(req.params.id);
     if (!tarea) return res.status(404).json({ mensaje: "Tarea no encontrada" });
@@ -162,8 +169,14 @@ const actualizarObservaciones = async (req, res, next) => {
       return res.status(403).json({ mensaje: "No tienes permiso sobre esta tarea" });
     }
 
+    const update = esAdmin
+      ? { observaciones: obs, observaciones_admin: obs }
+      : { observaciones_judicante: obs };
+
     const actualizada = await Task.findByIdAndUpdate(
-      req.params.id, { observaciones }, { new: true }
+      req.params.id,
+      update,
+      { new: true }
     )
       .populate("creado_por", POPULATE_USER)
       .populate("asignado_a", POPULATE_USER);
