@@ -369,6 +369,11 @@ function formatCOP(v) {
 function formatFecha(d) {
   return new Date(d).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
+function nombreRegistrado(persona) {
+  const nombre = (persona?.nombre || persona?.Nombre || '').trim();
+  const apellido = (persona?.apellido || persona?.Apellido || '').trim();
+  return `${nombre} ${apellido}`.trim() || persona?.email || persona?.Email || '—';
+}
 function toast(msg, tipo = 'info') {
   const c = document.getElementById('toastContainer');
   const d = document.createElement('div');
@@ -443,7 +448,7 @@ function renderTabla() {
   }
 
   tbody.innerHTML = filtrados.map(e => {
-    const nombre = `${e.registrado_por?.Nombre || ''} ${e.registrado_por?.Apellido || ''}`.trim();
+    const nombre = nombreRegistrado(e.registrado_por);
     const acciones = esAdmin ? `
       <td>
         <div class="action-btns">

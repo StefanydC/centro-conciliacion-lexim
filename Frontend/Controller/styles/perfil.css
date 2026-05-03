@@ -96,6 +96,8 @@ body {
   overflow: hidden;
   padding: 16px 14px;
   flex-shrink: 0;
+  z-index: 1200;
+  transition: width 0.5s cubic-bezier(0.2, 1, 0.3, 1), padding 0.5s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.2, 1, 0.3, 1);
 }
 
 body.role-switcher-hidden {
@@ -930,9 +932,20 @@ body.role-switcher-hidden {
 }
 
 body.sidebar-collapsed .sidebar {
-  width: var(--sidebar-w-col);
-  padding-left: 10px;
-  padding-right: 10px;
+  width: 0;
+  padding: 16px 0 16px 0;
+  overflow: visible;
+  box-shadow: none;
+}
+
+body.sidebar-collapsed .sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 100vh;
+  background: transparent;
 }
 
 body.sidebar-collapsed .brand-texts {
@@ -944,6 +957,12 @@ body.sidebar-collapsed .brand-texts {
   overflow: hidden;
   flex-shrink: 1;
   min-width: 0;
+}
+
+body.sidebar-collapsed .brand-ico,
+body.sidebar-collapsed .sidebar-nav,
+body.sidebar-collapsed .sidebar-bottom {
+  display: none;
 }
 
 body.sidebar-collapsed .nav-item span,
@@ -980,7 +999,33 @@ body.sidebar-collapsed .logout-btn {
 }
 
 body.sidebar-collapsed .sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: auto;
+  width: 36px;
+  height: 52px;
+  transform: translateY(-50%) translateX(-8px);
+  opacity: 0;
+  pointer-events: none;
   margin: 0;
+  border-left: 0;
+  border-radius: 0 14px 14px 0;
+  background: linear-gradient(180deg, var(--primary), #183540);
+  box-shadow: 8px 0 18px rgba(15, 21, 22, 0.2);
+  z-index: 1301;
+  transition: opacity 0.25s ease, transform 0.25s ease, background var(--trans);
+}
+
+body.sidebar-collapsed .sidebar:hover .sidebar-toggle,
+body.sidebar-collapsed .sidebar:focus-within .sidebar-toggle {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
+}
+
+body.sidebar-collapsed .sidebar-toggle:hover {
+  background: linear-gradient(180deg, #2d6070, #1f4550);
 }
 
 /* Rotar el chevron para indicar dirección */

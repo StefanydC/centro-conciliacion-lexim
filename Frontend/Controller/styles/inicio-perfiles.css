@@ -26,8 +26,9 @@ body {
   left: 0;
   top: 0;
   height: 100vh;
+  z-index: 1200;
   box-shadow: 10px 0 30px rgba(15, 21, 22, 0.2);
-  transition: width 0.45s cubic-bezier(0.2, 1, 0.3, 1), padding 0.45s cubic-bezier(0.2, 1, 0.3, 1);
+  transition: width 0.5s cubic-bezier(0.2, 1, 0.3, 1), padding 0.5s cubic-bezier(0.2, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.2, 1, 0.3, 1);
   overflow: hidden;
 }
 
@@ -44,10 +45,20 @@ body {
 }
 
 .left-menu.collapsed {
-  width: 84px;
-  padding-left: 10px;
-  padding-right: 10px;
+  width: 0;
+  padding: 16px 0 16px 0;
   gap: 6px;
+  overflow: visible;
+  box-shadow: none;
+}
+.left-menu.collapsed::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 100vh;
+  background: transparent;
 }
 
 .menu-head {
@@ -246,6 +257,14 @@ body {
   pointer-events: none;
 }
 
+.left-menu.collapsed .menu-logo,
+.left-menu.collapsed .menu-nav,
+.left-menu.collapsed .menu-sep,
+.left-menu.collapsed .menu-role-switch,
+.left-menu.collapsed .menu-user {
+  display: none;
+}
+
 .left-menu.collapsed .menu-user {
   display: none;
   opacity: 0;
@@ -294,6 +313,39 @@ body {
   margin-top: 10px;
 }
 
+.left-menu.collapsed .menu-toggle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: auto;
+  width: 36px;
+  height: 52px;
+  transform: translateY(-50%) translateX(-8px);
+  opacity: 0;
+  pointer-events: none;
+  border-radius: 0 14px 14px 0;
+  border-left: 0;
+  background: linear-gradient(180deg, var(--color-primary), #183540);
+  box-shadow: 8px 0 18px rgba(15, 21, 22, 0.2);
+  z-index: 1301;
+  transition: opacity 0.25s ease, transform 0.25s ease, background 0.25s ease;
+}
+
+.left-menu.collapsed:hover .menu-toggle,
+.left-menu.collapsed:focus-within .menu-toggle {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
+}
+
+.left-menu.collapsed .menu-toggle:hover {
+  background: linear-gradient(180deg, #2d6070, #1f4550);
+}
+
+.left-menu.collapsed .menu-toggle i {
+  transform: rotate(180deg);
+}
+
 .profiles-main {
   flex: 1;
   min-width: 0;
@@ -306,8 +358,8 @@ body {
 }
 
 .left-menu.collapsed + .profiles-main {
-  margin-left: 84px;
-  width: calc(100% - 84px);
+  margin-left: 0;
+  width: 100%;
 }
 
 .profiles-main main {

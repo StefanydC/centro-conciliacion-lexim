@@ -383,6 +383,11 @@ function formatCOP(v) {
 function formatFecha(d) {
   return new Date(d).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
+function nombreRegistrado(persona) {
+  const nombre = (persona?.nombre || persona?.Nombre || '').trim();
+  const apellido = (persona?.apellido || persona?.Apellido || '').trim();
+  return `${nombre} ${apellido}`.trim() || persona?.email || persona?.Email || '—';
+}
 function toast(msg, tipo = 'info') {
   const c = document.getElementById('toastContainer');
   const d = document.createElement('div');
@@ -453,7 +458,7 @@ function renderTabla() {
   }
 
   tbody.innerHTML = filtrados.map(i => {
-    const nombre = `${i.registrado_por?.Nombre || ''} ${i.registrado_por?.Apellido || ''}`.trim();
+    const nombre = nombreRegistrado(i.registrado_por);
     const acciones = esAdmin ? `
       <td><div class="action-btns">
         <button class="action-btn" onclick="verDetalle('${i._id}')" title="Ver detalle"><i class="fas fa-eye"></i></button>
@@ -477,7 +482,7 @@ function renderTabla() {
 function verDetalle(id) {
   const i = allIngresos.find(x => x._id === id);
   if (!i) return;
-  const nombre = `${i.registrado_por?.Nombre || ''} ${i.registrado_por?.Apellido || ''}`.trim();
+  const nombre = nombreRegistrado(i.registrado_por);
   document.getElementById('detalleBody').innerHTML = `
     <div class="detalle-row"><span class="detalle-label">Descripción</span><span>${i.descripcion}</span></div>
     <div class="detalle-row"><span class="detalle-label">Monto</span><span class="amount-green">${formatCOP(i.monto)}</span></div>
