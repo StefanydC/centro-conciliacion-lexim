@@ -111,15 +111,49 @@ async function renombrarArchivo(fileId, nuevoNombre) {
 
 /**
  * Mueve un archivo a una nueva carpeta padre.
+ * Obtiene los padres actuales y usa addParents/removeParents (API v3 requiere esto).
+ * Maneja correctamente la remoción de todos los padres anteriores.
  */
 async function moverArchivo(fileId, newParentId) {
   const drive = getDriveClient();
-  const res = await drive.files.update({
+  
+  if (!newParentId || !String(newParentId).trim()) {
+    throw new Error('El ID de la carpeta de destino es requerido');
+  }
+  
+  // Obtener los padres actuales del archivo
+  const file = await drive.files.get({
     fileId,
     supportsAllDrives: true,
-    requestBody: { parents: [newParentId] },
-    fields: 'id, name, mimeType, modifiedTime, parents',
+    fields: 'parents, name'
   });
+  
+  const currentParents = file.data.parents || [];
+  
+  if (currentParents.length === 0) {
+    throw new Error(`Archivo "${file.data.name}" no tiene carpeta padre asignada`);
+  }
+  
+  // Crear lista de padres a remover (todos excepto el nuevo)
+  const previousParents = currentParents
+    .filter(p => p !== newParentId) // No remover el nuevo padre si ya está
+    .join(',');
+  
+  // Mover usando addParents y removeParents (parámetros requeridos en Drive API v3)
+  const updateParams = {
+    fileId,
+    supportsAllDrives: true,
+    addParents: newParentId,
+    fields: 'id, name, mimeType, modifiedTime, parents',
+  };
+  
+  // Solo remover padres si hay padres anteriores diferentes al destino
+  if (previousParents) {
+    updateParams.removeParents = previousParents;
+  }
+  
+  const res = await drive.files.update(updateParams);
+  
   return res.data;
 }
 

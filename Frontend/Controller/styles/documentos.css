@@ -171,6 +171,13 @@
   background: #dcedf4; border-left-color: var(--color-primary);
   color: var(--color-primary); font-weight: 700;
 }
+.tree-item.drag-over {
+  background: rgba(35, 76, 88, 0.18);
+  border-left-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
 .tree-item-ico { font-size: .9rem; flex-shrink: 0; }
 .tree-item-ico.folder-ico { color: #f0b429; }
 .tree-item-ico.root-ico { color: var(--color-primary); }
@@ -197,6 +204,12 @@
 .bc-item:hover { color: var(--color-primary); background: rgba(35,76,88,.07); }
 .bc-item.current { color: var(--color-dark); font-weight: 700; cursor: default; }
 .bc-item.current:hover { background: transparent; }
+.bc-item.drag-over {
+  background: rgba(35, 76, 88, 0.2);
+  color: var(--color-primary);
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px rgba(35, 76, 88, 0.25);
+}
 .bc-sep { color: #b0c0c5; font-size: .75rem; }
 
 /* ── CONTENT TOOLBAR ── */

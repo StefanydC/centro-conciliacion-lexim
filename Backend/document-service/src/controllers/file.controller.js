@@ -218,26 +218,42 @@ const renombrarArchivo = async (req, res) => {
  * PUT /file/:id/move
  * Admin puede mover cualquier archivo.
  * Judicante solo puede mover archivos dentro de su espacio asignado.
+ * Si destinationFolderId es null/vacío, se mueve a la raíz correspondiente al rol.
  */
 const moverArchivo = async (req, res) => {
   try {
     const { id } = req.params;
-    const { destinationFolderId } = req.body;
-    if (!destinationFolderId?.trim()) {
-      return res.status(400).json({ error: 'La carpeta de destino es requerida' });
+    const destinationFolderId = String(req.body.destinationFolderId || '').trim();
+    
+    const usuarioEsJudicante = esJudicante(req);
+    const judicanteRoot = carpetaJudicantes();
+    
+    // Determinar carpeta de destino
+    let targetFolder;
+    if (!destinationFolderId) {
+      // Si no se especifica destino, ir a la raíz del rol
+      if (usuarioEsJudicante) {
+        if (!judicanteRoot) {
+          return res.status(503).json({ error: 'Carpeta de judicantes no configurada' });
+        }
+        targetFolder = judicanteRoot;
+      } else {
+        targetFolder = env.DRIVE_ROOT_FOLDER_ID;
+      }
+    } else {
+      targetFolder = destinationFolderId;
     }
 
-    if (esJudicante(req)) {
-      const root = carpetaJudicantes();
+    if (usuarioEsJudicante) {
       const permitido1 = await validarAccesoJudicante(req, id);
-      const permitido2 = await validarAccesoJudicante(req, destinationFolderId);
+      const permitido2 = await validarAccesoJudicante(req, targetFolder);
       if (!permitido1 || !permitido2) {
         return res.status(403).json({ error: 'No puedes mover archivos fuera de tu espacio asignado' });
       }
     }
 
-    const archivo = await driveService.moverArchivo(id, destinationFolderId);
-    console.log(`[Files] Movido: ${id} → ${destinationFolderId} por ${req.user.sub} (${req.user.tipo_usuario || req.user.rol})`);
+    const archivo = await driveService.moverArchivo(id, targetFolder);
+    console.log(`[Files] Movido: ${id} → ${targetFolder} por ${req.user.sub} (${req.user.tipo_usuario || req.user.rol})`);
     res.json({ data: archivo });
   } catch (err) {
     console.error('[Files] Error al mover archivo:', err.message);

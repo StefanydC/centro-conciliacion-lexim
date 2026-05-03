@@ -171,6 +171,7 @@
   <div class="ctx-item" id="ctxDescargar"><i class="fas fa-download"></i> Descargar</div>
   <div class="ctx-item" id="ctxImprimir"><i class="fas fa-print"></i> Imprimir</div>
   <div class="ctx-sep ctx-admin"></div>
+  <div class="ctx-item ctx-admin" id="ctxMover"><i class="fas fa-arrow-right"></i> Mover a...</div>
   <div class="ctx-item ctx-admin" id="ctxRenombrar"><i class="fas fa-pencil-alt"></i> Renombrar</div>
   <div class="ctx-item danger ctx-admin" id="ctxEliminar"><i class="fas fa-trash"></i> Eliminar</div>
 </div>
@@ -283,6 +284,33 @@
     <div class="modal-foot">
       <button class="btn-cancel" id="cancelRenombrar">Cancelar</button>
       <button class="btn-primary" id="btnConfirmarRenombrar"><i class="fas fa-check"></i> Renombrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: MOVER A ────────────────────────────────────────────────── -->
+<div class="overlay" id="modalMover">
+  <div class="modal">
+    <div class="modal-head">
+      <h3><i class="fas fa-arrow-right" style="color:var(--color-primary);margin-right:8px"></i>Mover a...</h3>
+      <button class="modal-close" id="closeMover"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Selecciona la carpeta destino</label>
+        <div class="mover-carpetas" id="moverCarpetas" style="max-height:300px;overflow-y:auto;border:1px solid #ddd;border-radius:6px;padding:8px;background:#f9f9f9">
+          <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Cargando carpetas...</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <small style="color:#666">Ubicación actual: <strong id="moverUbicacion">—</strong></small>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="cancelMover">Cancelar</button>
+      <button class="btn-primary" id="btnConfirmarMover" disabled>
+        <i class="fas fa-check"></i> Mover aquí
+      </button>
     </div>
   </div>
 </div>
@@ -517,7 +545,54 @@ function renderBreadcrumb() {
     span.innerHTML = i === 0
       ? `<i class="fas fa-home"></i> ${item.nombre}`
       : item.nombre;
-    if (!esCurrent) span.onclick = () => navegarA(item.id, item.nombre, i);
+    
+    if (!esCurrent) {
+      // Click para navegar
+      span.onclick = () => navegarA(item.id, item.nombre, i);
+      
+      // Hacer que el breadcrumb sea droppable
+      span.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        span.classList.add('drag-over');
+      });
+      
+      span.addEventListener('dragenter', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        span.classList.add('drag-over');
+      });
+      
+      span.addEventListener('dragleave', e => {
+        // Remover clase solo si salimos completamente del elemento
+        if (!span.contains(e.relatedTarget)) {
+          span.classList.remove('drag-over');
+        }
+      });
+      
+      span.addEventListener('drop', async e => {
+        e.preventDefault();
+        e.stopPropagation();
+        span.classList.remove('drag-over');
+        try {
+          const draggedData = JSON.parse(e.dataTransfer.getData('application/json'));
+          
+          if (draggedData.id === item.id) {
+            toast('No puedes mover un archivo a la misma carpeta', 'error');
+            return;
+          }
+          
+          toast('Moviendo archivo...', 'info');
+          const destinationId = item.id || null;
+          await apiMover(draggedData.id, destinationId);
+          toast(`${draggedData.name} movido a ${item.nombre}`, 'success');
+          cargarCarpeta(estadoActual.folderId);
+        } catch (err) {
+          toast('Error: ' + err.message, 'error');
+        }
+      });
+    }
+    
     bar.appendChild(span);
     if (!esCurrent) {
       const sep = document.createElement('span');
@@ -532,25 +607,69 @@ function renderArbol(carpetas) {
   const tc = document.getElementById('treeContent');
   const currentId = estadoActual.folderId;
   tc.innerHTML = `
-    <div class="tree-item root-item ${!currentId ? 'active' : ''}" data-id="" data-name="Inicio">
+    <div class="tree-item root-item ${!currentId ? 'active' : ''}" data-id="" data-name="Inicio" draggable="false">
       <i class="tree-item-ico root-ico fas fa-home"></i>
       <span class="tree-item-name">Inicio</span>
     </div>
     ${carpetas.map(c => `
-      <div class="tree-item ${currentId === c.id ? 'active' : ''}" data-id="${c.id}" data-name="${c.name}">
+      <div class="tree-item ${currentId === c.id ? 'active' : ''}" data-id="${c.id}" data-name="${c.name}" draggable="false">
         <i class="tree-item-ico folder-ico fas fa-folder"></i>
         <span class="tree-item-name">${c.name}</span>
       </div>`).join('')}
   `;
   tc.querySelectorAll('.tree-item').forEach(el => {
+    const id   = el.dataset.id   || null;
+    const name = el.dataset.name || 'Inicio';
+    
+    // Click para navegar
     el.addEventListener('click', () => {
-      const id   = el.dataset.id   || null;
-      const name = el.dataset.name || 'Inicio';
       navStack = id ? [{ id, nombre: name }] : [];
       estadoActual.folderId = id;
       estadoActual.nombre   = name;
       renderBreadcrumb();
       cargarCarpeta(id);
+    });
+    
+    // Hacer que el tree-item sea droppable
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      el.classList.add('drag-over');
+    });
+    
+    el.addEventListener('dragenter', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      el.classList.add('drag-over');
+    });
+    
+    el.addEventListener('dragleave', e => {
+      // Remover clase solo si salimos completamente del elemento
+      if (!el.contains(e.relatedTarget)) {
+        el.classList.remove('drag-over');
+      }
+    });
+    
+    el.addEventListener('drop', async e => {
+      e.preventDefault();
+      e.stopPropagation();
+      el.classList.remove('drag-over');
+      try {
+        const draggedData = JSON.parse(e.dataTransfer.getData('application/json'));
+        const targetId = id || null; // null para raíz
+        
+        if (draggedData.id === targetId) {
+          toast('No puedes mover un archivo a la misma carpeta', 'error');
+          return;
+        }
+        
+        toast('Moviendo archivo...', 'info');
+        await apiMover(draggedData.id, targetId);
+        toast(`${draggedData.name} movido a ${name}`, 'success');
+        cargarCarpeta(estadoActual.folderId);
+      } catch (err) {
+        toast('Error: ' + err.message, 'error');
+      }
     });
   });
 }
@@ -810,6 +929,7 @@ document.addEventListener('click', () => document.getElementById('ctxMenu').clas
 document.getElementById('ctxAbrir').addEventListener('click',     () => { if (ctxTarget) abrirItem(ctxTarget); });
 document.getElementById('ctxDescargar').addEventListener('click', () => { if (ctxTarget) descargarArchivo(ctxTarget); });
 document.getElementById('ctxImprimir').addEventListener('click',  () => { if (ctxTarget) imprimirArchivo(ctxTarget); });
+document.getElementById('ctxMover').addEventListener('click',     () => { if (ctxTarget) abrirMoverModal(ctxTarget); });
 document.getElementById('ctxRenombrar').addEventListener('click', () => { if (ctxTarget) abrirRenombrar(ctxTarget); });
 document.getElementById('ctxEliminar').addEventListener('click',  () => { if (ctxTarget) abrirEliminar(ctxTarget); });
 
@@ -875,6 +995,143 @@ document.getElementById('closePreview').addEventListener('click', () => {
   cerrarOverlay('modalPreview');
   document.getElementById('previewIframe').src = 'about:blank';
 });
+
+// ── MOVER ARCHIVO ─────────────────────────────────────────────────────
+let moverTarget    = null;
+let moverDestino   = null;
+let moverCarpetas  = [];
+
+async function cargarCarpetasParaMover() {
+  try {
+    // Obtener todas las carpetas disponibles
+    const { data } = await apiListarCarpeta(null);
+    moverCarpetas = data.filter(esFolder);
+    renderCarpetasParaMover();
+  } catch(err) {
+    toast('Error al cargar carpetas: ' + err.message, 'error');
+  }
+}
+
+function renderCarpetasParaMover() {
+  const cont = document.getElementById('moverCarpetas');
+  const actualId = moverTarget?.id;
+  
+  if (!moverCarpetas.length) {
+    cont.innerHTML = '<div style="padding:10px;text-align:center;color:#999">No hay carpetas disponibles</div>';
+    return;
+  }
+
+  cont.innerHTML = `
+    <div class="mover-option ${moverDestino === null ? 'selected' : ''}" data-id="">
+      <i class="fas fa-home"></i>
+      <span>Inicio (Raíz)</span>
+      <i class="fas fa-check" style="margin-left:auto"></i>
+    </div>
+    ${moverCarpetas
+      .filter(c => c.id !== actualId) // No mostrar la carpeta actual
+      .map(c => `
+      <div class="mover-option ${moverDestino === c.id ? 'selected' : ''}" data-id="${c.id}">
+        <i class="fas fa-folder"></i>
+        <span>${c.name}</span>
+        <i class="fas fa-check" style="margin-left:auto"></i>
+      </div>
+    `).join('')}
+  `;
+
+  cont.querySelectorAll('.mover-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const id = opt.dataset.id || null;
+      moverDestino = id;
+      
+      // Actualizar visual
+      cont.querySelectorAll('.mover-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      
+      // Habilitar botón
+      document.getElementById('btnConfirmarMover').disabled = false;
+    });
+  });
+}
+
+function abrirMoverModal(item) {
+  moverTarget = item;
+  moverDestino = null;
+  
+  document.getElementById('moverUbicacion').textContent = item.name;
+  document.getElementById('btnConfirmarMover').disabled = true;
+  
+  abrirOverlay('modalMover');
+  
+  // Cargar carpetas en el modal
+  const cont = document.getElementById('moverCarpetas');
+  cont.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Cargando carpetas...</div>';
+  cargarCarpetasParaMover();
+}
+
+document.getElementById('closeMover').addEventListener('click',  () => cerrarOverlay('modalMover'));
+document.getElementById('cancelMover').addEventListener('click', () => cerrarOverlay('modalMover'));
+
+document.getElementById('btnConfirmarMover').addEventListener('click', async () => {
+  if (!moverTarget || moverDestino === null) return;
+  
+  // Verificar que no sea la misma carpeta
+  if (moverDestino === moverTarget.parentId) {
+    toast('El archivo ya está en esa carpeta', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnConfirmarMover');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Moviendo...';
+
+  try {
+    await apiMover(moverTarget.id, moverDestino);
+    const destNombre = moverDestino === null ? 'Inicio' : (moverCarpetas.find(c => c.id === moverDestino)?.name || 'Carpeta');
+    toast(`"${moverTarget.name}" movido a "${destNombre}"`, 'success');
+    cerrarOverlay('modalMover');
+    cargarCarpeta(estadoActual.folderId);
+  } catch(err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Mover aquí';
+  }
+});
+
+// ── ESTILOS INLINE PARA MOVER MODAL ────────────────────────────────────
+const style = document.createElement('style');
+style.textContent = `
+  .mover-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin: 4px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mover-option:hover {
+    background-color: #f0f4f6;
+    border-color: var(--color-primary);
+  }
+  .mover-option.selected {
+    background-color: #e3f2fd;
+    border-color: var(--color-primary);
+    font-weight: 500;
+    color: var(--color-primary);
+  }
+  .mover-option.selected i:last-child {
+    display: inline;
+    color: var(--color-primary);
+  }
+  .mover-option i:last-child {
+    display: none;
+  }
+`;
+document.head.appendChild(style);
+
 
 // ── NUEVA CARPETA ─────────────────────────────────────────────────────
 document.getElementById('btnNuevaCarpeta').addEventListener('click', () => {
@@ -1055,7 +1312,7 @@ document.getElementById('btnList').addEventListener('click', () => {
 document.getElementById('searchInput').addEventListener('input', () => renderItems(todosItems));
 
 // ── CERRAR CON ESC Y CLICK FUERA ──────────────────────────────────────
-['modalCarpeta','modalSubir','modalRenombrar','modalEliminar','modalPreview'].forEach(id => {
+['modalCarpeta','modalSubir','modalRenombrar','modalMover','modalEliminar','modalPreview'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => {
     if (e.target.id === id) {
       cerrarOverlay(id);
@@ -1065,7 +1322,7 @@ document.getElementById('searchInput').addEventListener('input', () => renderIte
 });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  ['modalCarpeta','modalSubir','modalRenombrar','modalEliminar','modalPreview'].forEach(cerrarOverlay);
+  ['modalCarpeta','modalSubir','modalRenombrar','modalMover','modalEliminar','modalPreview'].forEach(cerrarOverlay);
   document.getElementById('previewIframe').src = 'about:blank';
 });
 
