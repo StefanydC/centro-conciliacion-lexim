@@ -142,7 +142,6 @@
     <div class="topbar-title">Gestión de Ingresos</div>
     <button class="tb-btn"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
     <button class="tb-btn" id="btnRefresh" title="Recargar"><i class="fas fa-sync-alt"></i></button>
-    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
     <div class="user-pill">
       <div class="u-avatar" id="uAvatar">AD</div>
       <span class="u-name" id="uName">Administrador</span>
@@ -348,9 +347,6 @@ if (esAdmin) {
 // ── SIDEBAR ───────────────────────────────────────────────
 document.getElementById('sidebarToggle').addEventListener('click', () => {
   document.getElementById('sidebar').classList.toggle('collapsed');
-});
-document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('mobile-open');
 });
 
 // ── LOGOUT ────────────────────────────────────────────────

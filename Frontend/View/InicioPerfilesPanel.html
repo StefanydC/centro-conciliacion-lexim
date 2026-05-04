@@ -58,20 +58,18 @@
       <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
       <a class="nav-item" href="conciliaciones.html"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
       <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
-      <div class="sidebar-sep"></div>
-      <a class="nav-item" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
     </nav>
     <div class="sidebar-bottom">
       <a class="logout-btn" href="#"><i class="fas fa-lock"></i><span>Cerrar Sesión</span></a>
     </div>
   </aside>
 
-  <div class="main is-visible" id="main-admin" data-view="admin">
+    <!-- Seccion de la parte Administrador panel -->  
+    <div class="main is-visible" id="main-admin" data-view="admin">
     <header class="topbar">
       <div class="topbar-title">Inicio</div>
       <button class="tb-icon-btn"><i class="fas fa-bell"></i><span class="dot"></span></button>
       <button class="tb-icon-btn"><i class="fas fa-sync-alt"></i></button>
-      <button class="tb-icon-btn" id="menuToggleBtnAdmin" title="Desplegar o contraer menú"><i class="fas fa-bars"></i></button>
       <div class="user-pill">
         <div class="u-avatar" id="avatar-admin">AD</div>
         <span class="u-name" id="nombre-admin">Administrador</span>
@@ -187,12 +185,13 @@
     </div>
   </div>
 
+  <!-- Seccion de la parte judicante panel -->
   <div class="main is-hidden" id="main-judic" data-view="judic">
     <header class="topbar">
       <div class="topbar-title">Inicio</div>
       <button class="tb-icon-btn"><i class="fas fa-bell"></i><span class="dot"></span></button>
       <button class="tb-icon-btn"><i class="fas fa-sync-alt"></i></button>
-      <button class="tb-icon-btn" id="menuToggleBtnJudic" title="Desplegar o contraer menú"><i class="fas fa-bars"></i></button>
+      <button class="tb-icon-btn" id="helpWhatsBtnJudic" title="Ayuda (WhatsApp)"><i class="fas fa-circle-question"></i></button>
       <div class="user-pill">
         <div class="u-avatar judic" id="avatar-judic">JU</div>
         <span class="u-name" id="nombre-judic">Judicante</span>
@@ -297,7 +296,7 @@
         <div class="quick-wrap">
           <div class="quick-row">
             <button class="quick-btn-solid teal" data-quick="subir-documento" type="button"><i class="fas fa-upload"></i> Subir Documento</button>
-            <button class="quick-btn-solid green" data-quick="pedir-ayuda" type="button"><i class="fas fa-user-plus"></i> Pedir Ayuda</button>
+            <a class="quick-btn-solid green" href="conciliaciones.html"><i class="fas fa-handshake"></i> Conciliaciones</a>
           </div>
         </div>
       </div>
@@ -395,7 +394,7 @@
     document.getElementById('sidebarToggleJudic')
   ];
 
-  menuToggleButtons.forEach((button) => {
+  menuToggleButtons.filter(Boolean).forEach((button) => {
     button.addEventListener('click', () => {
       if (window.innerWidth <= 640) {
         document.body.classList.toggle('sidebar-open');
@@ -404,6 +403,16 @@
       }
     });
   });
+
+  // ──  SECCION DE AYUDA WHATSAPP (Judicante) ─────────────────────────────
+const helpBtn = document.getElementById('helpWhatsBtnJudic');
+if (helpBtn) {
+  helpBtn.addEventListener('click', () => {
+    const phone = '573228698297'; // 
+    const msg = encodeURIComponent('Hola, necesito ayuda con el portal LEXIM.');
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank', 'noopener');
+  });
+}
 
   const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
   navItems.forEach((item) => {
@@ -451,13 +460,6 @@
       ctaLabel: 'Abrir carga',
       ctaHref: 'contacto.html'
     },
-    'pedir-ayuda': {
-      title: 'Pedir Ayuda',
-      subtitle: 'Comunica una necesidad al equipo.',
-      body: '<ul><li>Describe el bloqueo actual.</li><li>Marca nivel de urgencia.</li><li>Envía solicitud de soporte.</li></ul>',
-      ctaLabel: 'Solicitar apoyo',
-      ctaHref: 'contacto.html'
-    }
   };
 
   const quickButtons = document.querySelectorAll('[data-quick]');

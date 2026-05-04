@@ -170,8 +170,7 @@
     <a class="nav-item" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
     <a class="nav-item active" href="conciliaciones.html"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
     <a class="nav-item" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
-    <div class="sidebar-sep"></div>
-    <a class="nav-item" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
+
 
   </nav>
 
@@ -187,7 +186,6 @@
     <div class="topbar-title">Conciliaciones</div>
     <button class="tb-btn" id="btnImprimir" title="Imprimir"><i class="fas fa-print"></i></button>
     <button class="tb-btn" id="btnRefresh" title="Recargar"><i class="fas fa-sync-alt"></i></button>
-    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
     <div class="user-pill">
       <div class="u-avatar" id="uAvatar">AD</div>
       <span class="u-name" id="uName">Administrador</span>
@@ -511,9 +509,6 @@ document.getElementById('nav-judic').style.display = !esAdmin ? 'grid' : 'none';
 // Sidebar toggle
 document.getElementById('sidebarToggle').addEventListener('click', () => {
   document.getElementById('sidebar').classList.toggle('collapsed');
-});
-document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('mobile-open');
 });
 
 /* ═══════════════════════════════════════════

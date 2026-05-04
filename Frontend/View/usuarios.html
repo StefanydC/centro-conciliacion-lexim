@@ -55,7 +55,6 @@
     <button class="tb-btn"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
     <button class="tb-btn" id="btnImprimir" title="Imprimir lista de usuarios"><i class="fas fa-print"></i></button>
     <button class="tb-btn" id="btnRefresh" title="Recargar"><i class="fas fa-sync-alt"></i></button>
-    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
     <div class="user-pill">
       <div class="u-avatar" id="uAvatar">AD</div>
       <span class="u-name" id="uName">Administrador</span>
@@ -337,9 +336,6 @@ document.getElementById('sidebarRole').textContent = 'Administrador';
 // SIDEBAR
 document.getElementById('sidebarToggle').addEventListener('click', () => {
   document.getElementById('sidebar').classList.toggle('collapsed');
-});
-document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('mobile-open');
 });
 
 // ESTADO LOCAL

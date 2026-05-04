@@ -39,8 +39,6 @@
     <a class="nav-item" data-nav="mis-documentos" href="documentos.html"><i class="fas fa-file-alt"></i><span>Mis Documentos</span></a>
     <a class="nav-item" data-nav="conciliaciones" href="conciliaciones.html"><i class="fas fa-handshake"></i><span>Conciliaciones</span></a>
     <a class="nav-item" data-nav="agenda" href="agenda.html"><i class="fas fa-calendar-alt"></i><span>Agenda</span></a>
-    <div class="sidebar-sep"></div>
-    <a class="nav-item" data-nav="ayuda" href="modulo.html?mod=ayuda"><i class="fas fa-question-circle"></i><span>Ayuda</span></a>
   </nav>
 
   <div class="sidebar-bottom">
@@ -53,7 +51,6 @@
     <div class="topbar-title" id="topbarTitle">Módulo</div>
     <button class="tb-btn" id="btnNotis" aria-haspopup="true" aria-expanded="false"><i class="fas fa-bell"></i><span class="tb-dot" id="notifDot" style="display:none"></span><span class="tb-count" id="notifCount" hidden>0</span></button>
     <button class="tb-btn" id="btnRefresh"><i class="fas fa-sync-alt"></i></button>
-    <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
     <div class="user-pill">
       <div class="u-avatar" id="uAvatar">AD</div>
       <span class="u-name" id="uName">Administrador</span>
@@ -179,9 +176,6 @@ visibleNav.querySelectorAll('.nav-item').forEach((item) => {
 const sidebar = document.getElementById('sidebar');
 document.getElementById('sidebarToggle').addEventListener('click', () => {
   sidebar.classList.toggle('collapsed');
-});
-document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-  sidebar.classList.toggle('mobile-open');
 });
 
 document.getElementById('btnRefresh').addEventListener('click', () => {
