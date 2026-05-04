@@ -87,19 +87,19 @@
       <div class="stat-banner admin-grid">
         <div class="scard blue">
           <div class="scard-label">Casos Pendientes</div>
-          <div class="scard-value">12</div>
+          <div class="scard-value" id="stat-casos-pendientes">—</div>
         </div>
         <div class="scard teal">
           <div class="scard-label">Ingresos del Mes</div>
-          <div class="scard-value money">$15,200<small class="money-decimals">.00</small></div>
+          <div class="scard-value money"><span id="stat-ingresos-mes">—</span><small class="money-decimals" id="stat-ingresos-dec"></small></div>
         </div>
         <div class="scard red">
           <div class="scard-label">Egresos del Mes</div>
-          <div class="scard-value money">$8,500<small class="money-decimals">.00</small></div>
+          <div class="scard-value money"><span id="stat-egresos-mes">—</span><small class="money-decimals" id="stat-egresos-dec"></small></div>
         </div>
         <div class="scard green">
           <div class="scard-label">Documentos en Proceso</div>
-          <div class="scard-value">5</div>
+          <div class="scard-value" id="stat-docs-proceso">—</div>
         </div>
       </div>
 
@@ -108,7 +108,7 @@
           <div class="panel-head">
             <span class="panel-head-title">Agenda Próxima</span>
           </div>
-          <div class="agenda-list">
+          <div class="agenda-list" id="agenda-list-admin">
             <div class="agenda-item">
               <div class="agenda-icon"><i class="fas fa-gavel"></i></div>
               <div class="agenda-info">
@@ -131,7 +131,7 @@
         <div class="panel-grid two-col gap-14">
           <div class="panel">
             <div class="panel-head"><span class="panel-head-title">Tareas Recientes</span></div>
-            <div class="task-list">
+            <div class="task-list" id="task-list-admin">
               <div class="task-item">
                 <div class="task-dot pending"><i class="fas fa-hourglass-half"></i></div>
                 Revisión de Expediente
@@ -149,7 +149,7 @@
 
           <div class="panel">
             <div class="panel-head"><span class="panel-head-title">Notificaciones</span></div>
-            <div class="notif-list">
+            <div class="notif-list" id="notif-list-admin">
               <div class="notif-item">
                 <div class="notif-color red"></div>
                 <div class="notif-text">Documento urgente por revisar</div>
@@ -208,16 +208,16 @@
       <div class="stat-banner judic-grid">
         <div class="scard teal">
           <div class="scard-label">Tareas Pendientes</div>
-          <div class="scard-value">8</div>
+          <div class="scard-value" id="stat-tareas-pendientes">—</div>
         </div>
         <div class="scard blue">
           <div class="scard-label">Documentos Asignados</div>
-          <div class="scard-value">4</div>
+          <div class="scard-value" id="stat-docs-asignados">—</div>
         </div>
         <div class="scard green next-cita">
           <div class="scard-label">Próxima Cita</div>
-          <div class="cita-time">Mañana, 9:00 AM</div>
-          <div class="cita-name">Audiencia Judicial</div>
+          <div class="cita-time" id="stat-proxima-cita-time">—</div>
+          <div class="cita-name" id="stat-proxima-cita-name"></div>
         </div>
       </div>
 
@@ -230,7 +230,7 @@
           </div>
         </div>
         <div class="cal-wrap">
-          <div class="cal-grid">
+          <div class="cal-grid" id="cal-grid-judic">
             <div class="cal-day-head">Lun 22</div>
             <div class="cal-day-head">Mar 23</div>
             <div class="cal-day-head">Mier 24</div>
@@ -254,7 +254,7 @@
       <div class="panel-grid two-col mb-14">
         <div class="panel">
           <div class="panel-head"><span class="panel-head-title">Mis Tareas Recientes</span></div>
-          <div class="task-list">
+          <div class="task-list" id="task-list-judic">
             <div class="task-item">
               <div class="task-dot pending"><i class="fas fa-hourglass-half"></i></div>
               Redacción de Informe
@@ -272,7 +272,7 @@
 
         <div class="panel">
           <div class="panel-head"><span class="panel-head-title">Notificaciones</span></div>
-          <div class="notif-list">
+          <div class="notif-list" id="notif-list-judic">
             <div class="notif-item">
               <div class="notif-color amber"></div>
               <div class="notif-text">Documento "Contrato Aprobado"</div>
@@ -583,5 +583,6 @@
   });
 </script>
 <script src="../Controller/js/notifications.js"></script>
+<script src="../Controller/js/inicio-panel.js"></script>
 </body>
 </html>
