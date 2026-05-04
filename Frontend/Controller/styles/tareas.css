@@ -594,6 +594,7 @@ body {
 
 /* ── DETAIL MODAL (wider) ── */
 .modal-wide { width: min(680px, 100%); }
+.modal-detalle { width: min(820px, 96vw); }
 
 /* ── DETAIL INFO GRID ── */
 .detail-grid { display: grid; gap: 14px; }
@@ -604,14 +605,14 @@ body {
 /* ── DOCUMENT BLOCK ── */
 .doc-block {
   border: 1px solid rgba(35,76,88,.15); border-radius: 10px;
-  padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;
   background: rgba(35,76,88,.03);
 }
 .doc-block-icon { font-size: 1.4rem; color: var(--color-primary); flex-shrink: 0; }
-.doc-block-info { flex: 1; min-width: 0; }
-.doc-block-name { font-weight: 700; font-size: .85rem; color: var(--color-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-block-info { flex: 1 1 280px; min-width: 0; }
+.doc-block-name { font-weight: 700; font-size: .85rem; color: var(--color-dark); white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
 .doc-block-meta { font-size: .72rem; color: var(--color-secondary); }
-.doc-block-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.doc-block-actions { display: flex; gap: 6px; flex-shrink: 0; margin-left: auto; }
 .doc-btn {
   padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(35,76,88,.2);
   background: #fff; color: var(--color-primary); font-family: var(--font-main);
