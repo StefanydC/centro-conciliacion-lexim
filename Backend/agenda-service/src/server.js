@@ -268,19 +268,25 @@ function extraerCampoDescripcion(description = '', fieldName = '') {
   return match?.[1]?.trim() || '';
 }
 
+function truncateText(value = '', maxLen = 0) {
+  const text = String(value || '').trim();
+  if (!maxLen || text.length <= maxLen) return text;
+  return text.slice(0, maxLen);
+}
+
 function mapGoogleEventToAgenda(googleEvent) {
   const summary = (googleEvent.summary || '').trim();
   const description = googleEvent.description || '';
   const { fecha, hora } = parseGoogleStart(googleEvent.start);
 
   return {
-    titulo: summary || 'Evento sin título',
+    titulo: truncateText(summary || 'Evento sin título', 120),
     tipo: inferirTipoGoogle(summary, description),
-    caso: extraerCampoDescripcion(description, 'Caso'),
+    caso: truncateText(extraerCampoDescripcion(description, 'Caso'), 80),
     fecha,
     hora,
-    lugar: (googleEvent.location || extraerCampoDescripcion(description, 'Lugar') || '').trim(),
-    descripcion: limpiarDescripcion(description),
+    lugar: truncateText((googleEvent.location || extraerCampoDescripcion(description, 'Lugar') || '').trim(), 120),
+    descripcion: truncateText(limpiarDescripcion(description), 500),
     google_event_id: googleEvent.id
   };
 }
