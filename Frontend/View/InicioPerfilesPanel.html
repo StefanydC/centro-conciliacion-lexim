@@ -582,5 +582,6 @@
     if (tok) { const b = new Blob([JSON.stringify({ token: tok })], { type: 'application/json' }); navigator.sendBeacon('/auth/logout', b); }
   });
 </script>
+<script src="../Controller/js/notifications.js"></script>
 </body>
 </html>

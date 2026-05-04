@@ -1,14 +1,36 @@
 const Task = require("../models/task.model");
 const User = require("../models/user.model");
+const notificationService = require("../services/notification.service");
 
 const POPULATE_USER = "nombre Nombre apellido Apellido email Email";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+function nombreCompletoUsuario(usuario) {
+  if (!usuario) return "Sistema";
+  const nombre = usuario.nombre || usuario.Nombre || "";
+  const apellido = usuario.apellido || usuario.Apellido || "";
+  return [nombre, apellido].filter(Boolean).join(" ").trim() || usuario.email || "Sistema";
+}
+
 async function _poblar(id) {
   return Task.findById(id)
     .populate("creado_por", POPULATE_USER)
     .populate("asignado_a", POPULATE_USER);
+}
+
+async function obtenerNombreUsuario(userId) {
+  if (!userId) return "Sistema";
+  const usuario = await User.findById(userId).select("nombre Nombre apellido Apellido email Email");
+  return nombreCompletoUsuario(usuario);
+}
+
+async function notificarSeguro(payload) {
+  try {
+    await notificationService.crear(payload);
+  } catch (error) {
+    console.error("[notifications] No se pudo registrar la notificación:", error.message);
+  }
 }
 
 // ─── listar ──────────────────────────────────────────────────────────────────
@@ -34,6 +56,7 @@ const crear = async (req, res, next) => {
   try {
     const { descripcion, prioridad, fecha_limite, observaciones, asignado_a, documento_admin } = req.body;
     const obsAdmin = observaciones?.trim() || null;
+    const creadorNombre = await obtenerNombreUsuario(req.user.sub);
 
     const docAdmin = documento_admin?.driveFileId
       ? { driveFileId: documento_admin.driveFileId, nombre: documento_admin.nombre || "Documento", mimeType: documento_admin.mimeType || "" }
@@ -51,6 +74,19 @@ const crear = async (req, res, next) => {
       documento_admin: docAdmin
     });
 
+    if (tarea.asignado_a) {
+      await notificarSeguro({
+        destinatario: tarea.asignado_a,
+        tipo: "asignacion_tarea",
+        titulo: "Tarea asignada",
+        mensaje: `El administrador ${creadorNombre} te asignó la tarea "${descripcion}".`,
+        actor_id: req.user.sub,
+        actor_nombre: creadorNombre,
+        tarea_id: tarea._id,
+        tarea_estado: tarea.estado
+      });
+    }
+
     res.status(201).json({ data: await _poblar(tarea._id) });
   } catch (err) { next(err); }
 };
@@ -62,6 +98,7 @@ const actualizarEstado = async (req, res, next) => {
     const { estado, motivo_rechazo } = req.body;
     const esAdmin  = req.user.tipo_usuario === "administrador";
     const userId   = req.user.sub;
+    const actorNombre = await obtenerNombreUsuario(userId);
 
     const tarea = await Task.findById(req.params.id);
     if (!tarea) return res.status(404).json({ mensaje: "Tarea no encontrada" });
@@ -116,6 +153,59 @@ const actualizarEstado = async (req, res, next) => {
     const actualizada = await Task.findByIdAndUpdate(req.params.id, update, { new: true })
       .populate("creado_por", POPULATE_USER)
       .populate("asignado_a", POPULATE_USER);
+
+    if (!esAdmin && estadoActual === "pendiente" && estado === "en_proceso" && tarea.creado_por) {
+      await notificarSeguro({
+        destinatario: tarea.creado_por,
+        tipo: "tarea_recibida",
+        titulo: "Tarea recibida",
+        mensaje: `El judicante ${actorNombre} recibió la tarea "${tarea.descripcion}".`,
+        actor_id: userId,
+        actor_nombre: actorNombre,
+        tarea_id: tarea._id,
+        tarea_estado: estado
+      });
+    }
+
+    if (!esAdmin && estadoActual === "en_proceso" && estado === "revision" && tarea.creado_por) {
+      await notificarSeguro({
+        destinatario: tarea.creado_por,
+        tipo: "documento_en_revision",
+        titulo: "Documento enviado a revisión",
+        mensaje: `El judicante ${actorNombre} envió a revisión el documento de la tarea "${tarea.descripcion}".`,
+        actor_id: userId,
+        actor_nombre: actorNombre,
+        tarea_id: tarea._id,
+        tarea_estado: estado
+      });
+    }
+
+    if (esAdmin && estadoActual === "revision" && estado === "en_proceso" && tarea.asignado_a) {
+      const motivoTexto = motivo_rechazo?.trim() ? ` Motivo: ${motivo_rechazo.trim()}.` : "";
+      await notificarSeguro({
+        destinatario: tarea.asignado_a,
+        tipo: "documento_rechazado",
+        titulo: "Documento rechazado",
+        mensaje: `El administrador ${actorNombre} rechazó el documento de la tarea "${tarea.descripcion}".${motivoTexto}`,
+        actor_id: userId,
+        actor_nombre: actorNombre,
+        tarea_id: tarea._id,
+        tarea_estado: estado
+      });
+    }
+
+    if (esAdmin && estadoActual === "revision" && estado === "completado" && tarea.asignado_a) {
+      await notificarSeguro({
+        destinatario: tarea.asignado_a,
+        tipo: "documento_aceptado",
+        titulo: "Documento aceptado",
+        mensaje: `El administrador ${actorNombre} aceptó el documento de la tarea "${tarea.descripcion}".`,
+        actor_id: userId,
+        actor_nombre: actorNombre,
+        tarea_id: tarea._id,
+        tarea_estado: estado
+      });
+    }
 
     res.json({ data: actualizada });
   } catch (err) { next(err); }

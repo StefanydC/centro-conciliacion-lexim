@@ -4,6 +4,7 @@ const morgan = require("morgan");
 
 const authRoutes = require("./routes/auth.routes");
 const taskRoutes = require("./routes/task.routes");
+const notificationRoutes = require("./routes/notification.routes");
 const finanzasRoutes = require("./routes/finanzas.routes");
 const userRoutes = require("./routes/user.routes");
 const { notFoundHandler, errorHandler } = require("./middlewares/error.middleware");
@@ -23,6 +24,7 @@ app.use(express.json());
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 app.use("/auth", authRoutes);
 app.use("/tasks", taskRoutes);
+app.use("/notifications", notificationRoutes);
 app.use("/finanzas", finanzasRoutes);
 app.use("/usuarios", userRoutes);
 

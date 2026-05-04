@@ -51,7 +51,7 @@
 <div class="main" id="mainContent">
   <header class="topbar">
     <div class="topbar-title" id="topbarTitle">Módulo</div>
-    <button class="tb-btn" id="btnNotis"><i class="fas fa-bell"></i><span class="tb-dot"></span></button>
+    <button class="tb-btn" id="btnNotis" aria-haspopup="true" aria-expanded="false"><i class="fas fa-bell"></i><span class="tb-dot" id="notifDot" style="display:none"></span><span class="tb-count" id="notifCount" hidden>0</span></button>
     <button class="tb-btn" id="btnRefresh"><i class="fas fa-sync-alt"></i></button>
     <button class="tb-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
     <div class="user-pill">
@@ -59,6 +59,26 @@
       <span class="u-name" id="uName">Administrador</span>
     </div>
   </header>
+
+  <div class="notifications-popover" id="notificationsPopover" aria-hidden="true">
+    <div class="notifications-head">
+      <div>
+        <p class="notifications-kicker">Centro de alertas</p>
+        <h3>Notificaciones</h3>
+      </div>
+      <button class="notifications-close" id="closeNotifications" aria-label="Cerrar notificaciones"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="notifications-summary">
+      <div class="notifications-stat">
+        <span id="notificationsUnread">0</span>
+        <small>No leídas</small>
+      </div>
+      <button class="notifications-action" id="markAllNotificationsRead">Marcar todas como leídas</button>
+    </div>
+    <div class="notifications-list" id="notificationsList">
+      <div class="notifications-empty">Cargando notificaciones...</div>
+    </div>
+  </div>
 
   <div class="content">
     <section class="module-hero">
@@ -167,9 +187,189 @@ document.getElementById('mobileMenuBtn').addEventListener('click', () => {
 document.getElementById('btnRefresh').addEventListener('click', () => {
   window.location.reload();
 });
-document.getElementById('btnNotis').addEventListener('click', () => {
-  window.location.href = 'modulo.html?mod=notificaciones';
+
+const notificationsPopover = document.getElementById('notificationsPopover');
+const notificationsList = document.getElementById('notificationsList');
+const notificationsUnread = document.getElementById('notificationsUnread');
+const notifCount = document.getElementById('notifCount');
+const notifDot = document.getElementById('notifDot');
+const btnNotis = document.getElementById('btnNotis');
+
+let notificationsCache = [];
+let notificationsOpen = false;
+let notificationsLoaded = false;
+
+function getAuthHeaders(extraHeaders = {}) {
+  const token = localStorage.getItem('token');
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extraHeaders
+  };
+}
+
+function formatNotificationDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('es-CO', {
+    dateStyle: 'short',
+    timeStyle: 'short'
+  });
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function renderNotificationCount(count) {
+  const hasUnread = Number(count) > 0;
+  notificationsUnread.textContent = String(count || 0);
+  notifCount.textContent = String(count || 0);
+  notifCount.hidden = !hasUnread;
+  notifDot.style.display = hasUnread ? 'block' : 'none';
+}
+
+function renderNotifications(items) {
+  if (!items.length) {
+    notificationsList.innerHTML = '<div class="notifications-empty">No tienes notificaciones nuevas.</div>';
+    return;
+  }
+
+  notificationsList.innerHTML = items.map((item) => {
+    const unreadClass = item.leida ? '' : 'unread';
+    const tipo = escapeHtml((item.tipo || '').replaceAll('_', ' '));
+    const actor = item.actor_nombre ? `<span>${escapeHtml(item.actor_nombre)}</span>` : '<span>Sistema</span>';
+    return `
+      <article class="notification-item ${unreadClass}" data-id="${item._id}">
+        <div class="notification-top">
+          <h4 class="notification-title">${escapeHtml(item.titulo || 'Notificación')}</h4>
+          <span class="notification-type">${tipo || 'evento'}</span>
+        </div>
+        <p class="notification-message">${escapeHtml(item.mensaje || '')}</p>
+        <div class="notification-foot">
+          <span>${actor}</span>
+          <span>${escapeHtml(formatNotificationDate(item.createdAt))}</span>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  notificationsList.querySelectorAll('.notification-item').forEach((node) => {
+    node.addEventListener('click', async () => {
+      const id = node.dataset.id;
+      await markNotificationAsRead(id);
+    });
+  });
+}
+
+async function apiFetchNotifications(url, opts = {}) {
+  const res = await fetch(url, {
+    ...opts,
+    headers: {
+      ...getAuthHeaders(),
+      ...(opts.headers || {})
+    }
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(errorBody.mensaje || errorBody.error || 'No se pudieron cargar las notificaciones');
+  }
+
+  return res.json();
+}
+
+async function loadNotifications({ force = false } = {}) {
+  if (notificationsLoaded && !force) {
+    return;
+  }
+
+  notificationsList.innerHTML = '<div class="notifications-empty">Cargando notificaciones...</div>';
+
+  try {
+    const data = await apiFetchNotifications('/notifications?limit=8');
+    notificationsCache = data.data || [];
+    renderNotifications(notificationsCache);
+    renderNotificationCount(data.unreadCount || 0);
+    notificationsLoaded = true;
+  } catch (error) {
+    notificationsList.innerHTML = `<div class="notifications-empty">${error.message}</div>`;
+  }
+}
+
+async function refreshNotificationCount() {
+  try {
+    const data = await apiFetchNotifications('/notifications?limit=1&soloNoLeidas=true');
+    renderNotificationCount(data.unreadCount || 0);
+  } catch (_) {}
+}
+
+function openNotificationsPanel() {
+  notificationsPopover.classList.add('active');
+  notificationsPopover.setAttribute('aria-hidden', 'false');
+  btnNotis.setAttribute('aria-expanded', 'true');
+  notificationsOpen = true;
+}
+
+function closeNotificationsPanel() {
+  notificationsPopover.classList.remove('active');
+  notificationsPopover.setAttribute('aria-hidden', 'true');
+  btnNotis.setAttribute('aria-expanded', 'false');
+  notificationsOpen = false;
+}
+
+async function toggleNotificationsPanel() {
+  if (notificationsOpen) {
+    closeNotificationsPanel();
+    return;
+  }
+
+  openNotificationsPanel();
+  await loadNotifications({ force: true });
+}
+
+async function markNotificationAsRead(id) {
+  try {
+    await apiFetchNotifications(`/notifications/${encodeURIComponent(id)}/read`, { method: 'PATCH' });
+    notificationsLoaded = false;
+    await loadNotifications({ force: true });
+    await refreshNotificationCount();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+document.getElementById('btnNotis').addEventListener('click', toggleNotificationsPanel);
+document.getElementById('closeNotifications').addEventListener('click', closeNotificationsPanel);
+document.getElementById('markAllNotificationsRead').addEventListener('click', async () => {
+  try {
+    await apiFetchNotifications('/notifications/read-all', { method: 'PATCH' });
+    notificationsLoaded = false;
+    await loadNotifications({ force: true });
+    await refreshNotificationCount();
+  } catch (error) {
+    alert(error.message);
+  }
 });
+
+document.addEventListener('click', (event) => {
+  if (!notificationsOpen) return;
+  if (notificationsPopover.contains(event.target) || btnNotis.contains(event.target)) return;
+  closeNotificationsPanel();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeNotificationsPanel();
+  }
+});
+
+setInterval(refreshNotificationCount, 45000);
 
 document.getElementById('logoutBtn').addEventListener('click', (e) => {
   e.preventDefault();
@@ -194,6 +394,13 @@ window.addEventListener('beforeunload', () => {
   const tok = localStorage.getItem('token');
   if (tok) { const b = new Blob([JSON.stringify({ token: tok })], { type: 'application/json' }); navigator.sendBeacon('/auth/logout', b); }
 });
+
+if (mod === 'notificaciones') {
+  openNotificationsPanel();
+  loadNotifications({ force: true });
+} else {
+  refreshNotificationCount();
+}
 </script>
 </body>
 </html>

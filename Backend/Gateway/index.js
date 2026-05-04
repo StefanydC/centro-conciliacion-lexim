@@ -113,6 +113,23 @@ app.use('/tasks', requireJudicante, createProxyMiddleware({
   }
 }));
 
+// 🔔 NOTIFICACIONES — cualquier usuario autenticado
+app.use('/notifications', requireJudicante, createProxyMiddleware({
+  target: USER_AUTH_SERVICE_URL,
+  changeOrigin: true,
+  proxyTimeout: 10000,
+  pathRewrite: (path) => `/notifications${path}`,
+  on: {
+    proxyReq: (proxyReq, req) => {
+      console.log(`→ [NOTIFICATIONS] ${req.method} ${req.originalUrl} | user: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      forwardBody(proxyReq, req);
+    },
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('User Auth service', 'NOTIFICATIONS_UNAVAILABLE', req, res, err)
+  }
+}));
+
 // 💰 FINANZAS — cualquier usuario autenticado
 app.use('/finanzas', requireJudicante, createProxyMiddleware({
   target: USER_AUTH_SERVICE_URL,
@@ -240,7 +257,7 @@ app.get('/health', (_req, res) => {
     },
     rutas: {
       publicas:   ['/auth', '/health'],
-      protegidas: ['/tasks', '/finanzas', '/conciliacion', '/documentos', '/agenda'],
+      protegidas: ['/tasks', '/notifications', '/finanzas', '/conciliacion', '/documentos', '/agenda'],
       soloAdmin:  ['/usuarios', '/admin']
     }
   });
