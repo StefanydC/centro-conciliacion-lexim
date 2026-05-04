@@ -88,12 +88,30 @@ function getOAuthClient() {
   );
 }
 
-async function getAuthenticatedClient(userId) {
-  // Bug 4 fix: sin prefijo '+' — UserGoogle schema no tiene select:false en estos campos
-  const user = await UserGoogle.findById(userId)
-    .select('google_access_token google_refresh_token google_connected google_token_expiry');
+async function getAuthenticatedClient(userRef) {
+  const userId = typeof userRef === 'object' ? (userRef?.sub || userRef?.id || userRef?._id) : userRef;
+  const userEmail = typeof userRef === 'object' ? String(userRef?.email || '').trim().toLowerCase() : '';
 
-  if (!user?.google_connected) return null;
+  // Bug 4 fix: sin prefijo '+' — UserGoogle schema no tiene select:false en estos campos
+  let user = await UserGoogle.findById(userId)
+    .select('google_access_token google_refresh_token google_connected google_token_expiry email');
+
+  if (!user && userEmail) {
+    user = await UserGoogle.findOne({ email: userEmail })
+      .select('google_access_token google_refresh_token google_connected google_token_expiry email');
+  }
+  if (!user) {
+    console.warn(`[GCAL] Usuario ${userId}${userEmail ? ` / ${userEmail}` : ''} no encontrado en collection usuarios`);
+    return null;
+  }
+
+  const hasGoogleTokens = Boolean(user.google_access_token || user.google_refresh_token);
+  const isGoogleConnected = Boolean(user.google_connected || hasGoogleTokens);
+  const resolvedUserId = String(user._id);
+
+  console.log(`[GCAL] Estado tokens usuario=${resolvedUserId} connected=${Boolean(user.google_connected)} inferredConnected=${isGoogleConnected} access_token=${Boolean(user.google_access_token)} refresh_token=${Boolean(user.google_refresh_token)} expiry=${user.google_token_expiry}`);
+
+  if (!isGoogleConnected) return null;
   // Necesitamos al menos uno de los dos tokens para poder autenticar
   if (!user.google_access_token && !user.google_refresh_token) return null;
 
@@ -112,6 +130,30 @@ async function getAuthenticatedClient(userId) {
     expiry_date:   user.google_token_expiry  ? user.google_token_expiry.getTime() : undefined
   });
 
+  // Si el token parece expirado, intentar refrescar explícitamente usando refresh_token.
+  try {
+    const now = Date.now();
+    const expiry = user.google_token_expiry ? user.google_token_expiry.getTime() : 0;
+    if (user.google_refresh_token && expiry && expiry < now) {
+      try {
+        const refreshed = await getOAuthClient().refreshToken(user.google_refresh_token);
+        const newCreds = refreshed.credentials || refreshed;
+        if (newCreds.access_token) client.setCredentials(newCreds);
+        const upd = {};
+        if (newCreds.access_token) upd.google_access_token = newCreds.access_token;
+        if (newCreds.refresh_token) upd.google_refresh_token = newCreds.refresh_token;
+        if (newCreds.expiry_date) upd.google_token_expiry = new Date(newCreds.expiry_date);
+        if (Object.keys(upd).length > 0) {
+          await UserGoogle.findByIdAndUpdate(resolvedUserId, upd).catch(() => {});
+        }
+      } catch (refreshErr) {
+        console.warn('[GCAL] No se pudo refrescar token automáticamente:', refreshErr.message);
+      }
+    }
+  } catch (e) {
+    console.warn('[GCAL] Error comprobando expiración/refresh token:', e.message);
+  }
+
   // Persistir tokens renovados automáticamente por googleapis
   client.on('tokens', async (newTokens) => {
     const upd = {};
@@ -119,11 +161,11 @@ async function getAuthenticatedClient(userId) {
     if (newTokens.expiry_date)   upd.google_token_expiry  = new Date(newTokens.expiry_date);
     if (newTokens.refresh_token) upd.google_refresh_token = newTokens.refresh_token;
     if (Object.keys(upd).length > 0) {
-      await UserGoogle.findByIdAndUpdate(userId, upd).catch(() => {});
+      await UserGoogle.findByIdAndUpdate(resolvedUserId, upd).catch(() => {});
     }
   });
 
-  return client;
+  return { client, userId: resolvedUserId };
 }
 
 function toGoogleEvent(evento) {
@@ -155,9 +197,9 @@ function toGoogleEvent(evento) {
 
 async function gcalCreate(userId, evento) {
   try {
-    const client = await getAuthenticatedClient(userId);
-    if (!client) return null;
-    const cal    = google.calendar({ version: 'v3', auth: client });
+    const auth = await getAuthenticatedClient(userId);
+    if (!auth) return null;
+    const cal    = google.calendar({ version: 'v3', auth: auth.client });
     const res    = await cal.events.insert({ calendarId: 'primary', requestBody: toGoogleEvent(evento) });
     return res.data.id;
   } catch (err) {
@@ -168,9 +210,9 @@ async function gcalCreate(userId, evento) {
 
 async function gcalUpdate(userId, googleEventId, evento) {
   try {
-    const client = await getAuthenticatedClient(userId);
-    if (!client || !googleEventId) return;
-    const cal    = google.calendar({ version: 'v3', auth: client });
+    const auth = await getAuthenticatedClient(userId);
+    if (!auth || !googleEventId) return;
+    const cal    = google.calendar({ version: 'v3', auth: auth.client });
     await cal.events.update({ calendarId: 'primary', eventId: googleEventId, requestBody: toGoogleEvent(evento) });
   } catch (err) {
     console.error('[GCAL] Error al actualizar evento:', err.message);
@@ -179,9 +221,9 @@ async function gcalUpdate(userId, googleEventId, evento) {
 
 async function gcalDelete(userId, googleEventId) {
   try {
-    const client = await getAuthenticatedClient(userId);
-    if (!client || !googleEventId) return;
-    const cal    = google.calendar({ version: 'v3', auth: client });
+    const auth = await getAuthenticatedClient(userId);
+    if (!auth || !googleEventId) return;
+    const cal    = google.calendar({ version: 'v3', auth: auth.client });
     await cal.events.delete({ calendarId: 'primary', eventId: googleEventId });
   } catch (err) {
     console.error('[GCAL] Error al eliminar evento:', err.message);
@@ -243,29 +285,40 @@ function mapGoogleEventToAgenda(googleEvent) {
   };
 }
 
-async function syncGoogleToAgenda(userId) {
-  const client = await getAuthenticatedClient(userId);
-  if (!client) {
+async function syncGoogleToAgenda(userRef) {
+  const auth = await getAuthenticatedClient(userRef);
+  if (!auth) {
     return { connected: false, totalGoogle: 0, creados: 0, actualizados: 0, eliminados: 0 };
   }
 
-  const cal = google.calendar({ version: 'v3', auth: client });
+  const userId = auth.userId;
+
+  const cal = google.calendar({ version: 'v3', auth: auth.client });
   const allEvents = [];
   let pageToken = null;
 
   do {
-    const res = await cal.events.list({
-      calendarId: 'primary',
-      maxResults: 250,
-      singleEvents: true,
-      showDeleted: false,
-      pageToken,
-      orderBy: 'startTime',
-      timeMin: '2000-01-01T00:00:00Z'
-    });
-    const items = res.data?.items || [];
-    allEvents.push(...items);
-    pageToken = res.data?.nextPageToken || null;
+    try {
+      const res = await cal.events.list({
+        calendarId: 'primary',
+        maxResults: 250,
+        singleEvents: true,
+        showDeleted: false,
+        pageToken,
+        orderBy: 'startTime',
+        timeMin: '2000-01-01T00:00:00Z'
+      });
+      const items = res.data?.items || [];
+      allEvents.push(...items);
+      pageToken = res.data?.nextPageToken || null;
+    } catch (err) {
+      // Registrar detalle del error para diagnóstico y lanzar para que la ruta lo capture
+      console.error('[GCAL] Error listando eventos de Google:', err.message);
+      if (err.response && err.response.data) {
+        console.error('[GCAL] Detalle respuesta Google:', JSON.stringify(err.response.data));
+      }
+      throw err;
+    }
   } while (pageToken);
 
   let creados = 0;
@@ -348,9 +401,10 @@ const router = express.Router();
 router.get('/google/status', requireAuth, async (req, res) => {
   try {
     const user = await UserGoogle.findById(req.user.sub)
-      .select('google_connected google_email');
+      .select('google_connected google_email google_access_token google_refresh_token');
+    const connected = Boolean(user?.google_connected || user?.google_access_token || user?.google_refresh_token);
     res.json({
-      connected: user?.google_connected || false,
+      connected,
       email:     user?.google_email     || null
     });
   } catch (err) {
@@ -377,7 +431,7 @@ router.post('/google/disconnect', requireAuth, async (req, res) => {
 // POST /agenda/google/sync — sincroniza Google Calendar -> sistema (upsert)
 router.post('/google/sync', requireAuth, async (req, res) => {
   try {
-    const result = await syncGoogleToAgenda(req.user.sub);
+    const result = await syncGoogleToAgenda(req.user);
     if (!result.connected) {
       return res.status(409).json({ error: 'Google Calendar no conectado' });
     }
