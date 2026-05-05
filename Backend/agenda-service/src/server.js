@@ -134,10 +134,11 @@ async function getAuthenticatedClient(userRef) {
   try {
     const now = Date.now();
     const expiry = user.google_token_expiry ? user.google_token_expiry.getTime() : 0;
-    if (user.google_refresh_token && expiry && expiry < now) {
+    if (user.google_refresh_token && (!expiry || expiry < now + 60000)) {
       try {
         const refreshed = await getOAuthClient().refreshToken(user.google_refresh_token);
-        const newCreds = refreshed.credentials || refreshed;
+        // googleapis v144+ retorna { tokens: {...}, res: ... } — NO "credentials"
+        const newCreds = refreshed.tokens || refreshed.credentials || {};
         if (newCreds.access_token) client.setCredentials(newCreds);
         const upd = {};
         if (newCreds.access_token) upd.google_access_token = newCreds.access_token;
@@ -145,9 +146,10 @@ async function getAuthenticatedClient(userRef) {
         if (newCreds.expiry_date) upd.google_token_expiry = new Date(newCreds.expiry_date);
         if (Object.keys(upd).length > 0) {
           await UserGoogle.findByIdAndUpdate(resolvedUserId, upd).catch(() => {});
+          console.log(`[GCAL] Token refrescado proactivamente para usuario=${resolvedUserId}`);
         }
       } catch (refreshErr) {
-        console.warn('[GCAL] No se pudo refrescar token automáticamente:', refreshErr.message);
+        console.warn('[GCAL] No se pudo refrescar token proactivamente:', refreshErr.message);
       }
     }
   } catch (e) {
@@ -176,8 +178,17 @@ function toGoogleEvent(evento) {
   const startISO = `${fecha}T${hora}:00`;
   const endISO   = (() => {
     const [h, m] = hora.split(':').map(Number);
-    const endH   = String(h + 1).padStart(2, '0');
-    return `${fecha}T${endH}:${String(m).padStart(2, '0')}:00`;
+    const totalMins = h * 60 + m + 60; // +1 hora
+    const endH = Math.floor(totalMins / 60) % 24;
+    const endM = totalMins % 60;
+    // Si cruza medianoche, avanzar un día en la fecha
+    if (totalMins >= 24 * 60) {
+      const d = new Date(`${fecha}T12:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + 1);
+      const nextFecha = d.toISOString().slice(0, 10);
+      return `${nextFecha}T${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:00`;
+    }
+    return `${fecha}T${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:00`;
   })();
 
   const desc = [
@@ -292,7 +303,14 @@ function mapGoogleEventToAgenda(googleEvent) {
 }
 
 async function syncGoogleToAgenda(userRef) {
-  const auth = await getAuthenticatedClient(userRef);
+  let auth;
+  try {
+    auth = await getAuthenticatedClient(userRef);
+  } catch (authErr) {
+    console.error('[GCAL] Error obteniendo cliente de autenticación:', authErr.message);
+    return { connected: false, totalGoogle: 0, creados: 0, actualizados: 0, eliminados: 0 };
+  }
+
   if (!auth) {
     return { connected: false, totalGoogle: 0, creados: 0, actualizados: 0, eliminados: 0 };
   }
@@ -312,16 +330,29 @@ async function syncGoogleToAgenda(userRef) {
         showDeleted: false,
         pageToken,
         orderBy: 'startTime',
-        timeMin: '2000-01-01T00:00:00Z'
+        timeMin: '2020-01-01T00:00:00Z'
       });
       const items = res.data?.items || [];
       allEvents.push(...items);
       pageToken = res.data?.nextPageToken || null;
     } catch (err) {
-      // Registrar detalle del error para diagnóstico y lanzar para que la ruta lo capture
       console.error('[GCAL] Error listando eventos de Google:', err.message);
       if (err.response && err.response.data) {
         console.error('[GCAL] Detalle respuesta Google:', JSON.stringify(err.response.data));
+      }
+      // Error de autenticación/autorización → token inválido o revocado
+      const httpStatus = err?.response?.status || err?.status || 0;
+      const errMsg = String(err?.message || '').toLowerCase();
+      const isAuthError = httpStatus === 401 || httpStatus === 403 ||
+                          errMsg.includes('invalid_grant') ||
+                          errMsg.includes('token has been expired') ||
+                          errMsg.includes('invalid credentials') ||
+                          errMsg.includes('invalid_token') ||
+                          errMsg.includes('unauthorized');
+      if (isAuthError) {
+        console.warn(`[GCAL] Token inválido/expirado para usuario=${userId}. Marcando como desconectado.`);
+        await UserGoogle.findByIdAndUpdate(userId, { google_connected: false }).catch(() => {});
+        return { connected: false, totalGoogle: 0, creados: 0, actualizados: 0, eliminados: 0, tokenExpirado: true };
       }
       throw err;
     }
@@ -439,7 +470,11 @@ router.post('/google/sync', requireAuth, async (req, res) => {
   try {
     const result = await syncGoogleToAgenda(req.user);
     if (!result.connected) {
-      return res.status(409).json({ error: 'Google Calendar no conectado' });
+      const status = result.tokenExpirado ? 401 : 409;
+      const mensaje = result.tokenExpirado
+        ? 'Token de Google expirado o revocado. Vuelve a conectar tu cuenta.'
+        : 'Google Calendar no conectado';
+      return res.status(status).json({ error: mensaje, tokenExpirado: Boolean(result.tokenExpirado) });
     }
 
     res.json({
