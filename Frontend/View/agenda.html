@@ -407,6 +407,7 @@ let editandoId     = null;
 let eliminandoId   = null;
 let detalleEvento  = null;
 let gcalConectado  = false;
+let gcalSyncEnCurso = false;
 
 let calFecha        = new Date();
 let diaSeleccionado = null;
@@ -569,8 +570,9 @@ async function cargarEstadoGcal() {
 }
 
 async function sincronizarGoogleSiConectado({ silencioso = true } = {}) {
-  if (!gcalConectado) return null;
+  if (!gcalConectado || gcalSyncEnCurso) return null;
 
+  gcalSyncEnCurso = true;
   try {
     const result = await apiSincronizarGoogle();
     const creados = Number(result?.data?.creados || 0);
@@ -587,18 +589,17 @@ async function sincronizarGoogleSiConectado({ silencioso = true } = {}) {
     const tokenExpirado = msg.includes('token') && (msg.includes('expirado') || msg.includes('revocado') || msg.includes('expirada'));
 
     if (tokenExpirado) {
-      // Token inválido: mostrar barra de reconexión y dejar de intentar sync
       gcalConectado = false;
       document.getElementById('gcalConnectBar').style.display = 'flex';
-      if (!silencioso) {
-        toast('Tu sesión de Google Calendar expiró. Vuelve a conectar tu cuenta.', 'warning');
-      }
+      toast('Tu sesión de Google Calendar expiró. Haz clic en "Conectar Google Calendar" para volver a sincronizar.', 'error');
       console.warn('[GCAL] Token expirado/revocado. El usuario debe reconectar.');
     } else if (!silencioso) {
       toast(`No fue posible sincronizar Google Calendar: ${err.message}`, 'error');
     }
     console.warn('[GCAL] Error de sincronización:', err.message);
     return null;
+  } finally {
+    gcalSyncEnCurso = false;
   }
 }
 
