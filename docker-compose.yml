@@ -67,6 +67,32 @@ services:
       - lexim-net
     restart: unless-stopped
 
+  # ─── Microservicio de finanzas ────────────────────────────────────────────
+  finance-service:
+    build: ./backend/finance-service
+    container_name: finance_service
+    environment:
+      - PORT=3005
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - lexim-net
+    restart: unless-stopped
+
+  # ─── Microservicio de tareas ──────────────────────────────────────────────
+  task-service:
+    build: ./backend/task-service
+    container_name: task_service
+    environment:
+      - PORT=3006
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - lexim-net
+    restart: unless-stopped
+
   # ─── API Gateway ──────────────────────────────────────────────────────────
   api-gateway:
     build: ./backend/gateway
@@ -78,11 +104,15 @@ services:
       - CONCILIACION_SERVICE_URL=http://conciliacion-service:3002
       - DOCUMENT_SERVICE_URL=http://document-service:3004
       - AGENDA_SERVICE_URL=http://agenda-service:3003
+      - FINANCE_SERVICE_URL=http://finance-service:3005
+      - TASK_SERVICE_URL=http://task-service:3006
     depends_on:
       - user-auth-service
       - conciliacion-service
       - document-service
       - agenda-service
+      - finance-service
+      - task-service
     networks:
       - lexim-net
     restart: unless-stopped

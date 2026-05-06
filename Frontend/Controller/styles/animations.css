@@ -1,0 +1,97 @@
+/* ARCHIVO: Controller/styles/animations.css
+   Animaciones compartidas de LEXIM — páginas, modales y paneles.
+   Incluir en todas las vistas del área privada. */
+
+/* ═══════════════════════════════════════════════════════════
+   KEYFRAMES
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes lx-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes lx-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes lx-modal-in {
+  from { opacity: 0; transform: translateY(22px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);   }
+}
+
+@keyframes lx-slide-right {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ENTRADA DE PÁGINA — .content anima en cada carga de ruta
+   ═══════════════════════════════════════════════════════════ */
+
+.content {
+  animation: lx-fade-up .42s cubic-bezier(.2,1,.3,1) both;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGIN CARD
+   ═══════════════════════════════════════════════════════════ */
+
+.login-card {
+  animation: lx-modal-in .5s cubic-bezier(.2,1,.3,1) both;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODALES / OVERLAYS
+   El backdrop ya aparece con display:flex al añadir .active;
+   la animación arranca en ese mismo frame.
+   ═══════════════════════════════════════════════════════════ */
+
+.overlay.active {
+  animation: lx-fade-in .22s ease both;
+}
+
+/* Card dentro del overlay — .modal y sus variantes */
+.overlay.active > .modal,
+.overlay.active > .modal-detalle,
+.overlay.active > div {
+  animation: lx-modal-in .3s cubic-bezier(.2,1,.3,1) both;
+}
+
+/* Overlay de sesión / logout */
+.session-overlay.active {
+  animation: lx-fade-in .22s ease both;
+}
+
+.session-overlay.active > .session-modal,
+.session-overlay.active > .logout-loader {
+  animation: lx-modal-in .3s cubic-bezier(.2,1,.3,1) both;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CAMBIO DE PANEL (InicioPerfilesPanel switchView)
+   Añadir / quitar .lx-panel-in para reiniciar la animación.
+   ═══════════════════════════════════════════════════════════ */
+
+.lx-panel-in {
+  animation: lx-slide-right .36s cubic-bezier(.2,1,.3,1) both;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STAGGER — filas de tabla y cards de estadísticas
+   Aplica automáticamente a elementos con data-anim-row
+   ═══════════════════════════════════════════════════════════ */
+
+[data-anim-row] {
+  animation: lx-fade-up .35s cubic-bezier(.2,1,.3,1) both;
+}
+[data-anim-row]:nth-child(1)  { animation-delay: .04s; }
+[data-anim-row]:nth-child(2)  { animation-delay: .08s; }
+[data-anim-row]:nth-child(3)  { animation-delay: .12s; }
+[data-anim-row]:nth-child(4)  { animation-delay: .16s; }
+[data-anim-row]:nth-child(5)  { animation-delay: .20s; }
+[data-anim-row]:nth-child(6)  { animation-delay: .24s; }
+[data-anim-row]:nth-child(7)  { animation-delay: .28s; }
+[data-anim-row]:nth-child(8)  { animation-delay: .30s; }
+[data-anim-row]:nth-child(n+9){ animation-delay: .32s; }

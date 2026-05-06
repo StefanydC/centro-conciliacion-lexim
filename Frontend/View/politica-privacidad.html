@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<!-- ARCHIVO: frontend/View/politica-privacidad.html -->
+<!--
+  POLÍTICA DE TRATAMIENTO DE DATOS PERSONALES — LEXIM
+  Cumplimiento: Ley 1581 de 2012, Decreto 1377 de 2013, Decreto 1074 de 2015
+  Artículos cubiertos: 2, 5, 6, 7, 8, 10, 11, 12, 13, 17
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Tratamiento de Datos — LEXIM</title>
+  <link rel="icon" href="../Controller/imagenes/logo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:       #1a3c5e;
+      --brand-light: #2563a8;
+      --accent:      #c9a84c;
+      --text:        #1f2937;
+      --muted:       #6b7280;
+      --bg:          #f8fafc;
+      --border:      #e2e8f0;
+      --radius:      10px;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+    }
+
+    header {
+      background: var(--brand);
+      color: #fff;
+      padding: 2rem 2rem 1.5rem;
+      text-align: center;
+    }
+
+    header .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      letter-spacing: .05em;
+      color: var(--accent);
+    }
+
+    header p { font-size: .875rem; opacity: .8; margin-top: .25rem; }
+
+    main {
+      max-width: 860px;
+      margin: 2.5rem auto 4rem;
+      padding: 0 1.5rem;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 3rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      color: var(--brand);
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--brand-light);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin: 1.75rem 0 .6rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: .35rem;
+    }
+
+    h2:first-of-type { margin-top: 0; }
+
+    p { margin-bottom: .9rem; font-size: .95rem; }
+
+    ul {
+      padding-left: 1.4rem;
+      margin-bottom: .9rem;
+      font-size: .95rem;
+    }
+
+    li { margin-bottom: .4rem; }
+
+    .badge {
+      display: inline-block;
+      background: var(--brand);
+      color: #fff;
+      font-size: .7rem;
+      font-weight: 700;
+      padding: .15rem .55rem;
+      border-radius: 999px;
+      vertical-align: middle;
+      margin-left: .3rem;
+      letter-spacing: .04em;
+    }
+
+    .highlight {
+      background: #fffbeb;
+      border-left: 4px solid var(--accent);
+      padding: .75rem 1.1rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: .9rem;
+      margin: 1rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+      margin: .75rem 0 1rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: .55rem .8rem;
+      text-align: left;
+    }
+
+    th { background: var(--brand); color: #fff; font-weight: 600; }
+    tr:nth-child(even) td { background: #f1f5f9; }
+
+    .contact-box {
+      background: var(--brand);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 1.5rem 2rem;
+      margin-top: 1rem;
+    }
+
+    .contact-box strong { color: var(--accent); }
+
+    .version-bar {
+      text-align: center;
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: 2rem;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--brand);
+      color: #fff;
+      padding: .6rem 1.4rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: .875rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      transition: background .2s;
+    }
+
+    .btn-back:hover { background: var(--brand-light); }
+
+    @media (max-width: 600px) {
+      .card { padding: 1.5rem 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-text">LEXIM</div>
+  <p>Centro de Conciliación Extrajudicial</p>
+</header>
+
+<main>
+  <a href="login.html" class="btn-back">← Volver al inicio de sesión</a>
+
+  <div class="card">
+    <h1>Política de Tratamiento de Datos Personales</h1>
+
+    <div class="highlight">
+      <strong>Versión 1.0 — Vigente desde el 6 de mayo de 2026.</strong><br>
+      Elaborada en cumplimiento de la <strong>Ley 1581 de 2012</strong>,
+      el <strong>Decreto 1377 de 2013</strong> y el
+      <strong>Decreto 1074 de 2015</strong> (Libro 2, Parte 2, Título 2, Capítulo 25).
+    </div>
+
+    <!-- 1. RESPONSABLE -->
+    <h2>1. Responsable del Tratamiento</h2>
+    <p>
+      El responsable del tratamiento de datos personales es el
+      <strong>Centro de Conciliación Lexim</strong> (en adelante, "Lexim"),
+      entidad que opera la plataforma de gestión de procesos de conciliación
+      extrajudicial ubicada en Colombia.
+    </p>
+    <table>
+      <tr><th>Dato</th><th>Valor</th></tr>
+      <tr><td>Razón social</td><td>Centro de Conciliación Lexim</td></tr>
+      <tr><td>NIT / Identificación</td><td>[Completar por el operador]</td></tr>
+      <tr><td>Dirección</td><td>[Completar por el operador]</td></tr>
+      <tr><td>Correo de datos personales</td><td>datos@lexim.com.co</td></tr>
+      <tr><td>Teléfono</td><td>[Completar por el operador]</td></tr>
+    </table>
+
+    <!-- 2. DATOS QUE SE RECOPILAN -->
+    <h2>2. Datos Personales que se Recopilan <span class="badge">Art. 5 — Ley 1581</span></h2>
+    <p>Lexim recopila las siguientes categorías de datos personales:</p>
+    <table>
+      <tr><th>Categoría</th><th>Datos específicos</th><th>Fuente</th></tr>
+      <tr>
+        <td>Identificación</td>
+        <td>Nombre, apellido, número de documento</td>
+        <td>Formulario de registro o expediente</td>
+      </tr>
+      <tr>
+        <td>Contacto</td>
+        <td>Correo electrónico, teléfono</td>
+        <td>Formulario de registro</td>
+      </tr>
+      <tr>
+        <td>Credenciales de acceso</td>
+        <td>Contraseña (almacenada con hash bcrypt, nunca en texto plano)</td>
+        <td>Registro del usuario</td>
+      </tr>
+      <tr>
+        <td>Datos del proceso</td>
+        <td>Nro. de expediente, tema de conciliación, documentos adjuntos, actas, partes del proceso</td>
+        <td>Expedientes judiciales registrados por abogados</td>
+      </tr>
+      <tr>
+        <td>Datos financieros</td>
+        <td>Ingresos y egresos asociados a procesos (sin datos bancarios)</td>
+        <td>Registro interno del centro</td>
+      </tr>
+      <tr>
+        <td>Datos de uso</td>
+        <td>Fecha/hora de acceso, acciones realizadas en la plataforma, dirección IP</td>
+        <td>Log de auditoría del sistema</td>
+      </tr>
+      <tr>
+        <td>Autenticación Google (opcional)</td>
+        <td>Correo de cuenta Google, token de acceso cifrado</td>
+        <td>OAuth2 — solo si el usuario conecta su cuenta</td>
+      </tr>
+    </table>
+    <div class="highlight">
+      <strong>Nota:</strong> Lexim <strong>no recopila</strong> datos sensibles en los términos del
+      Artículo 6 de la Ley 1581 (salud, filiación política, vida sexual, origen étnico, etc.),
+      a menos que el caso de conciliación lo involucre expresamente, en cuyo caso aplican
+      garantías reforzadas.
+    </div>
+
+    <!-- 3. FINALIDAD -->
+    <h2>3. Finalidad del Tratamiento <span class="badge">Art. 13 — Ley 1581</span></h2>
+    <ul>
+      <li><strong>Gestión de procesos de conciliación:</strong> administrar expedientes, agendar audiencias y generar documentos.</li>
+      <li><strong>Autenticación y control de acceso:</strong> verificar identidad y permisos de usuarios (abogados y judicantes).</li>
+      <li><strong>Comunicación operativa:</strong> enviar notificaciones relacionadas con el estado de los procesos.</li>
+      <li><strong>Cumplimiento legal:</strong> conservar registros exigidos por la Ley 640 de 2001, el Decreto 1829 de 2013 y demás normas aplicables a centros de conciliación.</li>
+      <li><strong>Trazabilidad y auditoría:</strong> registrar acciones sobre datos personales en cumplimiento del Artículo 17 literal d de la Ley 1581.</li>
+      <li><strong>Análisis operativo interno:</strong> generar estadísticas agregadas y anónimas sobre el uso del centro (sin identificar personas individuales).</li>
+    </ul>
+
+    <!-- 4. BASE LEGAL -->
+    <h2>4. Base Legal del Tratamiento</h2>
+    <p>El tratamiento de datos se fundamenta en:</p>
+    <ul>
+      <li><strong>Consentimiento expreso</strong> del titular al momento del registro (Artículo 9, Ley 1581).</li>
+      <li><strong>Relación contractual</strong> entre el usuario y el Centro de Conciliación.</li>
+      <li><strong>Obligación legal</strong> derivada de la función pública de conciliación.</li>
+    </ul>
+
+    <!-- 5. DERECHOS ARCO -->
+    <h2>5. Derechos del Titular <span class="badge">Art. 8 — Ley 1581</span></h2>
+    <p>Todo titular de datos personales tiene derecho a:</p>
+    <ul>
+      <li><strong>Acceso:</strong> conocer los datos personales que Lexim tiene sobre usted (<code>GET /api/users/mis-datos</code>).</li>
+      <li><strong>Rectificación:</strong> actualizar datos inexactos o incompletos (<code>PUT /api/users/rectificar</code>).</li>
+      <li><strong>Cancelación / Supresión:</strong> solicitar la eliminación de sus datos (<code>DELETE /api/users/solicitar-eliminacion</code>). Por tratarse de datos judiciales, la eliminación requiere revisión del administrador del centro.</li>
+      <li><strong>Oposición:</strong> oponerse al tratamiento cuando no exista obligación legal que lo justifique.</li>
+      <li><strong>Revocatoria del consentimiento:</strong> revocar en cualquier momento la autorización otorgada.</li>
+    </ul>
+    <div class="highlight">
+      Para ejercer estos derechos, envíe su solicitud a
+      <strong>datos@lexim.com.co</strong> indicando su nombre completo,
+      número de documento, correo registrado y descripción del derecho que desea ejercer.
+      Responderemos en un plazo máximo de <strong>15 días hábiles</strong>
+      (Artículo 14, Ley 1581).
+    </div>
+
+    <!-- 6. TRANSFERENCIA -->
+    <h2>6. Transferencia y Transmisión de Datos <span class="badge">Art. 26 — Ley 1581</span></h2>
+    <p>Lexim puede transmitir datos a los siguientes encargados del tratamiento:</p>
+    <table>
+      <tr><th>Encargado</th><th>Finalidad</th><th>País</th></tr>
+      <tr>
+        <td>MongoDB Atlas (MongoDB Inc.)</td>
+        <td>Almacenamiento de base de datos</td>
+        <td>EE. UU. (con cláusulas contractuales tipo)</td>
+      </tr>
+      <tr>
+        <td>Google LLC (Drive / Calendar / OAuth)</td>
+        <td>Almacenamiento de documentos y agenda</td>
+        <td>EE. UU. (Privacy Shield / SCCs)</td>
+      </tr>
+      <tr>
+        <td>OpenAI Inc.</td>
+        <td>Análisis y resumen de expedientes (IA)</td>
+        <td>EE. UU. (datos anonimizados antes de envío)</td>
+      </tr>
+    </table>
+    <p>
+      No se realiza venta ni cesión de datos a terceros no relacionados con la
+      prestación del servicio.
+    </p>
+
+    <!-- 7. RETENCIÓN -->
+    <h2>7. Plazo de Conservación de Datos <span class="badge">Art. 11 — Ley 1581</span></h2>
+    <table>
+      <tr><th>Tipo de dato</th><th>Plazo de retención</th><th>Fundamento</th></tr>
+      <tr>
+        <td>Expedientes de conciliación</td>
+        <td>10 años desde el cierre del proceso</td>
+        <td>Ley 640/2001 Art. 20 — archivo de actas</td>
+      </tr>
+      <tr>
+        <td>Datos de usuario activo</td>
+        <td>Durante la vigencia del contrato + 2 años</td>
+        <td>Relación contractual</td>
+      </tr>
+      <tr>
+        <td>Datos de usuario inactivo</td>
+        <td>5 años desde el último acceso</td>
+        <td>Ley 1581 Art. 11 — supresión oportuna</td>
+      </tr>
+      <tr>
+        <td>Registros financieros</td>
+        <td>10 años</td>
+        <td>Normas contables colombianas</td>
+      </tr>
+      <tr>
+        <td>Logs de auditoría</td>
+        <td>5 años</td>
+        <td>Ley 1581 Art. 17 — trazabilidad</td>
+      </tr>
+    </table>
+
+    <!-- 8. MEDIDAS DE SEGURIDAD -->
+    <h2>8. Medidas de Seguridad Técnica <span class="badge">Art. 17 lit. f — Ley 1581</span></h2>
+    <ul>
+      <li>Contraseñas almacenadas con <strong>bcrypt</strong> (salt rounds = 10).</li>
+      <li>Comunicaciones cifradas mediante <strong>HTTPS/TLS</strong>.</li>
+      <li>Autenticación basada en <strong>JWT</strong> con expiración de 1 hora.</li>
+      <li>Headers de seguridad HTTP configurados con <strong>Helmet.js</strong>.</li>
+      <li>Protección contra inyección NoSQL con <strong>express-mongo-sanitize</strong>.</li>
+      <li>Log de auditoría de todas las operaciones de escritura sobre datos personales.</li>
+      <li>Acceso a datos segmentado por rol (administrador / judicante).</li>
+    </ul>
+
+    <!-- 9. COOKIES -->
+    <h2>9. Uso de Almacenamiento Local</h2>
+    <p>
+      La plataforma utiliza <code>localStorage</code> del navegador para almacenar
+      el token de sesión y las preferencias del usuario. No se utilizan cookies de
+      rastreo publicitario. Los tokens expiran en 1 hora y se eliminan al cerrar sesión.
+    </p>
+
+    <!-- 10. MODIFICACIONES -->
+    <h2>10. Modificaciones a esta Política</h2>
+    <p>
+      Lexim se reserva el derecho de actualizar esta política. Cualquier cambio
+      material será notificado por correo electrónico con al menos <strong>10 días hábiles</strong>
+      de anticipación. La versión vigente siempre estará disponible en esta URL.
+    </p>
+
+    <!-- 11. CONTACTO -->
+    <h2>11. Canal de Atención al Titular</h2>
+    <div class="contact-box">
+      <p><strong>Para ejercer derechos ARCO o presentar quejas y reclamos:</strong></p>
+      <p>📧 <strong>datos@lexim.com.co</strong></p>
+      <p>📬 [Dirección física del centro] — Colombia</p>
+      <p>
+        También puede dirigir su reclamación a la
+        <strong>Superintendencia de Industria y Comercio (SIC)</strong> —
+        entidad de control en materia de protección de datos —
+        si considera que sus derechos han sido vulnerados.
+      </p>
+    </div>
+  </div>
+
+  <div class="version-bar">
+    Versión 1.0 &bull; Vigente desde 6 de mayo de 2026 &bull;
+    Centro de Conciliación Lexim &bull; Todos los derechos reservados
+  </div>
+</main>
+
+</body>
+</html>

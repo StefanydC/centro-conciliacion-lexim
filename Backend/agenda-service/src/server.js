@@ -1,14 +1,19 @@
+// ARCHIVO: backend/agenda-service/src/server.js
 require('dotenv').config();
 const express  = require('express');
 const cors     = require('cors');
 const mongoose = require('mongoose');
 const jwt      = require('jsonwebtoken');
 const morgan   = require('morgan');
+const helmet   = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
 const { google } = require('googleapis');
 
 const app  = express();
 const PORT = process.env.PORT || 3003;
 
+// ─── Seguridad HTTP — Ley 1581 Art. 17 literal f ─────────────────────────────
+app.use(helmet());
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors({
   origin: '*',
@@ -17,6 +22,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan('dev'));
+// Prevenir NoSQL injection — Ley 1581 Art. 17 literal f
+app.use(mongoSanitize());
 
 // ─── Autenticación ────────────────────────────────────────────────────────────
 function requireAuth(req, res, next) {
@@ -60,9 +67,23 @@ const eventoSchema = new mongoose.Schema(
     lugar:          { type: String, default: '', trim: true, maxlength: 120 },
     descripcion:    { type: String, default: '', trim: true, maxlength: 500 },
     creadoPor:      { type: String, required: true },
-    google_event_id: { type: String, default: null }  // ID del evento en Google Calendar
+    google_event_id: { type: String, default: null },
+    // Ley 1581 Art. 11 — retención: datos operativos de agenda 5 años
+    fecha_retencion_hasta: {
+      type: Date,
+      default: () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 5);
+        return d;
+      }
+    }
   },
-  { timestamps: true, collection: 'agenda' }
+  {
+    timestamps: true,
+    // strict: true — Ley 1581 Art. 17 lit. f — prevenir campos no declarados
+    strict: true,
+    collection: 'agenda'
+  }
 );
 const Evento = mongoose.model('Evento', eventoSchema);
 

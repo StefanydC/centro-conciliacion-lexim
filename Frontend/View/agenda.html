@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
   <link rel="stylesheet" href="../Controller/styles/agenda.css"/>
+  <link rel="stylesheet" href="../Controller/styles/animations.css"/>
   <style>
     /* Google Calendar banner */
     .gcal-connect-bar{display:flex;align-items:center;gap:12px;background:#fff8e1;border:1.5px solid #ffd54f;border-radius:10px;padding:11px 16px;margin-bottom:18px}
@@ -179,6 +180,9 @@
             <option value="hoy">Hoy</option>
             <option value="semana">Esta semana</option>
             <option value="mes">Este mes</option>
+          </select>
+          <select class="filter-select" id="filterAnio">
+            <!-- opciones generadas por JS según el año actual -->
           </select>
         </div>
 
@@ -641,6 +645,7 @@ function getFiltrados() {
   const q       = document.getElementById('searchInput').value.trim().toLowerCase();
   const tipo    = document.getElementById('filterTipo').value;
   const periodo = document.getElementById('filterPeriodo').value;
+  const anio    = document.getElementById('filterAnio').value;
 
   // Usar fechaLocalISO() en todos los cálculos para evitar desfase UTC
   const hoy = fechaLocalISO();
@@ -668,6 +673,8 @@ function getFiltrados() {
     if (periodo === 'hoy'    && fd !== hoy)                           return false;
     if (periodo === 'semana' && (fd < iniSemStr || fd > finSemStr))   return false;
     if (periodo === 'mes'    && (fd < iniMes    || fd > finMes))      return false;
+
+    if (anio && (!fd || fd.slice(0, 4) !== anio))                     return false;
 
     return true;
   });
@@ -1079,7 +1086,7 @@ document.getElementById('btnConfirmarEliminar').addEventListener('click', async 
 /* ═══════════════════════════════════════════════
    FILTROS / BÚSQUEDA
 ═══════════════════════════════════════════════ */
-['searchInput','filterTipo','filterPeriodo'].forEach(id => {
+['searchInput','filterTipo','filterPeriodo','filterAnio'].forEach(id => {
   document.getElementById(id).addEventListener(id === 'searchInput' ? 'input' : 'change', () => {
     if (id !== 'searchInput') diaSeleccionado = null;
     renderMiniCal();
@@ -1148,9 +1155,24 @@ window.addEventListener('beforeunload', () => {
   if (tok) { const b = new Blob([JSON.stringify({token:tok})], {type:'application/json'}); navigator.sendBeacon('/auth/logout', b); }
 });
 
+/* ── FILTRO DE AÑO — ventana deslizante de 3 años ── */
+function buildYearOptions() {
+  const cur = new Date().getFullYear();
+  const sel = document.getElementById('filterAnio');
+  sel.innerHTML = '<option value="">Todos los años</option>';
+  for (let y = cur - 2; y <= cur; y++) {
+    const opt = document.createElement('option');
+    opt.value       = String(y);
+    opt.textContent = String(y);
+    if (y === cur) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
 /* ── INIT ── */
 async function initAgenda() {
   calFecha = new Date();
+  buildYearOptions();
   await cargarEstadoGcal();
   await cargarEventos({ syncGoogle: true });
 }

@@ -1,3 +1,4 @@
+// ARCHIVO: backend/user-auth-service/src/services/user.service.js
 const User = require("../models/user.model");
 const { ApiError } = require("../utils/apiError");
 const bcrypt = require("bcryptjs");
@@ -34,7 +35,7 @@ const getAllUsers = async (options = {}) => {
 
   if (options.estado === "activo") query.activo = true;
   if (options.estado === "inactivo") query.activo = false;
-  
+
   if (options.search) {
     query.$or = [
       { nombre: { $regex: options.search, $options: "i" } },
@@ -57,11 +58,7 @@ const getAllUsers = async (options = {}) => {
  */
 const getUserById = async (userId) => {
   const user = await User.findById(userId).select("-password");
-  
-  if (!user) {
-    throw new ApiError("Usuario no encontrado", 404);
-  }
-
+  if (!user) throw new ApiError("Usuario no encontrado", 404);
   return user;
 };
 
@@ -71,11 +68,8 @@ const getUserById = async (userId) => {
 const createUser = async (userData) => {
   const { nombre, apellido, email, password, rol, tipo_usuario, documento, telefono, activo } = userData;
 
-  // Validar que el email sea único
   const existingUser = await User.findOne({ email: email.toLowerCase() });
-  if (existingUser) {
-    throw new ApiError("El correo ya está registrado", 409);
-  }
+  if (existingUser) throw new ApiError("El correo ya está registrado", 409);
 
   const roleFields = normalizeRoleFields(rol, tipo_usuario);
 
@@ -90,10 +84,8 @@ const createUser = async (userData) => {
     ...roleFields
   });
 
-  // No devolver la contraseña
   const userResponse = user.toObject();
   delete userResponse.password;
-
   return userResponse;
 };
 
@@ -101,7 +93,6 @@ const createUser = async (userData) => {
  * Actualizar usuario (sin cambiar contraseña)
  */
 const updateUser = async (userId, updateData) => {
-  // Nunca permitir actualizar password por esta ruta
   const { password, estado, tipoUsuario, ...dataToUpdate } = updateData;
 
   if (estado !== undefined && dataToUpdate.activo === undefined) {
@@ -116,15 +107,12 @@ const updateUser = async (userId, updateData) => {
     Object.assign(dataToUpdate, normalizeRoleFields(dataToUpdate.rol, tipoUsuario || dataToUpdate.tipo_usuario));
   }
 
-  // Si se intenta cambiar el email, verificar que sea único
   if (dataToUpdate.email) {
     const existingUser = await User.findOne({
       email: dataToUpdate.email.toLowerCase(),
       _id: { $ne: userId }
     });
-    if (existingUser) {
-      throw new ApiError("El correo ya está registrado", 409);
-    }
+    if (existingUser) throw new ApiError("El correo ya está registrado", 409);
     dataToUpdate.email = dataToUpdate.email.toLowerCase();
   }
 
@@ -134,10 +122,7 @@ const updateUser = async (userId, updateData) => {
     { new: true, runValidators: true }
   ).select("-password");
 
-  if (!user) {
-    throw new ApiError("Usuario no encontrado", 404);
-  }
-
+  if (!user) throw new ApiError("Usuario no encontrado", 404);
   return user;
 };
 
@@ -146,10 +131,7 @@ const updateUser = async (userId, updateData) => {
  */
 const changePassword = async (userId, { currentPassword, newPassword, password }, context = {}) => {
   const user = await User.findById(userId).select("+password +Password");
-
-  if (!user) {
-    throw new ApiError("Usuario no encontrado", 404);
-  }
+  if (!user) throw new ApiError("Usuario no encontrado", 404);
 
   const { isAdmin = false } = context;
   const targetPassword = newPassword || password;
@@ -158,14 +140,12 @@ const changePassword = async (userId, { currentPassword, newPassword, password }
     throw new ApiError("La nueva contraseña debe tener al menos 6 caracteres", 400);
   }
 
-  // El administrador puede restablecer contraseña sin la clave actual.
   if (isAdmin && !currentPassword) {
     user.password = targetPassword;
     await user.save();
     return { mensaje: "Contraseña restablecida correctamente" };
   }
 
-  // Verificar contraseña actual
   let isPasswordValid = false;
   if (currentPassword) {
     isPasswordValid = await user.comparePassword(currentPassword);
@@ -174,14 +154,10 @@ const changePassword = async (userId, { currentPassword, newPassword, password }
     }
   }
 
-  if (!isPasswordValid) {
-    throw new ApiError("Contraseña actual incorrecta", 401);
-  }
+  if (!isPasswordValid) throw new ApiError("Contraseña actual incorrecta", 401);
 
-  // Actualizar contraseña
   user.password = targetPassword;
   await user.save();
-
   return { mensaje: "Contraseña actualizada correctamente" };
 };
 
@@ -195,14 +171,8 @@ const deactivateUser = async (userId) => {
     { new: true }
   ).select("-password");
 
-  if (!user) {
-    throw new ApiError("Usuario no encontrado", 404);
-  }
-
-  return { 
-    mensaje: "Usuario desactivado correctamente", 
-    usuario: user 
-  };
+  if (!user) throw new ApiError("Usuario no encontrado", 404);
+  return { mensaje: "Usuario desactivado correctamente", usuario: user };
 };
 
 /**
@@ -215,14 +185,8 @@ const activateUser = async (userId) => {
     { new: true }
   ).select("-password");
 
-  if (!user) {
-    throw new ApiError("Usuario no encontrado", 404);
-  }
-
-  return { 
-    mensaje: "Usuario activado correctamente", 
-    usuario: user 
-  };
+  if (!user) throw new ApiError("Usuario no encontrado", 404);
+  return { mensaje: "Usuario activado correctamente", usuario: user };
 };
 
 /**
@@ -230,12 +194,88 @@ const activateUser = async (userId) => {
  */
 const deleteUser = async (userId) => {
   const user = await User.findByIdAndDelete(userId);
+  if (!user) throw new ApiError("Usuario no encontrado", 404);
+  return { mensaje: "Usuario eliminado correctamente" };
+};
 
-  if (!user) {
-    throw new ApiError("Usuario no encontrado", 404);
+// ─── Derechos ARCO — Ley 1581 Art. 8 ─────────────────────────────────────────
+
+/**
+ * Ley 1581 Art. 8 lit. a — Derecho de Acceso
+ * Devuelve todos los datos personales del usuario autenticado en formato descargable.
+ */
+const getMisDatos = async (userId) => {
+  const user = await User.findById(userId).select("-password -Password -google_access_token -google_refresh_token");
+  if (!user) throw new ApiError("Usuario no encontrado", 404);
+
+  return {
+    datos_personales: user.toObject(),
+    exportado_en: new Date().toISOString(),
+    nota_legal: "Datos exportados en ejercicio del derecho de acceso — Ley 1581 de 2012 Art. 8 literal a."
+  };
+};
+
+/**
+ * Ley 1581 Art. 8 lit. c — Derecho de Cancelación/Supresión
+ * Marca la cuenta con estado "eliminacion_solicitada" para revisión del administrador.
+ * No elimina directamente porque los datos pueden ser judicialmente relevantes.
+ */
+const solicitarEliminacion = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError("Usuario no encontrado", 404);
+
+  if (user.estado_cuenta === "eliminacion_solicitada") {
+    throw new ApiError("Ya existe una solicitud de eliminación pendiente de revisión", 409);
   }
 
-  return { mensaje: "Usuario eliminado correctamente" };
+  await User.findByIdAndUpdate(userId, {
+    estado_cuenta: "eliminacion_solicitada",
+    fecha_solicitud_eliminacion: new Date(),
+    activo: false
+  });
+
+  return {
+    mensaje: "Solicitud de eliminación registrada correctamente. Un administrador revisará su caso en los próximos 15 días hábiles.",
+    fecha_solicitud: new Date().toISOString()
+  };
+};
+
+/**
+ * Ley 1581 Art. 8 lit. b — Derecho de Rectificación
+ * Permite al usuario actualizar sus propios datos (nombre, apellido, email, teléfono).
+ */
+const rectificarDatos = async (userId, { nombre, apellido, email, telefono }) => {
+  const actualizacion = {};
+
+  if (nombre)    actualizacion.nombre   = nombre.trim();
+  if (apellido)  actualizacion.apellido = apellido.trim();
+  if (telefono)  actualizacion.telefono = telefono.trim();
+
+  if (email) {
+    const existingUser = await User.findOne({
+      email: email.toLowerCase(),
+      _id: { $ne: userId }
+    });
+    if (existingUser) throw new ApiError("El correo ya está registrado por otro usuario", 409);
+    actualizacion.email = email.toLowerCase().trim();
+  }
+
+  if (Object.keys(actualizacion).length === 0) {
+    throw new ApiError("No se proporcionaron campos a actualizar", 400);
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $set: actualizacion },
+    { new: true, runValidators: true }
+  ).select("-password -Password");
+
+  if (!user) throw new ApiError("Usuario no encontrado", 404);
+
+  return {
+    usuario: user,
+    campos_actualizados: Object.keys(actualizacion)
+  };
 };
 
 module.exports = {
@@ -246,5 +286,8 @@ module.exports = {
   changePassword,
   deactivateUser,
   activateUser,
-  deleteUser
+  deleteUser,
+  getMisDatos,
+  solicitarEliminacion,
+  rectificarDatos
 };

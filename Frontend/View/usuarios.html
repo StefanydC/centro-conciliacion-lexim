@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../Controller/styles/tareas.css"/>
   <link rel="stylesheet" href="../Controller/styles/usuarios.css"/>
+  <link rel="stylesheet" href="../Controller/styles/animations.css"/>
   <style>
     @media print {
       .sidebar, .topbar, .page-header-actions, .action-btns,
@@ -195,6 +196,18 @@
           <button class="toggle-pass" id="togglePass" type="button">
             <i class="fas fa-eye" id="togglePassIco"></i>
           </button>
+        </div>
+      </div>
+      <div class="form-group" id="fPrivacyGroup" style="display:none">
+        <div style="display:flex;align-items:flex-start;gap:.55rem;font-size:.82rem;color:#4b5563;">
+          <input type="checkbox" id="fAceptaPolitica" style="margin-top:.18rem;flex-shrink:0;accent-color:var(--color-primary);">
+          <label for="fAceptaPolitica" style="cursor:pointer;line-height:1.5;">
+            He leído y acepto la
+            <a href="politica-privacidad.html" target="_blank" style="color:var(--color-primary);font-weight:600;text-decoration:underline;">
+              Política de Tratamiento de Datos Personales
+            </a>
+            de Lexim (Ley 1581 de 2012).
+          </label>
         </div>
       </div>
     </div>
@@ -601,6 +614,8 @@ function abrirNuevoUsuario() {
   document.getElementById('modalUsuarioTitle').innerHTML = '<i class="fas fa-user-plus" style="color:var(--color-primary);margin-right:8px"></i>Nuevo Usuario';
   document.getElementById('btnGuardarTxt').textContent = 'Crear Usuario';
   document.getElementById('fPasswordGroup').style.display = 'flex';
+  document.getElementById('fPrivacyGroup').style.display = 'flex';
+  document.getElementById('fAceptaPolitica').checked = false;
 
   ['fNombre', 'fApellido', 'fEmail', 'fDocumento', 'fTelefono', 'fPassword'].forEach((fieldId) => {
     document.getElementById(fieldId).value = '';
@@ -619,6 +634,7 @@ function abrirEditar(id) {
   document.getElementById('modalUsuarioTitle').innerHTML = '<i class="fas fa-pencil-alt" style="color:var(--color-primary);margin-right:8px"></i>Editar Usuario';
   document.getElementById('btnGuardarTxt').textContent = 'Guardar Cambios';
   document.getElementById('fPasswordGroup').style.display = 'none';
+  document.getElementById('fPrivacyGroup').style.display = 'none';
 
   document.getElementById('fNombre').value = u.nombre;
   document.getElementById('fApellido').value = u.apellido;
@@ -684,6 +700,9 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
       const password = document.getElementById('fPassword').value;
       if (!password || password.length < 8) {
         throw new Error('La contraseña debe tener al menos 8 caracteres');
+      }
+      if (!document.getElementById('fAceptaPolitica').checked) {
+        throw new Error('Debes aceptar la Política de Tratamiento de Datos para continuar');
       }
 
       await apiCrearUsuario({

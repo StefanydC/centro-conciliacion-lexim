@@ -1,19 +1,71 @@
+// ARCHIVO: backend/user-auth-service/src/routes/user.routes.js
 const express = require("express");
 const userController = require("../controllers/user.controller");
 const { verifyToken } = require("../middlewares/auth.middleware");
 const { requireAdmin } = require("../middlewares/role.middleware");
 const { validateRequest } = require("../middlewares/validate.middleware");
-const { 
-  createUserValidator, 
-  updateUserValidator 
+const { auditWrite, auditArco } = require("../middlewares/audit.middleware");
+const {
+  createUserValidator,
+  updateUserValidator
 } = require("../validators/user.validator");
 
 const router = express.Router();
 
+// ─── Derechos ARCO (Ley 1581 Art. 8) ─────────────────────────────────────────
+// IMPORTANTE: deben declararse ANTES de /:id para evitar colisión de rutas
+
+/**
+ * GET /usuarios/mis-datos
+ * Devuelve todos los datos personales del usuario autenticado (Acceso).
+ */
+router.get(
+  "/mis-datos",
+  verifyToken,
+  auditArco("ACCESO_MIS_DATOS", "usuarios/mis-datos"),
+  userController.getMisDatos
+);
+
+/**
+ * DELETE /usuarios/solicitar-eliminacion
+ * Solicita la cancelación de la cuenta (Cancelación/Supresión).
+ */
+router.delete(
+  "/solicitar-eliminacion",
+  verifyToken,
+  auditArco("SOLICITUD_ELIMINACION", "usuarios/solicitar-eliminacion"),
+  userController.solicitarEliminacion
+);
+
+/**
+ * PUT /usuarios/rectificar
+ * Permite al usuario actualizar sus propios datos básicos (Rectificación).
+ */
+router.put(
+  "/rectificar",
+  verifyToken,
+  auditArco("RECTIFICACION", "usuarios/rectificar"),
+  userController.rectificarDatos
+);
+
+// ─── Log de auditoría — Ley 1581 Art. 17 lit. d ──────────────────────────────
+
+/**
+ * GET /usuarios/audit
+ * Lista logs de auditoría con filtros por usuario, acción y rango de fechas.
+ * Solo administrador.
+ */
+router.get(
+  "/audit",
+  verifyToken,
+  requireAdmin,
+  userController.getAuditLogs
+);
+
+// ─── CRUD de usuarios ─────────────────────────────────────────────────────────
+
 /**
  * GET /usuarios
- * Obtener todos los usuarios (requiere autenticación)
- * Query: ?search=xxx&limit=100&skip=0
  */
 router.get(
   "/",
@@ -23,7 +75,6 @@ router.get(
 
 /**
  * GET /usuarios/:id
- * Obtener usuario por ID (requiere autenticación)
  */
 router.get(
   "/:id",
@@ -33,8 +84,6 @@ router.get(
 
 /**
  * POST /usuarios
- * Crear nuevo usuario (requiere autenticación y admin)
- * Body: { nombre, email, password, rol? }
  */
 router.post(
   "/",
@@ -42,63 +91,62 @@ router.post(
   requireAdmin,
   createUserValidator,
   validateRequest,
+  auditWrite("usuarios"),
   userController.createUser
 );
 
 /**
  * PATCH /usuarios/:id
- * Actualizar usuario (requiere autenticación)
- * Body: { nombre?, apellido?, email?, rol? }
  */
 router.patch(
   "/:id",
   verifyToken,
   updateUserValidator,
   validateRequest,
+  auditWrite("usuarios"),
   userController.updateUser
 );
 
 /**
  * POST /usuarios/:id/change-password
- * Cambiar contraseña (requiere autenticación)
- * Body: { currentPassword, newPassword }
  */
 router.post(
   "/:id/change-password",
   verifyToken,
+  auditWrite("usuarios/change-password"),
   userController.changePassword
 );
 
 /**
  * DELETE /usuarios/:id
- * Desactivar usuario - baja lógica (requiere autenticación y admin)
  */
 router.delete(
   "/:id",
   verifyToken,
   requireAdmin,
+  auditWrite("usuarios"),
   userController.deactivateUser
 );
 
 /**
  * POST /usuarios/:id/activate
- * Activar usuario (requiere autenticación y admin)
  */
 router.post(
   "/:id/activate",
   verifyToken,
   requireAdmin,
+  auditWrite("usuarios/activate"),
   userController.activateUser
 );
 
 /**
  * DELETE /usuarios/:id/permanent
- * Eliminar usuario de forma permanente (requiere autenticación y admin)
  */
 router.delete(
   "/:id/permanent",
   verifyToken,
   requireAdmin,
+  auditWrite("usuarios/permanent"),
   userController.deleteUser
 );
 

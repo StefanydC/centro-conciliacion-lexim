@@ -1,3 +1,4 @@
+// ARCHIVO: backend/gateway/index.js
 require('dotenv').config();
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -16,6 +17,8 @@ const USER_AUTH_SERVICE_URL    = process.env.USER_AUTH_SERVICE_URL    || 'http:/
 const CONCILIACION_SERVICE_URL = process.env.CONCILIACION_SERVICE_URL || 'http://conciliacion-service:3002';
 const DOCUMENT_SERVICE_URL     = process.env.DOCUMENT_SERVICE_URL     || 'http://document-service:3004';
 const AGENDA_SERVICE_URL       = process.env.AGENDA_SERVICE_URL       || 'http://agenda-service:3003';
+const FINANCE_SERVICE_URL      = process.env.FINANCE_SERVICE_URL      || 'http://finance-service:3005';
+const TASK_SERVICE_URL         = process.env.TASK_SERVICE_URL         || 'http://task-service:3006';
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
@@ -96,7 +99,7 @@ app.use('/auth', createProxyMiddleware({
 //  RUTAS PROTEGIDAS — requieren JWT válido (administrador o judicante)
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ✅ TASKS — cualquier usuario autenticado
+// ✅ TASKS (legacy) — ruta original hacia user-auth-service
 app.use('/tasks', requireJudicante, createProxyMiddleware({
   target: USER_AUTH_SERVICE_URL,
   changeOrigin: true,
@@ -110,6 +113,23 @@ app.use('/tasks', requireJudicante, createProxyMiddleware({
     },
     proxyRes: markGateway,
     error: (err, req, res) => proxyError('User Auth service', 'TASKS_UNAVAILABLE', req, res, err)
+  }
+}));
+
+// ✅ TASKS2 — nuevo microservicio de tareas independiente
+app.use('/tasks2', requireJudicante, createProxyMiddleware({
+  target: TASK_SERVICE_URL,
+  changeOrigin: true,
+  proxyTimeout: 10000,
+  pathRewrite: (path) => `/tasks2${path}`,
+  on: {
+    proxyReq: (proxyReq, req) => {
+      console.log(`→ [TASKS2] ${req.method} ${req.originalUrl} | user: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      forwardBody(proxyReq, req);
+    },
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Task service', 'TASKS2_UNAVAILABLE', req, res, err)
   }
 }));
 
@@ -130,7 +150,7 @@ app.use('/notifications', requireJudicante, createProxyMiddleware({
   }
 }));
 
-// 💰 FINANZAS — cualquier usuario autenticado
+// 💰 FINANZAS (legacy) — rutas de finanzas en user-auth-service
 app.use('/finanzas', requireJudicante, createProxyMiddleware({
   target: USER_AUTH_SERVICE_URL,
   changeOrigin: true,
@@ -144,6 +164,23 @@ app.use('/finanzas', requireJudicante, createProxyMiddleware({
     },
     proxyRes: markGateway,
     error: (err, req, res) => proxyError('User Auth service', 'FINANZAS_UNAVAILABLE', req, res, err)
+  }
+}));
+
+// 💰 FINANCE — nuevo microservicio de finanzas independiente
+app.use('/finance', requireJudicante, createProxyMiddleware({
+  target: FINANCE_SERVICE_URL,
+  changeOrigin: true,
+  proxyTimeout: 10000,
+  pathRewrite: (path) => `/finance${path}`,
+  on: {
+    proxyReq: (proxyReq, req) => {
+      console.log(`→ [FINANCE] ${req.method} ${req.originalUrl} | user: ${req.user?.sub}`);
+      injectUserHeaders(proxyReq, req);
+      forwardBody(proxyReq, req);
+    },
+    proxyRes: markGateway,
+    error: (err, req, res) => proxyError('Finance service', 'FINANCE_UNAVAILABLE', req, res, err)
   }
 }));
 
@@ -175,9 +212,6 @@ app.use('/documentos', requireJudicante, createProxyMiddleware({
     proxyReq: (proxyReq, req) => {
       console.log(`→ [DOCUMENTOS] ${req.method} ${req.originalUrl} | user: ${req.user?.sub}`);
       injectUserHeaders(proxyReq, req);
-      // Reenviar body JSON para endpoints como POST /documentos/folders.
-      // En uploads multipart req.body no viene parseado por express.json(),
-      // por lo que forwardBody no modifica el stream original del archivo.
       forwardBody(proxyReq, req);
     },
     proxyRes: markGateway,
@@ -224,8 +258,6 @@ app.use('/usuarios', requireAdmin, createProxyMiddleware({
 }));
 
 // 🔑 ADMIN — alias privado para operaciones administrativas
-//    Enruta a user-auth-service. En el futuro puede ser
-//    su propio microservicio sin cambiar el contrato de la API.
 app.use('/admin', requireAdmin, createProxyMiddleware({
   target: USER_AUTH_SERVICE_URL,
   changeOrigin: true,
@@ -253,11 +285,13 @@ app.get('/health', (_req, res) => {
       userAuth:     USER_AUTH_SERVICE_URL,
       conciliacion: CONCILIACION_SERVICE_URL,
       documentos:   DOCUMENT_SERVICE_URL,
-      agenda:       AGENDA_SERVICE_URL
+      agenda:       AGENDA_SERVICE_URL,
+      finance:      FINANCE_SERVICE_URL,
+      tasks2:       TASK_SERVICE_URL
     },
     rutas: {
       publicas:   ['/auth', '/health'],
-      protegidas: ['/tasks', '/notifications', '/finanzas', '/conciliacion', '/documentos', '/agenda'],
+      protegidas: ['/tasks', '/tasks2', '/notifications', '/finanzas', '/finance', '/conciliacion', '/documentos', '/agenda'],
       soloAdmin:  ['/usuarios', '/admin']
     }
   });

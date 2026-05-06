@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../Controller/styles/perfil.css"/>
+  <link rel="stylesheet" href="../Controller/styles/animations.css"/>
 </head>
 <body>
 
@@ -370,12 +371,21 @@
   document.getElementById('welcome-title-judic').textContent = 'Bienvenido, ' + nombreCompleto;
 
   function switchView(role) {
-    document.getElementById('sidebar-admin').style.display = role === 'admin' ? 'flex' : 'none';
-    document.getElementById('sidebar-judic').style.display = role === 'judic' ? 'flex' : 'none';
-    document.getElementById('main-admin').style.display = role === 'admin' ? 'flex' : 'none';
-    document.getElementById('main-judic').style.display = role === 'judic' ? 'flex' : 'none';
-    document.getElementById('btn-admin').className = 'role-btn' + (role === 'admin' ? ' active' : '');
-    document.getElementById('btn-judic').className = 'role-btn' + (role === 'judic' ? ' active' : '');
+    const mainAdmin = document.getElementById('main-admin');
+    const mainJudic = document.getElementById('main-judic');
+    const showAdmin  = role === 'admin';
+
+    document.getElementById('sidebar-admin').style.display = showAdmin ? 'flex' : 'none';
+    document.getElementById('sidebar-judic').style.display = showAdmin ? 'none' : 'flex';
+    mainAdmin.style.display = showAdmin ? 'flex' : 'none';
+    mainJudic.style.display = showAdmin ? 'none' : 'flex';
+    document.getElementById('btn-admin').className = 'role-btn' + (showAdmin ? ' active' : '');
+    document.getElementById('btn-judic').className = 'role-btn' + (showAdmin ? '' : ' active');
+
+    const activeMain = showAdmin ? mainAdmin : mainJudic;
+    activeMain.classList.remove('lx-panel-in');
+    void activeMain.offsetWidth;
+    activeMain.classList.add('lx-panel-in');
   }
 
   if (tipoUsuario === 'judicante') {

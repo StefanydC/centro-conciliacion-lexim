@@ -1,25 +1,34 @@
+// ARCHIVO: backend/conciliacion-service/src/server.js
 require('dotenv').config();
 const express  = require('express');
 const cors     = require('cors');
 const mongoose = require('mongoose');
 const jwt      = require('jsonwebtoken');
+const helmet   = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
 
 const app  = express();
 const PORT = process.env.PORT || 3002;
 
-app.use(cors({ origin: '*', methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization','X-User-ID','X-User-Role','X-User-Email'] }));
+// ─── Seguridad HTTP — Ley 1581 Art. 17 literal f ─────────────────────────────
+app.use(helmet());
+app.use(cors({
+  origin: '*',
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','X-User-ID','X-User-Role','X-User-Email']
+}));
 app.use(express.json());
+// Prevenir NoSQL injection — Ley 1581 Art. 17 literal f
+app.use(mongoSanitize());
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 function requireAuth(req, res, next) {
-  // Prioridad: headers inyectados por el gateway (ya verificados)
   const userId   = req.headers['x-user-id'];
   const userRole = req.headers['x-user-role'];
   if (userId && userRole) {
     req.user = { sub: userId, tipo_usuario: userRole, email: req.headers['x-user-email'] || '' };
     return next();
   }
-  // Fallback: JWT directo
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Token requerido' });
@@ -37,13 +46,52 @@ function requireAuth(req, res, next) {
   }
 }
 
-// ─── Modelo ───────────────────────────────────────────────────────────────────
-const parteSchema = {
-  nombre:    { type: String, required: true, trim: true },
-  documento: { type: String, trim: true, default: '' },
-  contacto:  { type: String, trim: true, default: '' }
-};
+// ─── Modelo Auditoría — Ley 1581 Art. 17 literal d ───────────────────────────
+const auditLogSchema = new mongoose.Schema(
+  {
+    usuario_id:    { type: String, index: true, default: 'anonimo' },
+    usuario_email: { type: String, default: '' },
+    accion:        { type: String, required: true, index: true },
+    recurso:       { type: String, required: true },
+    ip:            { type: String, default: 'desconocida' },
+    fecha:         { type: Date, default: Date.now, index: true },
+    datos_nuevos:  { type: mongoose.Schema.Types.Mixed, default: null },
+    resultado:     { type: String, enum: ['exitoso','fallido'], default: 'exitoso' },
+    detalle:       { type: String, default: '' },
+    // Retención 5 años — Ley 1581 Art. 11
+    fecha_retencion_hasta: {
+      type: Date,
+      default: () => { const d = new Date(); d.setFullYear(d.getFullYear() + 5); return d; }
+    }
+  },
+  { timestamps: false, strict: true, collection: 'audit_logs' }
+);
+const AuditLog = mongoose.models.AuditLog || mongoose.model('AuditLog', auditLogSchema);
 
+function getClientIp(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+         req.headers['x-real-ip'] || req.socket?.remoteAddress || 'desconocida';
+}
+
+async function registrarAudit(req, accion, recurso, resultado = 'exitoso', datoNuevo = null) {
+  try {
+    await AuditLog.create({
+      usuario_id:    req.user?.sub   || 'anonimo',
+      usuario_email: req.user?.email || '',
+      accion,
+      recurso,
+      ip:          getClientIp(req),
+      fecha:       new Date(),
+      datos_nuevos: datoNuevo,
+      resultado,
+      detalle:     `${req.method} ${req.originalUrl}`
+    });
+  } catch (err) {
+    console.error('[AUDIT] Error al registrar:', err.message);
+  }
+}
+
+// ─── Modelo Conciliación ──────────────────────────────────────────────────────
 const conciliacionSchema = new mongoose.Schema(
   {
     nro_expediente: {
@@ -75,36 +123,48 @@ const conciliacionSchema = new mongoose.Schema(
       enum:    ['registrado', 'pendiente', 'potencial'],
       default: 'registrado'
     },
-    creadoPor: { type: String, required: true, index: true }
+    creadoPor: { type: String, required: true, index: true },
+    // Ley 1581 Art. 11 — retención expedientes judiciales 10 años (Ley 640/2001 Art. 20)
+    fecha_retencion_hasta: {
+      type: Date,
+      default: () => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 10);
+        return d;
+      }
+    }
   },
-  { timestamps: true, collection: 'conciliaciones' }
+  {
+    timestamps: true,
+    // strict: true — Ley 1581 Art. 17 lit. f — prevenir campos no declarados
+    strict: true,
+    collection: 'conciliaciones'
+  }
 );
 
-const Conciliacion = mongoose.model('Conciliacion', conciliacionSchema);
+const Conciliacion = mongoose.models.Conciliacion ||
+  mongoose.model('Conciliacion', conciliacionSchema);
 
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 const router = express.Router();
 
-// GET /conciliacion — listar (admin: todas; judicante: solo las propias)
+// GET /conciliacion
 router.get('/', requireAuth, async (req, res) => {
   try {
     const esAdmin = req.user.tipo_usuario === 'administrador';
     const filter  = esAdmin ? {} : { creadoPor: req.user.sub };
 
     const { q, estado, limit = 50, skip = 0 } = req.query;
-    if (q)      filter.$or = [
+    if (q) filter.$or = [
       { nro_expediente:            { $regex: q, $options: 'i' } },
       { tema:                      { $regex: q, $options: 'i' } },
       { 'parte_convocante.nombre': { $regex: q, $options: 'i' } },
-      { 'parte_convocada.nombre':  { $regex: q, $options: 'i' } },
+      { 'parte_convocada.nombre':  { $regex: q, $options: 'i' } }
     ];
     if (estado) filter.estado = estado;
 
     const [items, total] = await Promise.all([
-      Conciliacion.find(filter)
-        .sort({ createdAt: -1 })
-        .limit(Number(limit))
-        .skip(Number(skip)),
+      Conciliacion.find(filter).sort({ createdAt: -1 }).limit(Number(limit)).skip(Number(skip)),
       Conciliacion.countDocuments(filter)
     ]);
 
@@ -130,15 +190,11 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// POST /conciliacion — crear
+// POST /conciliacion
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const {
-      nro_expediente, parte_convocante, parte_convocada,
-      tema, descripcion, estado
-    } = req.body;
+    const { nro_expediente, parte_convocante, parte_convocada, tema, descripcion, estado } = req.body;
 
-    // Validaciones explícitas
     const errs = [];
     if (!nro_expediente?.trim())           errs.push('nro_expediente es requerido');
     if (!parte_convocante?.nombre?.trim()) errs.push('parte_convocante.nombre es requerido');
@@ -164,6 +220,9 @@ router.post('/', requireAuth, async (req, res) => {
       creadoPor:   req.user.sub
     });
 
+    // Auditoría — Ley 1581 Art. 17 literal d
+    registrarAudit(req, 'CREAR', `conciliacion:${item._id}`, 'exitoso', { nro_expediente: item.nro_expediente });
+
     res.status(201).json({ mensaje: 'Conciliación creada correctamente', data: item });
   } catch (err) {
     if (err.code === 11000) {
@@ -173,7 +232,7 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
-// PATCH /conciliacion/:id — whitelist estricto, sin mass assignment
+// PATCH /conciliacion/:id
 router.patch('/:id', requireAuth, async (req, res) => {
   try {
     const item = await Conciliacion.findById(req.params.id);
@@ -187,10 +246,10 @@ router.patch('/:id', requireAuth, async (req, res) => {
     const { nro_expediente, parte_convocante, parte_convocada, tema, descripcion, estado } = req.body;
     const update = {};
 
-    if (nro_expediente  !== undefined) update.nro_expediente  = nro_expediente.trim();
-    if (tema            !== undefined) update.tema            = tema.trim();
-    if (descripcion     !== undefined) update.descripcion     = descripcion.trim();
-    if (estado          !== undefined) {
+    if (nro_expediente !== undefined) update.nro_expediente = nro_expediente.trim();
+    if (tema           !== undefined) update.tema           = tema.trim();
+    if (descripcion    !== undefined) update.descripcion    = descripcion.trim();
+    if (estado         !== undefined) {
       const estadosValidos = ['registrado', 'pendiente', 'potencial'];
       if (!estadosValidos.includes(estado)) {
         return res.status(400).json({ error: `Estado inválido. Valores permitidos: ${estadosValidos.join(', ')}` });
@@ -211,6 +270,10 @@ router.patch('/:id', requireAuth, async (req, res) => {
     const updated = await Conciliacion.findByIdAndUpdate(
       req.params.id, update, { new: true, runValidators: true }
     );
+
+    // Auditoría
+    registrarAudit(req, 'ACTUALIZAR', `conciliacion:${req.params.id}`, 'exitoso', update);
+
     res.json({ mensaje: 'Actualizado correctamente', data: updated });
   } catch (err) {
     if (err.code === 11000) {
@@ -220,7 +283,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /conciliacion/:id — solo admin o creador
+// DELETE /conciliacion/:id
 router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const item = await Conciliacion.findById(req.params.id);
@@ -232,6 +295,10 @@ router.delete('/:id', requireAuth, async (req, res) => {
     }
 
     await Conciliacion.findByIdAndDelete(req.params.id);
+
+    // Auditoría
+    registrarAudit(req, 'ELIMINAR', `conciliacion:${req.params.id}`, 'exitoso');
+
     res.json({ mensaje: 'Eliminado correctamente' });
   } catch (err) {
     res.status(500).json({ error: 'Error al eliminar', detalle: err.message });
