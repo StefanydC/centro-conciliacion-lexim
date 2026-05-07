@@ -48,3 +48,20 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
 });
+
+function descargarYContacto(e) {
+    e.preventDefault();
+
+    // 1. Descarga el PDF
+    const link = document.createElement('a');
+    link.href = '../Controller/docs/formulario-solicitud.pdf';
+    link.download = 'formulario-solicitud.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // 2. Redirige a contacto después de 800ms (le da tiempo al navegador de iniciar la descarga)
+    setTimeout(() => {
+        window.location.href = 'contacto.html';
+    }, 800);
+}
