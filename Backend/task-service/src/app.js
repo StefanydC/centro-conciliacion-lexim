@@ -31,8 +31,9 @@ app.use("/tasks2", tareaRoutes);
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
   res.json({
-    status: "ok",
-    service: "task-service",
+    status:    "ok",
+    service:   "task-service",
+    uptime:    process.uptime(),
     timestamp: new Date().toISOString()
   });
 });

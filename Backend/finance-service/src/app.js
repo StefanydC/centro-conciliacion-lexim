@@ -31,8 +31,9 @@ app.use("/finance", finanzaRoutes);
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
   res.json({
-    status: "ok",
-    service: "finance-service",
+    status:    "ok",
+    service:   "finance-service",
+    uptime:    process.uptime(),
     timestamp: new Date().toISOString()
   });
 });

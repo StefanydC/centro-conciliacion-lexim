@@ -1,5 +1,6 @@
 // ARCHIVO: backend/conciliacion-service/src/server.js
 require('dotenv').config();
+const { registerService, deregisterService } = require('./utils/consulRegister');
 const express  = require('express');
 const cors     = require('cors');
 const mongoose = require('mongoose');
@@ -321,9 +322,13 @@ mongoose.connect(process.env.MONGO_URI, { dbName: process.env.MONGO_DB_NAME })
   .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`✅ conciliacion-service corriendo en puerto ${PORT}`);
+      setTimeout(registerService, 3000);
     });
   })
   .catch(err => {
     console.error('❌ Error al conectar MongoDB:', err.message);
     process.exit(1);
   });
+
+process.on('SIGTERM', async () => { await deregisterService(); process.exit(0); });
+process.on('SIGINT',  async () => { await deregisterService(); process.exit(0); });

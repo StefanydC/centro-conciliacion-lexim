@@ -23,7 +23,12 @@ app.use('/',        fileRoutes);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.json({ service: 'document-service', status: 'ok', timestamp: new Date() });
+  res.json({
+    status:    'ok',
+    service:   'document-service',
+    uptime:    process.uptime(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // ─── Manejo global de errores ─────────────────────────────────────────────────

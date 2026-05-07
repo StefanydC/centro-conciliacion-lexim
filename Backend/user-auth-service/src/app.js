@@ -39,8 +39,9 @@ app.use("/usuarios",      userRoutes);
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
   res.json({
-    status: "ok",
-    service: "user-auth-service",
+    status:    "ok",
+    service:   "user-auth-service",
+    uptime:    process.uptime(),
     timestamp: new Date().toISOString()
   });
 });

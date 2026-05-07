@@ -1,6 +1,23 @@
 services:
 
-  # ─── Microservicio de autenticación y gestión de usuarios ──────────────────
+  # ─── Consul — Service Discovery ───────────────────────────────────────────────
+  consul:
+    image: hashicorp/consul:1.18
+    container_name: consul_lexim
+    ports:
+      - "8500:8500"
+    command: "agent -dev -ui -client=0.0.0.0"
+    networks:
+      - lexim-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ─── Microservicio de autenticación y gestión de usuarios ────────────────────
   user-auth-service:
     build: ./backend/user-auth-service
     container_name: user_auth_service
@@ -13,11 +30,18 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_REDIRECT_URI=http://localhost/auth/google/callback
+      - CONSUL_HOST=consul_lexim
+      - CONSUL_PORT=8500
+      - SERVICE_NAME=user_auth_service
+      - SERVICE_PORT=3001
+    depends_on:
+      consul:
+        condition: service_healthy
     networks:
       - lexim-net
     restart: unless-stopped
 
-  # ─── Microservicio de agenda ──────────────────────────────────────────────
+  # ─── Microservicio de agenda ──────────────────────────────────────────────────
   agenda-service:
     build: ./backend/agenda-service
     container_name: agenda_service
@@ -29,11 +53,18 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_REDIRECT_URI=http://localhost/auth/google/callback
+      - CONSUL_HOST=consul_lexim
+      - CONSUL_PORT=8500
+      - SERVICE_NAME=agenda_service
+      - SERVICE_PORT=3003
+    depends_on:
+      consul:
+        condition: service_healthy
     networks:
       - lexim-net
     restart: unless-stopped
 
-  # ─── Microservicio de conciliación ────────────────────────────────────────
+  # ─── Microservicio de conciliación ───────────────────────────────────────────
   conciliacion-service:
     build: ./backend/conciliacion-service
     container_name: conciliacion_service
@@ -42,11 +73,18 @@ services:
       - MONGO_URI=${MONGO_URI}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
+      - CONSUL_HOST=consul_lexim
+      - CONSUL_PORT=8500
+      - SERVICE_NAME=conciliacion_service
+      - SERVICE_PORT=3002
+    depends_on:
+      consul:
+        condition: service_healthy
     networks:
       - lexim-net
     restart: unless-stopped
 
-  # ─── Microservicio de documentos (Google Drive) ───────────────────────────
+  # ─── Microservicio de documentos (Google Drive) ───────────────────────────────
   document-service:
     build: ./backend/document-service
     container_name: document_service
@@ -61,13 +99,20 @@ services:
       - GOOGLE_OAUTH_REFRESH_TOKEN=${GOOGLE_OAUTH_REFRESH_TOKEN}
       - DRIVE_ROOT_FOLDER_ID=${DRIVE_ROOT_FOLDER_ID}
       - JUDICANTE_FOLDER_ID=${JUDICANTE_FOLDER_ID}
+      - CONSUL_HOST=consul_lexim
+      - CONSUL_PORT=8500
+      - SERVICE_NAME=document_service
+      - SERVICE_PORT=3004
     volumes:
       - ./backend/document-service/credentials:/app/credentials:ro
+    depends_on:
+      consul:
+        condition: service_healthy
     networks:
       - lexim-net
     restart: unless-stopped
 
-  # ─── Microservicio de finanzas ────────────────────────────────────────────
+  # ─── Microservicio de finanzas ────────────────────────────────────────────────
   finance-service:
     build: ./backend/finance-service
     container_name: finance_service
@@ -76,11 +121,18 @@ services:
       - MONGO_URI=${MONGO_URI}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
+      - CONSUL_HOST=consul_lexim
+      - CONSUL_PORT=8500
+      - SERVICE_NAME=finance_service
+      - SERVICE_PORT=3005
+    depends_on:
+      consul:
+        condition: service_healthy
     networks:
       - lexim-net
     restart: unless-stopped
 
-  # ─── Microservicio de tareas ──────────────────────────────────────────────
+  # ─── Microservicio de tareas ──────────────────────────────────────────────────
   task-service:
     build: ./backend/task-service
     container_name: task_service
@@ -89,11 +141,18 @@ services:
       - MONGO_URI=${MONGO_URI}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
+      - CONSUL_HOST=consul_lexim
+      - CONSUL_PORT=8500
+      - SERVICE_NAME=task_service
+      - SERVICE_PORT=3006
+    depends_on:
+      consul:
+        condition: service_healthy
     networks:
       - lexim-net
     restart: unless-stopped
 
-  # ─── API Gateway ──────────────────────────────────────────────────────────
+  # ─── API Gateway ──────────────────────────────────────────────────────────────
   api-gateway:
     build: ./backend/gateway
     container_name: api_gateway
@@ -106,18 +165,28 @@ services:
       - AGENDA_SERVICE_URL=http://agenda-service:3003
       - FINANCE_SERVICE_URL=http://finance-service:3005
       - TASK_SERVICE_URL=http://task-service:3006
+      - CONSUL_HOST=consul_lexim
+      - CONSUL_PORT=8500
     depends_on:
-      - user-auth-service
-      - conciliacion-service
-      - document-service
-      - agenda-service
-      - finance-service
-      - task-service
+      consul:
+        condition: service_healthy
+      user-auth-service:
+        condition: service_started
+      conciliacion-service:
+        condition: service_started
+      document-service:
+        condition: service_started
+      agenda-service:
+        condition: service_started
+      finance-service:
+        condition: service_started
+      task-service:
+        condition: service_started
     networks:
       - lexim-net
     restart: unless-stopped
 
-  # ─── Nginx (reverse proxy + frontend estático) ────────────────────────────
+  # ─── Nginx (reverse proxy + frontend estático) ────────────────────────────────
   nginx:
     build: .
     container_name: nginx_lexim
