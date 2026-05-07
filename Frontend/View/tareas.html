@@ -467,7 +467,7 @@ function getNotificationInitials(item) {
 }
 
 async function apiFetchNotifications(url, opts = {}) {
-  const res = await fetch(url, {
+  const res = await fetch('/api' + url, {
     ...opts,
     headers: { 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) }
   });
@@ -671,7 +671,7 @@ function esCarpetak(mime) { return mime === 'application/vnd.google-apps.folder'
 //  API
 // ═══════════════════════════════════════════════════════════════════════
 async function apiFetch(url, opts = {}) {
-  return fetch(url, { ...opts, headers: { 'Authorization': `Bearer ${token}`, ...(opts.headers||{}) } });
+  return fetch('/api' + url, { ...opts, headers: { 'Authorization': `Bearer ${token}`, ...(opts.headers||{}) } });
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1307,7 +1307,7 @@ async function subirArchivoLocal() {
   try {
     const form = new FormData();
     form.append('file', file);
-    const res  = await fetch('/documentos/upload', {
+    const res  = await fetch('/api/documentos/upload', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
       body: form
@@ -1453,7 +1453,7 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo documento...';
       const form = new FormData();
       form.append('file', createLocalFile);
-      const res  = await fetch('/documentos/upload', {
+      const res  = await fetch('/api/documentos/upload', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: form

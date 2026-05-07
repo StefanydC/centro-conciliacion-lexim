@@ -502,7 +502,7 @@ async function apiFetch(url, opts = {}) {
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), 20000);
   try {
-    const r = await fetch(url, {
+    const r = await fetch('/api' + url, {
       ...opts,
       signal: ctrl.signal,
       headers: { Authorization: `Bearer ${token}`, ...(opts.headers || {}) }

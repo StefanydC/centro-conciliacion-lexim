@@ -1,5 +1,5 @@
 (() => {
-  const API_BASE = '/notifications';
+  const API_BASE = '/api/notifications';
   const POLL_MS = 45000;
 
   const state = {

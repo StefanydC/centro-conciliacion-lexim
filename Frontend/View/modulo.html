@@ -262,7 +262,7 @@ function renderNotifications(items) {
 }
 
 async function apiFetchNotifications(url, opts = {}) {
-  const res = await fetch(url, {
+  const res = await fetch('/api' + url, {
     ...opts,
     headers: {
       ...getAuthHeaders(),

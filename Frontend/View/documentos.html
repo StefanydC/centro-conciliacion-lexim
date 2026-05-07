@@ -464,7 +464,7 @@ function itemDesdeEl(el) {
 
 // ── API ───────────────────────────────────────────────────────────────
 async function apiFetch(url, opts = {}) {
-  const res = await fetch(url, {
+  const res = await fetch('/api' + url, {
     ...opts,
     headers: { 'Authorization': `Bearer ${token}`, ...(opts.headers||{}) }
   });
@@ -494,7 +494,7 @@ async function apiSubirArchivo(file, folderId, onProgress) {
     fd.append('file', file);
     if (folderId) fd.append('folderId', folderId);
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/documentos/upload');
+    xhr.open('POST', '/api/documentos/upload');
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100)); };
     xhr.onload  = () => {
@@ -965,7 +965,7 @@ function descargarArchivo(item) {
 async function imprimirArchivo(item) {
   toast('Preparando impresión...', 'info');
   try {
-    const resp = await fetch(`/documentos/file/${item.id}?download=true`, {
+    const resp = await fetch(`/api/documentos/file/${item.id}?download=true`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!resp.ok) throw new Error('No se pudo obtener el archivo');

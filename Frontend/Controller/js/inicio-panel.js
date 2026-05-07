@@ -5,7 +5,7 @@
 
   async function apiFetch(url) {
     try {
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } });
+      const res = await fetch('/api' + url, { headers: { Authorization: `Bearer ${getToken()}` } });
       if (!res.ok) return null;
       return res.json();
     } catch (_) {

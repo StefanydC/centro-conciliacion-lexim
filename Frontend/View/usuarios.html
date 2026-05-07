@@ -423,7 +423,7 @@ function normalizarUsuario(raw) {
 
 // API
 async function apiFetch(url, opts = {}) {
-  const response = await fetch(url, {
+  const response = await fetch('/api' + url, {
     ...opts,
     headers: {
       Authorization: `Bearer ${token}`,

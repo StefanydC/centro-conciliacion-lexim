@@ -387,7 +387,7 @@ let egresoParaEliminar = null;
 
 async function cargarEgresos() {
   try {
-    const res = await fetch('/finanzas?tipo=egreso', {
+    const res = await fetch('/api/finanzas?tipo=egreso', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Error al cargar egresos');
@@ -491,7 +491,7 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
   document.getElementById('btnGuardarTxt').textContent = 'Guardando...';
 
   try {
-    const res = await fetch('/finanzas', {
+    const res = await fetch('/api/finanzas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ tipo: 'egreso', monto, descripcion, categoria, fecha })
@@ -526,7 +526,7 @@ document.getElementById('btnConfirmEliminar').addEventListener('click', async ()
   const btn = document.getElementById('btnConfirmEliminar');
   btn.disabled = true;
   try {
-    const res = await fetch(`/finanzas/${egresoParaEliminar}`, {
+    const res = await fetch(`/api/finanzas/${egresoParaEliminar}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
