@@ -19,7 +19,9 @@ services:
 
   # ─── Microservicio de autenticación y gestión de usuarios ────────────────────
   user-auth-service:
-    build: ./backend/user-auth-service
+    build:
+      context: .
+      dockerfile: Backend/user-auth-service/Dockerfile
     container_name: user_auth_service
     environment:
       - PORT=3001
@@ -43,7 +45,9 @@ services:
 
   # ─── Microservicio de agenda ──────────────────────────────────────────────────
   agenda-service:
-    build: ./backend/agenda-service
+    build:
+      context: .
+      dockerfile: Backend/agenda-service/Dockerfile
     container_name: agenda_service
     environment:
       - PORT=3003
@@ -66,7 +70,9 @@ services:
 
   # ─── Microservicio de conciliación ───────────────────────────────────────────
   conciliacion-service:
-    build: ./backend/conciliacion-service
+    build:
+      context: .
+      dockerfile: Backend/conciliacion-service/Dockerfile
     container_name: conciliacion_service
     environment:
       - PORT=3002
@@ -86,7 +92,9 @@ services:
 
   # ─── Microservicio de documentos (Google Drive) ───────────────────────────────
   document-service:
-    build: ./backend/document-service
+    build:
+      context: .
+      dockerfile: Backend/document-service/Dockerfile
     container_name: document_service
     environment:
       - PORT=3004
@@ -114,7 +122,9 @@ services:
 
   # ─── Microservicio de finanzas ────────────────────────────────────────────────
   finance-service:
-    build: ./backend/finance-service
+    build:
+      context: .
+      dockerfile: Backend/finance-service/Dockerfile
     container_name: finance_service
     environment:
       - PORT=3005
@@ -134,7 +144,9 @@ services:
 
   # ─── Microservicio de tareas ──────────────────────────────────────────────────
   task-service:
-    build: ./backend/task-service
+    build:
+      context: .
+      dockerfile: Backend/task-service/Dockerfile
     container_name: task_service
     environment:
       - PORT=3006
@@ -154,7 +166,9 @@ services:
 
   # ─── API Gateway ──────────────────────────────────────────────────────────────
   api-gateway:
-    build: ./backend/gateway
+    build:
+      context: .
+      dockerfile: Backend/Gateway/Dockerfile
     container_name: api_gateway
     environment:
       - PORT=5000
@@ -188,8 +202,12 @@ services:
 
   # ─── Nginx (reverse proxy + frontend estático) ────────────────────────────────
   nginx:
-    build: .
+    build:
+      context: .
+      dockerfile: Frontend/Dockerfile
     container_name: nginx_lexim
+    environment:
+      - GATEWAY_URL=api-gateway:5000
     ports:
       - "80:80"
     depends_on:
