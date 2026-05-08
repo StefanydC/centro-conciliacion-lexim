@@ -293,7 +293,7 @@ app.get('/health', (_req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Gateway corriendo en puerto ${PORT}`);
   console.log(`JWT_SECRET configurado: ${process.env.JWT_SECRET ? 'si' : 'NO - verificar .env'}`);
   console.log(`Consul: ${process.env.CONSUL_HOST || 'consul'}:${process.env.CONSUL_PORT || '8500'}`);
