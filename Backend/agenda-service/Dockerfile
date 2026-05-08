@@ -1,11 +1,12 @@
+# ARCHIVO: Backend/agenda-service/Dockerfile
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY Backend/agenda-service/package*.json ./
 RUN npm install --omit=dev
 
-COPY . .
+COPY Backend/agenda-service/ .
 
 EXPOSE 3003
 

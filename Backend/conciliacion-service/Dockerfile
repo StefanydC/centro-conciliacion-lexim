@@ -1,11 +1,12 @@
+# ARCHIVO: Backend/conciliacion-service/Dockerfile
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY Backend/conciliacion-service/package*.json ./
 RUN npm install --omit=dev
 
-COPY . .
+COPY Backend/conciliacion-service/ .
 
 EXPOSE 3002
 
