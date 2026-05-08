@@ -1,5 +1,5 @@
 // ARCHIVO: backend/gateway/index.js
-require('dotenv').config();
+require('dotenv').config({ override: false });
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const morgan  = require('morgan');

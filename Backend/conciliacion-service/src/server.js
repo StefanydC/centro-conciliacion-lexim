@@ -1,5 +1,5 @@
 // ARCHIVO: backend/conciliacion-service/src/server.js
-require('dotenv').config();
+require('dotenv').config({ override: false });
 const { registerService, deregisterService } = require('./utils/consulRegister');
 const express  = require('express');
 const cors     = require('cors');

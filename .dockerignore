@@ -1,7 +1,10 @@
-node_modules
+﻿node_modules
 **/node_modules
 .env
 **/.env
-npm-debug.log
-**/npm-debug.log
+**/.env.local
+**/.env.production
+**/.env.staging
+*.log
 .git
+.gitignore

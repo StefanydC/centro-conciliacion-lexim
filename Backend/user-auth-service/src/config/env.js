@@ -1,6 +1,6 @@
 const dotenv = require("dotenv");
 
-dotenv.config();
+dotenv.config({ override: false });
 
 const requiredEnvs = ["MONGO_URI", "JWT_SECRET"];
 

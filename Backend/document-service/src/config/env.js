@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ override: false });
 
 const env = {
   PORT:                    process.env.PORT                    || 3004,
