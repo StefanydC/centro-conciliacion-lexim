@@ -1,6 +1,6 @@
 FROM nginx:alpine
-COPY ./frontend/pages  /usr/share/nginx/html/api
-COPY ./frontend/assets /usr/share/nginx/assets
-COPY ./frontend/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./Frontend/pages  /usr/share/nginx/html/api
+COPY ./Frontend/assets /usr/share/nginx/assets
+COPY ./Frontend/nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
