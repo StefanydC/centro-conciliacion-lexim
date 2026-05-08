@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
@@ -6,8 +6,8 @@
   <title>LEXIM — Sistema de Gestión (Panel)</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="../Controller/styles/perfil.css"/>
-  <link rel="stylesheet" href="../Controller/styles/animations.css"/>
+  <link rel="stylesheet" href="../assets/styles/perfil.css"/>
+  <link rel="stylesheet" href="../assets/styles/animations.css"/>
 </head>
 <body>
 
@@ -594,7 +594,7 @@ if (helpBtn) {
     if (tok) { const b = new Blob([JSON.stringify({ token: tok })], { type: 'application/json' }); navigator.sendBeacon('/auth/logout', b); }
   });
 </script>
-<script src="../Controller/js/notifications.js"></script>
-<script src="../Controller/js/inicio-panel.js"></script>
+<script src="../assets/js/notifications.js"></script>
+<script src="../assets/js/inicio-panel.js"></script>
 </body>
 </html>

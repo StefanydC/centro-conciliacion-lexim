@@ -54,7 +54,7 @@ function descargarYContacto(e) {
 
     // 1. Descarga el PDF
     const link = document.createElement('a');
-    link.href = '../Controller/docs/formulario-solicitud.pdf';
+    link.href = '../assets/docs/formulario-solicitud.pdf';
     link.download = 'formulario-solicitud.pdf';
     document.body.appendChild(link);
     link.click();

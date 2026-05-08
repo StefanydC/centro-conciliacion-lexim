@@ -1,30 +1,22 @@
 {
   "name": "centro-conciliacion-lexim",
   "version": "1.0.0",
-  "description": "Proyecto pagina web centro de conciliacion lexim",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "description": "Plataforma de gestión del Centro de Conciliación y Consultoría Lex Impartialis (LEXIM). Arquitectura de microservicios con API Gateway, frontend estático y despliegue en Docker.",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/StefanydC/centro-conciliacion-lexim.git"
   },
-  "keywords": [],
+  "scripts": {
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "keywords": ["conciliacion", "lexim", "microservicios"],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/StefanydC/centro-conciliacion-lexim/issues"
   },
-  "homepage": "https://github.com/StefanydC/centro-conciliacion-lexim#readme",
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "cors": "^2.8.6",
-    "dotenv": "^17.3.1",
-    "express": "^5.2.1",
-    "http-proxy-middleware": "^3.0.5",
-    "mongodb": "4.1",
-    "morgan": "^1.10.1"
-  }
+  "homepage": "https://github.com/StefanydC/centro-conciliacion-lexim#readme"
 }

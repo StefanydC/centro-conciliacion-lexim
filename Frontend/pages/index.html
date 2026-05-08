@@ -1,26 +1,21 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiénes Somos - LEXIM</title>
-    <link rel="icon" href="../Controller/imagenes/logo.png" type="image/png">
-    <!-- Hoja de estilos principal (para header/footer) -->
-    <link rel="stylesheet" href="../Controller/styles/inicio.css">
-    
-    <!-- Hoja de estilos específica de esta página -->
-    <link rel="stylesheet" href="../Controller/styles/quienes-somos.css">
-
-    <!-- Font Awesome para los iconos -->
+    <title>LEXIM - Centro de Conciliación y Consultoría</title>
+    <link rel="icon" href="../assets/images/logo.png" type="image/png">
+    <!-- RUTA AL CSS -->
+    <link rel="stylesheet" href="../assets/styles/inicio.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
 </head>
 <body>
 
-    <!-- ===== HEADER REUTILIZADO ===== -->
     <header class="main-header">
         <div class="container">
             <a href="index.html" class="logo-container">
-                <img src="../Controller/imagenes/logo.png" alt="Logo LEXIM" class="logo">
+                <img src="../assets/images/logo.png" alt="Logo LEXIM" class="logo">
                 <div class="logo-text">
                     <strong>Centro de Conciliación</strong><br>
                     Arbitraje y Consultoría Lex Impartialis
@@ -28,8 +23,8 @@
             </a>
             <nav class="main-nav">
                 <ul>
-                    <li><a href="index.html">Inicio</a></li>
-                    <li><a href="quienes-somos.html" class="active">Quiénes Somos</a></li>
+                    <li><a href="index.html" class="active">Inicio</a></li>
+                    <li><a href="quienes-somos.html">Quiénes Somos</a></li>
                     <li><a href="servicios.html">Servicios</a></li>
                     <li><a href="contacto.html">Contacto</a></li>
                     <li><a href="login.html" class="nav-login-btn" title="Iniciar sesión"><i class="fas fa-user-circle"></i></a></li>
@@ -39,61 +34,73 @@
     </header>
 
     <main>
-        <!-- ===== HERO SECTION DE 'QUIÉNES SOMOS' ===== -->
-        <section class="about-hero">
+        <section class="hero">
             <div class="container">
-                <div class="about-hero-content">
-                    <h1 class="section-title">Somos la guia hacia su tranquilidad</h1>
-                    <p class="section-subtitle">Somos un centro de conciliacion y consultoria que brinda confianza y acompañamiento, buscando la resolucion de conflictos sin necesidad de acudir a la justicia ordinaria y a procesos largos y extenuantes.</p>
+                <div class="hero-content">
+                    <!-- En index.html -->
+                    <!-- En index.html, volvemos al original -->
+                    <!-- En index.html -->
+                    <h1 id="typing-headline">Más vale una conversación clara, que un proceso incierto.</h1>
+                    <p>En LEXIM, facilitamos el diálogo y la comunicación para resolver conflictos de manera eficiente y profesional, procurando siempre la confianza y cercania con nuestros usuarios.</p>
+                    <a href="contacto.html" class="btn btn-primary">Agende su consulta</a>
+                    <a href="servicios.html" class="btn btn-secondary">Ver servicios</a>
                 </div>
             </div>
         </section>
 
-        <!-- ===== SECCIÓN DE VALORES CON TARJETAS DE CRISTAL ===== -->
-        <section class="values-section">
+        <section class="features">
             <div class="container">
-                <!-- Tarjeta 1: Imparcialidad -->
-                <div class="value-card">
-                    <div class="value-icon"><i class="fas fa-balance-scale"></i></div>
-                    <h3>Imparcialidad</h3>
-                    <p>Actuamos con total objetividad, garantizando un trato equitativo para todas las partes involucradas.</p>
+                <div class="feature-item">
+                    <h3>Conciliación Especializada</h3>
+                    <p>Expertos en conciliación civil, comercial, familiar y demas para encontrar la mejor solución.</p>
                 </div>
-
-                <!-- Tarjeta 2: Confidencialidad -->
-                <div class="value-card">
-                    <div class="value-icon"><i class="fas fa-user-secret"></i></div>
-                    <h3>Confidencialidad</h3>
-                    <p>Su privacidad es sagrada. Todo lo discutido en nuestras sesiones se mantiene en la más estricta reserva.</p>
+                <div class="feature-item">
+                    <h3>Consultoría Jurídica</h3>
+                    <p>Asesoramiento legal integral en todas las areas del derecho para prevenir y gestionar disputas de manera proactiva.</p>
                 </div>
-
-                <!-- Tarjeta 3: Eficiencia -->
-                <div class="value-card">
-                    <div class="value-icon"><i class="fas fa-tachometer-alt"></i></div>
-                    <h3>Eficiencia</h3>
-                    <p>Valoramos su tiempo. Buscamos acuerdos duraderos en el menor tiempo posible, ahorrándole costos.</p>
-                </div>
-
-                <!-- Tarjeta 4: Empatía -->
-                <div class="value-card">
-                    <div class="value-icon"><i class="fas fa-hands-helping"></i></div>
-                    <h3>Empatía</h3>
-                    <p>Entendemos que detrás de cada conflicto hay personas. Ofrecemos un acompañamiento cercano y humano.</p>
-                </div>
-                <div class="value-card">
-                    <div class="value-icon"><i class="fas fa-search"></i></div>
-                    <h3>Transparencia</h3>
-                    <p>Creemos en procesos claros y abiertos. Te mantenemos informado en cada etapa, asegurando que entiendas cada decisión</p>
-                </div>
-                <div class="value-card">
-                    <div class="value-icon"><i class="fas fa-hand-holding-heart"></i></div>
-                    <h3>Humanización</h3>
-                    <p>Más allá del caso, vemos a la persona. Brindamos un trato cálido, respetuoso y cercano, creando un espacio seguro donde tu voz es escuchada y valorada</p>
+                <div class="feature-item">
+                    <h3>Confidencialidad y Ética</h3>
+                    <p>Garantizamos un proceso transparente y seguro, protegiendo siempre su privacidad.</p>
                 </div>
             </div>
         </section>
+        <section class="team-section">
+    <div class="container">
+        <h2 class="section-title">Directorio de Profesionales</h2>
+        <p class="section-subtitle">Conozca al equipo de expertos dedicados a encontrar la mejor solución para usted.</p>
+        
+        <div class="team-grid">
+            <!-- Tarjeta de Profesional 1 -->
+            <div class="team-card">
+                <!-- Usa una foto cuadrada. El CSS la hará redonda. -->
+                <img src="../assets/images/merien.jpg" alt="Merien Yuleidy Tunjuelo" width="400" height="280" loading="lazy">
+                <h3>Merien Yuleidy Tunjuelo</h3>
+                <p>Directora del centro</p>
+                <p>Abogada administrativa y penalista</p>
+            </div>
+
+            <!-- Tarjeta de Profesional 2 -->
+            <div class="team-card">
+                <img src="../assets/images/jairo.jpg" alt="Jairo Alberto Mora" width="400" height="280" loading="lazy">
+                <h3>Jairo Alberto Mora</h3>
+                <p>Abogado conciliador</p>
+                <p>Civil, familia y comercial</p>
+            </div>
+
+            <!-- Tarjeta de Profesional 3 -->
+            <div class="team-card">
+                <img src="../assets/images/fernanda.jpg" alt="Luisa Fernanda Moyano" width="400" height="280" loading="lazy">
+                <h3>Luisa Fernanda Moyano</h3>
+                <p>Abogada conciliadora</p>
+                <p>Especializada en laboral y civil</p>
+                
+
+            </div>
+            </div>
+        </div>
+    </div>
+</section>
     </main>
-
-    <!-- ===== FOOTER ===== --> 
    <footer class="main-footer">
         <div class="container">
             
@@ -149,9 +156,7 @@
 
         </div>
     </footer>
-    <script src="../Controller/js/main.js"></script>
+    <script src="../assets/js/main.js"></script>
 
-    <!-- JS para las animaciones -->
-    <script src="../Controller/js/main.js"></script>
 </body>
 </html>

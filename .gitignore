@@ -1,6 +1,44 @@
+# ── Dependencias ─────────────────────────────
 node_modules/
 **/node_modules/
+
+# ── Variables de entorno ──────────────────────
 .env
 **/.env
+**/.env.local
+**/.env.production
+**/.env.staging
+
+# ── Credenciales Google (crítico) ────────────
+**/credentials/*.json
+**/credentials/**
+!**/credentials/.gitkeep
+
+# ── Logs ─────────────────────────────────────
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ── Build y caché ────────────────────────────
+dist/
+build/
+.cache/
+.tmp/
+
+# ── Sistema operativo ─────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+
+# ── Editores ──────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Docker local ─────────────────────────────
+.docker/
