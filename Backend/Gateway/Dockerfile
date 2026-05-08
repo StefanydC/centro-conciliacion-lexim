@@ -1,13 +1,8 @@
 # ARCHIVO: Backend/gateway/Dockerfile
 FROM node:20-alpine
-
 WORKDIR /app
-
-COPY Backend/gateway/package*.json ./
+COPY Backend/Gateway/package*.json ./
 RUN npm install --omit=dev
-
-COPY Backend/gateway/ .
-
+COPY Backend/Gateway/ .
 EXPOSE 5000
-
 CMD ["node", "index.js"]
