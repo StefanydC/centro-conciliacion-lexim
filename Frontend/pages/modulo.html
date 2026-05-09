@@ -238,8 +238,10 @@ function renderNotifications(items) {
     const unreadClass = item.leida ? '' : 'unread';
     const tipo = escapeHtml((item.tipo || '').replaceAll('_', ' '));
     const actor = item.actor_nombre ? `<span>${escapeHtml(item.actor_nombre)}</span>` : '<span>Sistema</span>';
+    const tareaId = item.tarea_id ? escapeHtml(String(item.tarea_id)) : '';
+    const linkIcon = tareaId ? '<span style="font-size:.68rem;color:var(--color-primary,#234c58);font-weight:700;margin-top:4px;display:inline-block">Ver tarea →</span>' : '';
     return `
-      <article class="notification-item ${unreadClass}" data-id="${item._id}">
+      <article class="notification-item ${unreadClass}" data-id="${item._id}" data-tarea-id="${tareaId}">
         <div class="notification-top">
           <h4 class="notification-title">${escapeHtml(item.titulo || 'Notificación')}</h4>
           <span class="notification-type">${tipo || 'evento'}</span>
@@ -249,14 +251,17 @@ function renderNotifications(items) {
           <span>${actor}</span>
           <span>${escapeHtml(formatNotificationDate(item.createdAt))}</span>
         </div>
+        ${linkIcon}
       </article>
     `;
   }).join('');
 
   notificationsList.querySelectorAll('.notification-item').forEach((node) => {
-    node.addEventListener('click', async () => {
-      const id = node.dataset.id;
-      await markNotificationAsRead(id);
+    node.addEventListener('click', () => {
+      const tareaId = node.dataset.tareaId;
+      if (tareaId) {
+        window.location.href = `/api/tareas.html?tarea=${encodeURIComponent(tareaId)}`;
+      }
     });
   });
 }

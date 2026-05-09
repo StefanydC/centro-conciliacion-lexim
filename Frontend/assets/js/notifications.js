@@ -327,8 +327,10 @@
     state.list.innerHTML = items.map((item) => {
       const unreadClass = item.leida ? '' : 'unread';
       const actor = escapeHtml(item.actor_nombre || 'Sistema');
+      const tareaId = item.tarea_id ? escapeHtml(String(item.tarea_id)) : '';
+      const linkIcon = tareaId ? '<span style="font-size:.68rem;color:var(--color-primary,#234c58);font-weight:700;margin-top:4px;display:inline-block">Ver tarea →</span>' : '';
       return `
-        <article class="notification-item ${unreadClass}" data-id="${item._id}">
+        <article class="notification-item ${unreadClass}" data-id="${item._id}" data-tarea-id="${tareaId}">
           <div class="notification-avatar">${escapeHtml(initials(item))}</div>
           <div class="notification-content">
             <div class="notification-top">
@@ -337,19 +339,17 @@
             </div>
             <div class="notification-sender">${actor}</div>
             <p class="notification-message">${escapeHtml(item.mensaje || '')}</p>
+            ${linkIcon}
           </div>
         </article>
       `;
     }).join('');
 
     state.list.querySelectorAll('.notification-item').forEach((node) => {
-      node.addEventListener('click', async () => {
-        try {
-          await apiFetch(`${API_BASE}/${encodeURIComponent(node.dataset.id)}/read`, { method: 'PATCH' });
-          state.loaded = false;
-          await loadNotifications(true);
-        } catch (error) {
-          alert(error.message);
+      node.addEventListener('click', () => {
+        const tareaId = node.dataset.tareaId;
+        if (tareaId) {
+          window.location.href = `/api/tareas.html?tarea=${encodeURIComponent(tareaId)}`;
         }
       });
     });
