@@ -690,6 +690,8 @@ async function cargar() {
     renderTabla();
   } catch (err) {
     document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').style.display   = 'flex';
+    document.getElementById('tableTitle').textContent     = 'Conciliaciones (0)';
     toast(`Error al cargar: ${err.message}`, 'error');
   }
 }

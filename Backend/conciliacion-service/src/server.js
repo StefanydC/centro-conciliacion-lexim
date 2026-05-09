@@ -303,17 +303,28 @@ router.delete('/:id', requireAuth, async (req, res) => {
 app.use('/conciliacion', router);
 
 // ─── Health ───────────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => {
+app.get('/health', async (_req, res) => {
+  const connected = mongoose.connection.readyState === 1;
+  let totalDocs = null;
+  if (connected) {
+    try { totalDocs = await Conciliacion.countDocuments({}); } catch (_) {}
+  }
   res.json({
-    status: 'ok',
-    service: 'conciliacion-service',
-    db: mongoose.connection.readyState === 1 ? 'conectado' : 'desconectado'
+    status:   'ok',
+    service:  'conciliacion-service',
+    db:       connected ? 'conectado' : 'desconectado',
+    dbName:   mongoose.connection.db?.databaseName || 'desconocido',
+    dbHost:   mongoose.connection.host || 'desconocido',
+    totalConciliaciones: totalDocs
   });
 });
 
 // ─── Iniciar ──────────────────────────────────────────────────────────────────
 mongoose.connect(process.env.MONGO_URI, { dbName: process.env.MONGO_DB_NAME })
   .then(() => {
+    const dbName = mongoose.connection.db?.databaseName || '(desconocido)';
+    const dbHost = mongoose.connection.host || '(desconocido)';
+    console.log(`✅ MongoDB conectado → host: ${dbHost} | base de datos: ${dbName}`);
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`✅ conciliacion-service corriendo en puerto ${PORT}`);
       setTimeout(registerService, 3000);
