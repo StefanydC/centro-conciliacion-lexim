@@ -507,6 +507,9 @@ document.getElementById('sidebarRole').textContent = esAdmin ? 'Administrador' :
 document.getElementById('nav-admin').style.display = esAdmin  ? 'grid' : 'none';
 document.getElementById('nav-judic').style.display = !esAdmin ? 'grid' : 'none';
 
+// Judicantes solo pueden observar
+if (!esAdmin) document.getElementById('btnNuevo').style.display = 'none';
+
 // Sidebar toggle
 document.getElementById('sidebarToggle').addEventListener('click', () => {
   document.getElementById('sidebar').classList.toggle('collapsed');
@@ -665,7 +668,7 @@ function renderTabla() {
       </td>
       <td>
         <div class="action-btns">
-          <button class="action-btn" data-action="edit" data-id="${escapeHtml(item._id)}" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+          ${esAdmin ? `<button class="action-btn" data-action="edit" data-id="${escapeHtml(item._id)}" title="Editar"><i class="fas fa-pencil-alt"></i></button>` : ''}
           ${esAdmin ? `<button class="action-btn danger" data-action="delete" data-id="${escapeHtml(item._id)}" title="Eliminar"><i class="fas fa-trash"></i></button>` : ''}
         </div>
       </td>
@@ -711,8 +714,9 @@ function verDetalle(id) {
   document.getElementById('dCvdDoc').textContent      = item.parte_convocada?.documento  || '—';
   document.getElementById('dCvdContacto').textContent = item.parte_convocada?.contacto   || '—';
 
-  // Ocultar botón eliminar para no-admin
+  // Ocultar botones de acción para judicantes
   document.getElementById('btnEliminarDesdeDetalle').style.display = esAdmin ? 'inline-flex' : 'none';
+  document.getElementById('btnEditarDesdeDetalle').style.display   = esAdmin ? 'inline-flex' : 'none';
 
   abrirOverlay('modalDetalle');
 }
