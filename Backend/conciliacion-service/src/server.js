@@ -152,8 +152,7 @@ const router = express.Router();
 // GET /conciliacion
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const esAdmin = req.user.tipo_usuario === 'administrador';
-    const filter  = esAdmin ? {} : { creadoPor: req.user.sub };
+    const filter  = {};
 
     const { q, estado, limit = 50, skip = 0 } = req.query;
     if (q) filter.$or = [
@@ -180,11 +179,6 @@ router.get('/:id', requireAuth, async (req, res) => {
   try {
     const item = await Conciliacion.findById(req.params.id);
     if (!item) return res.status(404).json({ error: 'No encontrado' });
-
-    const esAdmin = req.user.tipo_usuario === 'administrador';
-    if (!esAdmin && item.creadoPor !== req.user.sub) {
-      return res.status(403).json({ error: 'Sin permiso para ver este registro' });
-    }
     res.json(item);
   } catch (err) {
     res.status(500).json({ error: 'Error', detalle: err.message });
