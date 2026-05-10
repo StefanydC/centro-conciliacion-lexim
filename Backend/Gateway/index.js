@@ -122,6 +122,13 @@ app.post('/ai/chat', async (req, res) => {
     if (mensaje.length > 1000) return res.status(400).json({ error: 'Mensaje demasiado largo (máx. 1000 caracteres)' });
     if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'Servicio de IA no configurado' });
 
+    // Validar y limpiar historial de conversación
+    const historialRaw = Array.isArray(req.body?.historial) ? req.body.historial : [];
+    const historial = historialRaw
+      .filter(m => m && ['user', 'assistant'].includes(m.role) && typeof m.content === 'string' && m.content.trim())
+      .slice(-8)
+      .map(m => ({ role: m.role, content: String(m.content).slice(0, 2000) }));
+
     const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -132,10 +139,12 @@ app.post('/ai/chat', async (req, res) => {
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: AI_SYSTEM_PROMPT },
+          ...historial,
           { role: 'user',   content: mensaje }
         ],
-        max_tokens: 600,
-        temperature: 0.6
+        max_tokens: 800,
+        temperature: 0.5,
+        presence_penalty: 0.1
       })
     });
 
