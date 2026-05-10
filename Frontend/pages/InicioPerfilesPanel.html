@@ -606,6 +606,14 @@ if (helpBtn) {
             <input id="qfLugar" type="text" class="qa-input" placeholder="Ubicación…" maxlength="200"/>
           </div>
         </div>
+        <div class="qa-field">
+          <label class="qa-label">Caso / Referencia</label>
+          <input id="qfCaso" type="text" class="qa-input" placeholder="Número o nombre del caso…" maxlength="200"/>
+        </div>
+        <div class="qa-field">
+          <label class="qa-label">Nota</label>
+          <textarea id="qfNota" class="qa-input" rows="3" placeholder="Observaciones o detalles adicionales…" maxlength="1000" style="resize:vertical;min-height:64px"></textarea>
+        </div>
       </div>`
     },
     'agregar-documento': {
@@ -864,10 +872,14 @@ if (helpBtn) {
           tipo:  document.getElementById('qfTipo')?.value  || 'otro',
           fecha,
           hora:  document.getElementById('qfHora')?.value  || undefined,
-          lugar: (document.getElementById('qfLugar')?.value || '').trim() || undefined
+          lugar: (document.getElementById('qfLugar')?.value || '').trim() || undefined,
+          caso:  (document.getElementById('qfCaso')?.value  || '').trim() || undefined,
+          nota:  (document.getElementById('qfNota')?.value  || '').trim() || undefined
         };
         if (!body.hora)  delete body.hora;
         if (!body.lugar) delete body.lugar;
+        if (!body.caso)  delete body.caso;
+        if (!body.nota)  delete body.nota;
         const res = await fetch('/agenda/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
