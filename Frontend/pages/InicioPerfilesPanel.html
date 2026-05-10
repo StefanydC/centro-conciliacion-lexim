@@ -637,7 +637,7 @@ if (helpBtn) {
   let quickCurrentAction = null;
   let qaLocalFile  = null;
   let qaDriveItem  = null;
-  let qaDriveStack = [{ id: 'root', name: 'Mi Drive' }];
+  let qaDriveStack = [{ id: null, name: 'Mi Drive' }];
 
   function qaShowDocPreview(name) {
     const el = document.getElementById('qaDocPreview');
@@ -676,11 +676,11 @@ if (helpBtn) {
   async function qaLoadDrive(folderId) {
     const list = document.getElementById('qaDriveList');
     if (!list) return;
-    const folder = folderId || 'root';
     list.innerHTML = '<div style="text-align:center;color:#5a7a84;font-size:.82rem;padding:14px"><i class="fas fa-spinner fa-spin"></i></div>';
     qaRenderBc();
+    const url = folderId ? `/api/documentos/files/${encodeURIComponent(folderId)}` : '/api/documentos/files';
     try {
-      const res  = await fetch(`/api/documentos/drive/list?folderId=${encodeURIComponent(folder)}`, {
+      const res  = await fetch(url, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       const data = await res.json();
@@ -722,7 +722,7 @@ if (helpBtn) {
   function qaInitDocSection() {
     qaLocalFile  = null;
     qaDriveItem  = null;
-    qaDriveStack = [{ id: 'root', name: 'Mi Drive' }];
+    qaDriveStack = [{ id: null, name: 'Mi Drive' }];
 
     const tabLocal = document.getElementById('qaTabLocal');
     const tabDrive = document.getElementById('qaTabDrive');
@@ -760,7 +760,11 @@ if (helpBtn) {
       if (!sel) return;
       const lista = data.data || data || [];
       sel.innerHTML = '<option value="">— Sin asignar —</option>' +
-        lista.map(j => `<option value="${escHtml(j._id||j.id)}">${escHtml((j.nombre||'')+' '+(j.apellido||''))}</option>`).join('');
+        lista.map(j => {
+          const nombre   = j.nombre   || j.Nombre   || '';
+          const apellido = j.apellido || j.Apellido || '';
+          return `<option value="${escHtml(j._id||j.id)}">${escHtml((nombre+' '+apellido).trim())}</option>`;
+        }).join('');
     } catch (_) {
       const sel = document.getElementById('qfAsignado');
       if (sel) sel.innerHTML = '<option value="">— Sin asignar —</option>';
