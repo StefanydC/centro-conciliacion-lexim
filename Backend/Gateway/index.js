@@ -69,6 +69,73 @@ function markGateway(proxyRes) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  ASISTENTE IA — ruta pública, sin JWT
+// ─────────────────────────────────────────────────────────────────────────────
+
+const AI_SYSTEM_PROMPT = `Eres un asistente virtual informativo especializado en conciliación en Colombia.
+
+Tu función es únicamente brindar orientación básica y general sobre:
+- conciliación,
+- conflictos familiares,
+- cuota alimentaria,
+- acuerdos,
+- procesos conciliatorios,
+- asistencia a conciliaciones,
+- conflictos conciliables.
+
+IMPORTANTE:
+- NO eres abogado.
+- NO debes dar asesoría jurídica profesional.
+- NO debes asegurar resultados legales.
+- NO debes reemplazar a un profesional.
+- Responde de manera sencilla y clara.
+- Si el usuario pregunta algo muy complejo, indícale que consulte directamente con un centro de conciliación o un abogado.
+
+Al final de TODAS las respuestas agrega este mensaje:
+
+"Esta respuesta es únicamente orientativa y no constituye asesoría jurídica profesional. Para recibir atención personalizada y formal, se recomienda acudir a un centro de conciliación o consultar con un profesional del derecho."`;
+
+app.post('/ai/chat', async (req, res) => {
+  try {
+    const mensaje = String(req.body?.mensaje || '').trim();
+    if (!mensaje) return res.status(400).json({ error: 'Mensaje requerido' });
+    if (mensaje.length > 1000) return res.status(400).json({ error: 'Mensaje demasiado largo (máx. 1000 caracteres)' });
+    if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'Servicio de IA no configurado' });
+
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: AI_SYSTEM_PROMPT },
+          { role: 'user',   content: mensaje }
+        ],
+        max_tokens: 600,
+        temperature: 0.6
+      })
+    });
+
+    if (!openaiRes.ok) {
+      const errBody = await openaiRes.json().catch(() => ({}));
+      console.error('[AI] OpenAI error:', errBody?.error?.message || openaiRes.status);
+      return res.status(502).json({ error: 'Error del servicio de IA' });
+    }
+
+    const data     = await openaiRes.json();
+    const respuesta = data.choices?.[0]?.message?.content || 'No se pudo obtener respuesta.';
+    console.log(`[AI] chat OK | tokens: ${data.usage?.total_tokens}`);
+    res.json({ respuesta });
+  } catch (err) {
+    console.error('[AI] Error:', err.message);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  RUTAS PÚBLICAS — no requieren JWT
 // ─────────────────────────────────────────────────────────────────────────────
 
