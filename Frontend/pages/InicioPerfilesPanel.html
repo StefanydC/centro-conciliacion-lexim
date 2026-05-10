@@ -509,12 +509,48 @@ if (helpBtn) {
 
   const quickConfig = {
     'nuevo-usuario': {
-      type: 'link',
+      type: 'form',
       title: 'Nuevo Usuario',
       subtitle: 'Registra un nuevo perfil en el sistema.',
-      body: '<ul style="padding-left:18px;color:#334e55;line-height:1.9;margin:0"><li>Ingresa nombre, correo y rol.</li><li>Define el tipo de acceso.</li><li>Activa la cuenta inmediatamente.</li></ul>',
-      ctaLabel: 'Ir a Usuarios',
-      ctaHref: '/api/usuarios.html'
+      body: `<div class="qa-form">
+        <div class="qa-row">
+          <div class="qa-field">
+            <label class="qa-label">Nombre *</label>
+            <input id="qfNombre" type="text" class="qa-input" placeholder="Nombre" maxlength="100"/>
+          </div>
+          <div class="qa-field">
+            <label class="qa-label">Apellido</label>
+            <input id="qfApellido" type="text" class="qa-input" placeholder="Apellido" maxlength="100"/>
+          </div>
+        </div>
+        <div class="qa-field">
+          <label class="qa-label">Correo electrónico *</label>
+          <input id="qfEmail" type="email" class="qa-input" placeholder="correo@ejemplo.com" maxlength="200"/>
+        </div>
+        <div class="qa-row">
+          <div class="qa-field">
+            <label class="qa-label">Contraseña *</label>
+            <input id="qfPassword" type="password" class="qa-input" placeholder="Mínimo 6 caracteres" maxlength="100"/>
+          </div>
+          <div class="qa-field">
+            <label class="qa-label">Tipo de usuario *</label>
+            <select id="qfTipoUsuario" class="qa-input">
+              <option value="judicante">Judicante</option>
+              <option value="administrador">Administrador</option>
+            </select>
+          </div>
+        </div>
+        <div class="qa-row">
+          <div class="qa-field">
+            <label class="qa-label">Documento</label>
+            <input id="qfDocumento" type="text" class="qa-input" placeholder="Cédula / ID" maxlength="20"/>
+          </div>
+          <div class="qa-field">
+            <label class="qa-label">Teléfono</label>
+            <input id="qfTelefono" type="tel" class="qa-input" placeholder="Número de contacto" maxlength="20"/>
+          </div>
+        </div>
+      </div>`
     },
     'asignar-tarea': {
       type: 'form',
@@ -916,7 +952,38 @@ if (helpBtn) {
     quickActionSaveBtn.disabled    = true;
     quickActionSaveBtn.textContent = 'Guardando…';
     try {
-      if (actionKey === 'asignar-tarea') {
+      if (actionKey === 'nuevo-usuario') {
+        const nombre   = (document.getElementById('qfNombre')?.value   || '').trim();
+        const email    = (document.getElementById('qfEmail')?.value    || '').trim();
+        const password = (document.getElementById('qfPassword')?.value || '').trim();
+        if (!nombre)             { alert('El nombre es requerido'); return; }
+        if (!email)              { alert('El correo es requerido'); return; }
+        if (!password)           { alert('La contraseña es requerida'); return; }
+        if (password.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
+        const tipoUsuario = document.getElementById('qfTipoUsuario')?.value || 'judicante';
+        const body = {
+          nombre,
+          apellido:     (document.getElementById('qfApellido')?.value  || '').trim() || undefined,
+          email,
+          password,
+          tipo_usuario: tipoUsuario,
+          rol:          tipoUsuario,
+          documento:    (document.getElementById('qfDocumento')?.value  || '').trim() || undefined,
+          telefono:     (document.getElementById('qfTelefono')?.value   || '').trim() || undefined
+        };
+        if (!body.apellido)  delete body.apellido;
+        if (!body.documento) delete body.documento;
+        if (!body.telefono)  delete body.telefono;
+        const res = await fetch('/usuarios', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.mensaje || e?.error || 'Error al crear el usuario'); }
+        closeQuickAction();
+        alert('Usuario creado correctamente.');
+
+      } else if (actionKey === 'asignar-tarea') {
         const desc = (document.getElementById('qfDesc')?.value || '').trim();
         if (!desc) { alert('La descripción es requerida'); return; }
 
