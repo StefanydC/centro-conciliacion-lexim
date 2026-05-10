@@ -30,6 +30,20 @@
     .qa-input:focus{outline:none;border-color:#234c58}
     textarea.qa-input{resize:vertical;min-height:68px}
     @media(max-width:480px){.qa-row{grid-template-columns:1fr}}
+    .qa-doc-section{border:1.5px solid rgba(35,76,88,.15);border-radius:10px;overflow:hidden}
+    .qa-doc-tabs{display:flex;border-bottom:1.5px solid rgba(35,76,88,.12)}
+    .qa-doc-tab{flex:1;padding:9px 6px;font-size:.8rem;font-weight:600;color:#5a7a84;cursor:pointer;background:none;border:none;transition:.15s;font-family:inherit}
+    .qa-doc-tab.active{color:#234c58;background:rgba(35,76,88,.06)}
+    .qa-doc-body{padding:10px}
+    .qa-drive-bc{font-size:.73rem;color:#5a7a84;margin-bottom:6px;min-height:16px}
+    .qa-drive-bc b{color:#234c58}
+    .qa-drive-bc .qbc-link{color:#234c58;cursor:pointer;text-decoration:underline}
+    .qa-drive-list{max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+    .qa-drive-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;cursor:pointer;font-size:.81rem;color:#334e55;transition:.12s;border:1.5px solid transparent;user-select:none}
+    .qa-drive-item:hover{background:rgba(35,76,88,.06)}
+    .qa-drive-item.selected{border-color:#234c58;background:rgba(35,76,88,.08)}
+    .qa-doc-preview{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(35,76,88,.05);border-top:1.5px solid rgba(35,76,88,.1);font-size:.8rem;color:#234c58;font-weight:600}
+    .qa-doc-remove{margin-left:auto;cursor:pointer;color:#c0392b;background:none;border:none;font-size:.85rem;padding:0 2px}
   </style>
 </head>
 <body>
@@ -530,6 +544,31 @@ if (helpBtn) {
             <option value="">— Cargando… —</option>
           </select>
         </div>
+        <div class="qa-field">
+          <label class="qa-label">Documento adjunto (opcional)</label>
+          <div class="qa-doc-section">
+            <div class="qa-doc-tabs">
+              <button class="qa-doc-tab active" type="button" id="qaTabLocal"><i class="fas fa-laptop" style="margin-right:5px"></i>Desde PC</button>
+              <button class="qa-doc-tab" type="button" id="qaTabDrive"><i class="fab fa-google-drive" style="margin-right:5px"></i>Desde Drive</button>
+            </div>
+            <div class="qa-doc-body">
+              <div id="qaLocalPanel">
+                <input id="qaFileInput" type="file" class="qa-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"/>
+              </div>
+              <div id="qaDrivePanel" style="display:none">
+                <div class="qa-drive-bc" id="qaDriveBc"></div>
+                <div class="qa-drive-list" id="qaDriveList">
+                  <div style="text-align:center;color:#5a7a84;font-size:.82rem;padding:14px"><i class="fas fa-spinner fa-spin"></i></div>
+                </div>
+              </div>
+            </div>
+            <div id="qaDocPreview" style="display:none" class="qa-doc-preview">
+              <i class="fas fa-file-alt" style="flex-shrink:0"></i>
+              <span id="qaDocName" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+              <button class="qa-doc-remove" type="button" id="qaDocRemove" title="Quitar"><i class="fas fa-xmark"></i></button>
+            </div>
+          </div>
+        </div>
       </div>`
     },
     'agendar-evento': {
@@ -596,6 +635,122 @@ if (helpBtn) {
   const quickActionCloseBtn  = document.getElementById('quickActionCloseBtn');
   const quickActionCancelBtn = document.getElementById('quickActionCancelBtn');
   let quickCurrentAction = null;
+  let qaLocalFile  = null;
+  let qaDriveItem  = null;
+  let qaDriveStack = [{ id: 'root', name: 'Mi Drive' }];
+
+  function qaShowDocPreview(name) {
+    const el = document.getElementById('qaDocPreview');
+    const nm = document.getElementById('qaDocName');
+    if (el) el.style.display = '';
+    if (nm) nm.textContent = name;
+  }
+
+  function qaClearDoc() {
+    qaLocalFile = null;
+    qaDriveItem = null;
+    const el = document.getElementById('qaDocPreview');
+    if (el) el.style.display = 'none';
+    const fi = document.getElementById('qaFileInput');
+    if (fi) fi.value = '';
+    document.querySelectorAll('.qa-drive-item').forEach(i => i.classList.remove('selected'));
+  }
+
+  function qaRenderBc() {
+    const bc = document.getElementById('qaDriveBc');
+    if (!bc) return;
+    bc.innerHTML = qaDriveStack.map((item, idx) => {
+      const isLast = idx === qaDriveStack.length - 1;
+      if (isLast) return `<b>${escHtml(item.name)}</b>`;
+      return `<span class="qbc-link" data-bcidx="${idx}">${escHtml(item.name)}</span> / `;
+    }).join('');
+    bc.querySelectorAll('.qbc-link').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.bcidx);
+        qaDriveStack = qaDriveStack.slice(0, idx + 1);
+        qaLoadDrive(qaDriveStack[qaDriveStack.length - 1].id);
+      });
+    });
+  }
+
+  async function qaLoadDrive(folderId) {
+    const list = document.getElementById('qaDriveList');
+    if (!list) return;
+    const folder = folderId || 'root';
+    list.innerHTML = '<div style="text-align:center;color:#5a7a84;font-size:.82rem;padding:14px"><i class="fas fa-spinner fa-spin"></i></div>';
+    qaRenderBc();
+    try {
+      const res  = await fetch(`/api/documentos/drive/list?folderId=${encodeURIComponent(folder)}`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      const data = await res.json();
+      const files = data.data || data.files || [];
+      if (!files.length) {
+        list.innerHTML = '<div style="text-align:center;color:#5a7a84;font-size:.82rem;padding:14px">Carpeta vacía.</div>';
+        return;
+      }
+      list.innerHTML = files.map(f => {
+        const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
+        const icon  = isFolder ? 'fa-folder' : 'fa-file-alt';
+        const color = isFolder ? '#f59e0b' : '#5a7a84';
+        return `<div class="qa-drive-item" data-id="${escHtml(f.id)}" data-name="${escHtml(f.name||'')}" data-mime="${escHtml(f.mimeType||'')}" data-folder="${isFolder}">
+          <i class="fas ${icon}" style="color:${color};width:16px;flex-shrink:0"></i>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(f.name||'Sin nombre')}</span>
+          ${isFolder ? '<i class="fas fa-chevron-right" style="color:#9ab0b8;font-size:.7rem"></i>' : ''}
+        </div>`;
+      }).join('');
+      list.onclick = (e) => {
+        const item = e.target.closest('.qa-drive-item');
+        if (!item) return;
+        const { id, name, mime, folder: isF } = item.dataset;
+        if (isF === 'true') {
+          qaDriveStack.push({ id, name });
+          qaLoadDrive(id);
+        } else {
+          qaDriveItem = { driveFileId: id, nombre: name, mimeType: mime };
+          qaLocalFile = null;
+          list.querySelectorAll('.qa-drive-item').forEach(i => i.classList.remove('selected'));
+          item.classList.add('selected');
+          qaShowDocPreview(name);
+        }
+      };
+    } catch (_) {
+      list.innerHTML = '<div style="text-align:center;color:#c0392b;font-size:.82rem;padding:14px"><i class="fas fa-exclamation-triangle"></i> Error al cargar Drive.</div>';
+    }
+  }
+
+  function qaInitDocSection() {
+    qaLocalFile  = null;
+    qaDriveItem  = null;
+    qaDriveStack = [{ id: 'root', name: 'Mi Drive' }];
+
+    const tabLocal = document.getElementById('qaTabLocal');
+    const tabDrive = document.getElementById('qaTabDrive');
+    const localPanel = document.getElementById('qaLocalPanel');
+    const drivePanel = document.getElementById('qaDrivePanel');
+    const fi = document.getElementById('qaFileInput');
+    const removeBtn = document.getElementById('qaDocRemove');
+
+    if (tabLocal) tabLocal.onclick = () => {
+      tabLocal.classList.add('active');
+      tabDrive.classList.remove('active');
+      localPanel.style.display = '';
+      drivePanel.style.display = 'none';
+    };
+    if (tabDrive) tabDrive.onclick = () => {
+      tabDrive.classList.add('active');
+      tabLocal.classList.remove('active');
+      drivePanel.style.display = '';
+      localPanel.style.display = 'none';
+      qaLoadDrive('root');
+    };
+    if (fi) fi.onchange = () => {
+      const f = fi.files[0];
+      if (f) { qaLocalFile = f; qaDriveItem = null; qaShowDocPreview(f.name); }
+      else qaClearDoc();
+    };
+    if (removeBtn) removeBtn.onclick = qaClearDoc;
+  }
 
   async function cargarJudicantesPorAsignar() {
     try {
@@ -625,7 +780,10 @@ if (helpBtn) {
       quickActionSaveBtn.style.display = '';
       quickActionSaveBtn.textContent   = 'Guardar';
       quickActionSaveBtn.disabled      = false;
-      if (actionKey === 'asignar-tarea') cargarJudicantesPorAsignar();
+      if (actionKey === 'asignar-tarea') {
+        cargarJudicantesPorAsignar();
+        setTimeout(qaInitDocSection, 0);
+      }
     } else {
       quickActionLink.style.display    = '';
       quickActionSaveBtn.style.display = 'none';
@@ -651,11 +809,30 @@ if (helpBtn) {
       if (actionKey === 'asignar-tarea') {
         const desc = (document.getElementById('qfDesc')?.value || '').trim();
         if (!desc) { alert('La descripción es requerida'); return; }
+
+        let docAdmin = qaDriveItem || null;
+        if (!docAdmin && qaLocalFile) {
+          quickActionSaveBtn.textContent = 'Subiendo documento…';
+          const form = new FormData();
+          form.append('file', qaLocalFile);
+          const upRes = await fetch('/api/documentos/upload', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${getToken()}` },
+            body: form
+          });
+          const upBody = await upRes.json().catch(() => ({}));
+          if (!upRes.ok) throw new Error(upBody.error || 'Error al subir el documento');
+          const driveId = upBody.data?.drive?.id || upBody.data?.metadata?.driveFileId;
+          docAdmin = { driveFileId: driveId, nombre: qaLocalFile.name, mimeType: qaLocalFile.type };
+          quickActionSaveBtn.textContent = 'Guardando…';
+        }
+
         const body = {
           descripcion:  desc,
           prioridad:    document.getElementById('qfPrio')?.value || 'media',
           asignado_a:   document.getElementById('qfAsignado')?.value || undefined,
-          fecha_limite: document.getElementById('qfFecha')?.value   || undefined
+          fecha_limite: document.getElementById('qfFecha')?.value   || undefined,
+          ...(docAdmin ? { documento_admin: docAdmin } : {})
         };
         if (!body.asignado_a)  delete body.asignado_a;
         if (!body.fecha_limite) delete body.fecha_limite;
