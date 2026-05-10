@@ -8,6 +8,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/styles/perfil.css"/>
   <link rel="stylesheet" href="../assets/styles/animations.css"/>
+  <style>
+    .qcard-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:4px 0 8px}
+    .qcard{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1.5px solid rgba(35,76,88,.12);border-radius:14px;background:#fff;cursor:pointer;transition:all .18s;text-align:left;width:100%}
+    .qcard:hover{border-color:#234c58;background:rgba(35,76,88,.04);transform:translateY(-1px);box-shadow:0 4px 14px rgba(35,76,88,.1)}
+    .qcard-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .qcard-icon.blue{background:rgba(66,133,244,.12);color:#4285f4}
+    .qcard-icon.teal{background:rgba(35,76,88,.12);color:#234c58}
+    .qcard-icon.green{background:rgba(52,168,83,.12);color:#34a853}
+    .qcard-icon.amber{background:rgba(245,158,11,.15);color:#d97706}
+    .qcard-text{flex:1;min-width:0}
+    .qcard-title{font-weight:700;font-size:.9rem;color:#1a2f36}
+    .qcard-desc{font-size:.77rem;color:#5a7a84;margin-top:2px}
+    .qcard-arr{color:#9ab0b8;font-size:.8rem;flex-shrink:0}
+    @media(max-width:540px){.qcard-grid{grid-template-columns:1fr}}
+    .qa-form{display:grid;gap:14px;padding:4px 0}
+    .qa-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .qa-field{display:flex;flex-direction:column;gap:5px}
+    .qa-label{font-size:.78rem;font-weight:600;color:#234c58}
+    .qa-input{padding:8px 12px;border:1.5px solid rgba(35,76,88,.2);border-radius:8px;font-size:.87rem;background:#fff;color:#1a2f36;transition:border-color .15s;font-family:inherit;width:100%;box-sizing:border-box}
+    .qa-input:focus{outline:none;border-color:#234c58}
+    textarea.qa-input{resize:vertical;min-height:68px}
+    @media(max-width:480px){.qa-row{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
 
@@ -171,15 +194,39 @@
 
       <div class="panel">
         <div class="panel-head"><span class="panel-head-title">Accesos Rápidos</span></div>
-        <div class="quick-wrap">
-          <div class="quick-row">
-            <a href="#" class="quick-btn" data-quick="nuevo-usuario"><span><i class="fas fa-plus quick-icon"></i>Nuevo Usuario</span><i class="fas fa-chevron-right"></i></a>
-            <a href="#" class="quick-btn" data-quick="asignar-tarea"><span><i class="fas fa-plus quick-icon"></i>Asignar Tarea</span><i class="fas fa-chevron-right"></i></a>
-          </div>
-          <div class="quick-row">
-            <button class="quick-btn-solid teal" data-quick="asignar-tarea" type="button"><i class="fas fa-plus"></i> Asignar Tarea</button>
-            <button class="quick-btn-solid green" data-quick="agregar-documento" type="button"><i class="fas fa-plus"></i> Agregar Documento</button>
-          </div>
+        <div class="qcard-grid">
+          <button class="qcard" data-quick="nuevo-usuario" type="button">
+            <div class="qcard-icon blue"><i class="fas fa-user-plus"></i></div>
+            <div class="qcard-text">
+              <div class="qcard-title">Nuevo Usuario</div>
+              <div class="qcard-desc">Registrar nuevo perfil</div>
+            </div>
+            <i class="fas fa-chevron-right qcard-arr"></i>
+          </button>
+          <button class="qcard" data-quick="asignar-tarea" type="button">
+            <div class="qcard-icon teal"><i class="fas fa-tasks"></i></div>
+            <div class="qcard-text">
+              <div class="qcard-title">Asignar Tarea</div>
+              <div class="qcard-desc">Crear y asignar al judicante</div>
+            </div>
+            <i class="fas fa-chevron-right qcard-arr"></i>
+          </button>
+          <button class="qcard" data-quick="agendar-evento" type="button">
+            <div class="qcard-icon green"><i class="fas fa-calendar-plus"></i></div>
+            <div class="qcard-text">
+              <div class="qcard-title">Agendar Evento</div>
+              <div class="qcard-desc">Nuevo evento en agenda</div>
+            </div>
+            <i class="fas fa-chevron-right qcard-arr"></i>
+          </button>
+          <button class="qcard" data-quick="agregar-documento" type="button">
+            <div class="qcard-icon amber"><i class="fas fa-file-upload"></i></div>
+            <div class="qcard-text">
+              <div class="qcard-title">Agregar Documento</div>
+              <div class="qcard-desc">Subir archivo al expediente</div>
+            </div>
+            <i class="fas fa-chevron-right qcard-arr"></i>
+          </button>
         </div>
       </div>
 
@@ -320,6 +367,7 @@
     <div class="session-actions">
       <button type="button" class="session-btn cancel" id="quickActionCancelBtn">Cerrar</button>
       <a href="#" class="session-btn confirm quick-action-link" id="quickActionLink">Continuar</a>
+      <button type="button" class="session-btn confirm" id="quickActionSaveBtn" style="display:none">Guardar</button>
     </div>
   </div>
 </div>
@@ -441,58 +489,149 @@ if (helpBtn) {
     });
   });
 
+  function getToken() { try { return localStorage.getItem('token') || ''; } catch(_) { return ''; } }
+  function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
   const quickConfig = {
     'nuevo-usuario': {
+      type: 'link',
       title: 'Nuevo Usuario',
-      subtitle: 'Registra un nuevo perfil con permisos iniciales.',
-      body: '<ul><li>Ingresa nombre, correo y rol.</li><li>Define permisos base del usuario.</li><li>Confirma y activa la cuenta.</li></ul>',
-      ctaLabel: 'Ir a contacto',
-      ctaHref: 'contacto.html'
+      subtitle: 'Registra un nuevo perfil en el sistema.',
+      body: '<ul style="padding-left:18px;color:#334e55;line-height:1.9;margin:0"><li>Ingresa nombre, correo y rol.</li><li>Define el tipo de acceso.</li><li>Activa la cuenta inmediatamente.</li></ul>',
+      ctaLabel: 'Ir a Usuarios',
+      ctaHref: '/api/usuarios.html'
     },
     'asignar-tarea': {
+      type: 'form',
       title: 'Asignar Tarea',
-      subtitle: 'Crea una tarea y asigna responsable.',
-      body: '<ul><li>Selecciona el responsable.</li><li>Define prioridad y fecha límite.</li><li>Publica para seguimiento.</li></ul>',
-      ctaLabel: 'Ver servicios',
-      ctaHref: 'servicios.html'
+      subtitle: 'Crea una tarea y asigna un responsable.',
+      body: `<div class="qa-form">
+        <div class="qa-field">
+          <label class="qa-label">Descripción *</label>
+          <textarea id="qfDesc" class="qa-input" rows="2" placeholder="Describe la tarea…" maxlength="500"></textarea>
+        </div>
+        <div class="qa-row">
+          <div class="qa-field">
+            <label class="qa-label">Prioridad</label>
+            <select id="qfPrio" class="qa-input">
+              <option value="media">Media</option>
+              <option value="alta">Alta</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+          <div class="qa-field">
+            <label class="qa-label">Fecha límite</label>
+            <input id="qfFecha" type="date" class="qa-input"/>
+          </div>
+        </div>
+        <div class="qa-field">
+          <label class="qa-label">Asignar a (Judicante)</label>
+          <select id="qfAsignado" class="qa-input">
+            <option value="">— Cargando… —</option>
+          </select>
+        </div>
+      </div>`
+    },
+    'agendar-evento': {
+      type: 'form',
+      title: 'Agendar Evento',
+      subtitle: 'Registra un nuevo evento en la agenda.',
+      body: `<div class="qa-form">
+        <div class="qa-field">
+          <label class="qa-label">Título *</label>
+          <input id="qfTitulo" type="text" class="qa-input" placeholder="Nombre del evento…" maxlength="200"/>
+        </div>
+        <div class="qa-row">
+          <div class="qa-field">
+            <label class="qa-label">Tipo</label>
+            <select id="qfTipo" class="qa-input">
+              <option value="audiencia">Audiencia</option>
+              <option value="reunion">Reunión</option>
+              <option value="vencimiento">Vencimiento</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div class="qa-field">
+            <label class="qa-label">Fecha *</label>
+            <input id="qfFechaEv" type="date" class="qa-input"/>
+          </div>
+        </div>
+        <div class="qa-row">
+          <div class="qa-field">
+            <label class="qa-label">Hora</label>
+            <input id="qfHora" type="time" class="qa-input"/>
+          </div>
+          <div class="qa-field">
+            <label class="qa-label">Lugar</label>
+            <input id="qfLugar" type="text" class="qa-input" placeholder="Ubicación…" maxlength="200"/>
+          </div>
+        </div>
+      </div>`
     },
     'agregar-documento': {
+      type: 'link',
       title: 'Agregar Documento',
-      subtitle: 'Carga documentos para expediente.',
-      body: '<ul><li>Adjunta archivo en PDF o DOCX.</li><li>Asocia al caso correspondiente.</li><li>Comparte con el equipo.</li></ul>',
-      ctaLabel: 'Subir ahora',
-      ctaHref: 'contacto.html'
+      subtitle: 'Carga documentos para el expediente.',
+      body: '<ul style="padding-left:18px;color:#334e55;line-height:1.9;margin:0"><li>Adjunta archivo en PDF o DOCX.</li><li>Asocia al caso correspondiente.</li><li>Comparte con el equipo.</li></ul>',
+      ctaLabel: 'Ir a Documentos',
+      ctaHref: '/api/documentos.html'
     },
     'subir-documento': {
+      type: 'link',
       title: 'Subir Documento',
       subtitle: 'Carga de archivo para revisión.',
-      body: '<ul><li>Selecciona documento del caso.</li><li>Agrega una nota breve.</li><li>Envía a revisión del administrador.</li></ul>',
-      ctaLabel: 'Abrir carga',
-      ctaHref: 'contacto.html'
+      body: '<ul style="padding-left:18px;color:#334e55;line-height:1.9;margin:0"><li>Selecciona documento del caso.</li><li>Agrega una nota breve.</li><li>Envía a revisión del administrador.</li></ul>',
+      ctaLabel: 'Ir a Documentos',
+      ctaHref: '/api/documentos.html'
     },
   };
 
-  const quickButtons = document.querySelectorAll('[data-quick]');
+  const quickButtons       = document.querySelectorAll('[data-quick]');
   const quickActionOverlay = document.getElementById('quickActionOverlay');
-  const quickActionTitle = document.getElementById('quickActionTitle');
-  const quickActionSub = document.getElementById('quickActionSub');
-  const quickActionBody = document.getElementById('quickActionBody');
-  const quickActionLink = document.getElementById('quickActionLink');
-  const quickActionCloseBtn = document.getElementById('quickActionCloseBtn');
+  const quickActionTitle   = document.getElementById('quickActionTitle');
+  const quickActionSub     = document.getElementById('quickActionSub');
+  const quickActionBody    = document.getElementById('quickActionBody');
+  const quickActionLink    = document.getElementById('quickActionLink');
+  const quickActionSaveBtn = document.getElementById('quickActionSaveBtn');
+  const quickActionCloseBtn  = document.getElementById('quickActionCloseBtn');
   const quickActionCancelBtn = document.getElementById('quickActionCancelBtn');
+  let quickCurrentAction = null;
+
+  async function cargarJudicantesPorAsignar() {
+    try {
+      const res = await fetch('/tasks/judicantes', { headers: { Authorization: `Bearer ${getToken()}` } });
+      const data = await res.json().catch(() => ({}));
+      const sel = document.getElementById('qfAsignado');
+      if (!sel) return;
+      const lista = data.data || data || [];
+      sel.innerHTML = '<option value="">— Sin asignar —</option>' +
+        lista.map(j => `<option value="${escHtml(j._id||j.id)}">${escHtml((j.nombre||'')+' '+(j.apellido||''))}</option>`).join('');
+    } catch (_) {
+      const sel = document.getElementById('qfAsignado');
+      if (sel) sel.innerHTML = '<option value="">— Sin asignar —</option>';
+    }
+  }
 
   function openQuickAction(actionKey) {
     const config = quickConfig[actionKey];
-    if (!config) {
-      return;
-    }
-
+    if (!config) return;
+    quickCurrentAction = actionKey;
     quickActionTitle.textContent = config.title;
-    quickActionSub.textContent = config.subtitle;
-    quickActionBody.innerHTML = config.body;
-    quickActionLink.textContent = config.ctaLabel;
-    quickActionLink.setAttribute('href', config.ctaHref);
+    quickActionSub.textContent   = config.subtitle;
+    quickActionBody.innerHTML    = config.body;
 
+    if (config.type === 'form') {
+      quickActionLink.style.display    = 'none';
+      quickActionSaveBtn.style.display = '';
+      quickActionSaveBtn.textContent   = 'Guardar';
+      quickActionSaveBtn.disabled      = false;
+      if (actionKey === 'asignar-tarea') cargarJudicantesPorAsignar();
+    } else {
+      quickActionLink.style.display    = '';
+      quickActionSaveBtn.style.display = 'none';
+      quickActionLink.textContent = config.ctaLabel;
+      quickActionLink.setAttribute('href', config.ctaHref);
+    }
     quickActionOverlay.classList.add('active');
     quickActionOverlay.setAttribute('aria-hidden', 'false');
   }
@@ -500,6 +639,64 @@ if (helpBtn) {
   function closeQuickAction() {
     quickActionOverlay.classList.remove('active');
     quickActionOverlay.setAttribute('aria-hidden', 'true');
+    quickCurrentAction = null;
+  }
+
+  async function submitQuickAction() {
+    const actionKey = quickCurrentAction;
+    if (!actionKey) return;
+    quickActionSaveBtn.disabled    = true;
+    quickActionSaveBtn.textContent = 'Guardando…';
+    try {
+      if (actionKey === 'asignar-tarea') {
+        const desc = (document.getElementById('qfDesc')?.value || '').trim();
+        if (!desc) { alert('La descripción es requerida'); return; }
+        const body = {
+          descripcion:  desc,
+          prioridad:    document.getElementById('qfPrio')?.value || 'media',
+          asignado_a:   document.getElementById('qfAsignado')?.value || undefined,
+          fecha_limite: document.getElementById('qfFecha')?.value   || undefined
+        };
+        if (!body.asignado_a)  delete body.asignado_a;
+        if (!body.fecha_limite) delete body.fecha_limite;
+        const res = await fetch('/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.mensaje || e?.error || 'Error al crear la tarea'); }
+        closeQuickAction();
+        alert('Tarea creada correctamente.');
+
+      } else if (actionKey === 'agendar-evento') {
+        const titulo = (document.getElementById('qfTitulo')?.value || '').trim();
+        const fecha  = document.getElementById('qfFechaEv')?.value;
+        if (!titulo) { alert('El título es requerido'); return; }
+        if (!fecha)  { alert('La fecha es requerida');  return; }
+        const body = {
+          titulo,
+          tipo:  document.getElementById('qfTipo')?.value  || 'otro',
+          fecha,
+          hora:  document.getElementById('qfHora')?.value  || undefined,
+          lugar: (document.getElementById('qfLugar')?.value || '').trim() || undefined
+        };
+        if (!body.hora)  delete body.hora;
+        if (!body.lugar) delete body.lugar;
+        const res = await fetch('/agenda/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.mensaje || e?.error || 'Error al crear el evento'); }
+        closeQuickAction();
+        alert('Evento agendado correctamente.');
+      }
+    } catch (err) {
+      alert(err.message || 'Error inesperado');
+    } finally {
+      quickActionSaveBtn.disabled    = false;
+      quickActionSaveBtn.textContent = 'Guardar';
+    }
   }
 
   quickButtons.forEach((button) => {
@@ -509,12 +706,11 @@ if (helpBtn) {
     });
   });
 
+  quickActionSaveBtn.addEventListener('click', submitQuickAction);
   quickActionCloseBtn.addEventListener('click', closeQuickAction);
   quickActionCancelBtn.addEventListener('click', closeQuickAction);
   quickActionOverlay.addEventListener('click', (event) => {
-    if (event.target === quickActionOverlay) {
-      closeQuickAction();
-    }
+    if (event.target === quickActionOverlay) closeQuickAction();
   });
 
   const logoutButtons = document.querySelectorAll('.logout-btn');
