@@ -617,12 +617,28 @@ if (helpBtn) {
       </div>`
     },
     'agregar-documento': {
-      type: 'link',
+      type: 'form',
       title: 'Agregar Documento',
-      subtitle: 'Carga documentos para el expediente.',
-      body: '<ul style="padding-left:18px;color:#334e55;line-height:1.9;margin:0"><li>Adjunta archivo en PDF o DOCX.</li><li>Asocia al caso correspondiente.</li><li>Comparte con el equipo.</li></ul>',
-      ctaLabel: 'Ir a Documentos',
-      ctaHref: '/api/documentos.html'
+      subtitle: 'Sube un archivo desde tu PC y elige la carpeta de destino.',
+      body: `<div class="qa-form">
+        <div class="qa-field">
+          <label class="qa-label">Archivo *</label>
+          <input id="qdFileInput" type="file" class="qa-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip"/>
+          <div id="qdFilePreview" style="display:none" class="qa-doc-preview">
+            <i class="fas fa-file-alt" style="flex-shrink:0"></i>
+            <span id="qdFileName" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1"></span>
+            <button class="qa-doc-remove" type="button" id="qdFileRemove" title="Quitar"><i class="fas fa-xmark"></i></button>
+          </div>
+        </div>
+        <div class="qa-field">
+          <label class="qa-label">Guardar en</label>
+          <div class="qa-drive-bc" id="qdFolderBc"></div>
+          <div class="qa-drive-list" id="qdFolderList">
+            <div style="text-align:center;color:#5a7a84;font-size:.82rem;padding:14px"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+          <p style="font-size:.72rem;color:#5a7a84;margin:4px 0 0"><i class="fas fa-info-circle"></i> Navega a la carpeta donde deseas guardar el archivo.</p>
+        </div>
+      </div>`
     },
     'subir-documento': {
       type: 'link',
@@ -765,6 +781,81 @@ if (helpBtn) {
     if (removeBtn) removeBtn.onclick = qaClearDoc;
   }
 
+  /* ─── Agregar Documento: folder picker ──────────────────────────────────── */
+  let qdDocFolderStack = [];
+
+  function qdRenderFolderBc() {
+    const bc = document.getElementById('qdFolderBc');
+    if (!bc) return;
+    bc.innerHTML = qdDocFolderStack.map((f, i) => {
+      const isLast = i === qdDocFolderStack.length - 1;
+      return isLast
+        ? `<b>${escHtml(f.name)}</b>`
+        : `<span class="qbc-link" data-bcidx="${i}">${escHtml(f.name)}</span> › `;
+    }).join('');
+    bc.querySelectorAll('.qbc-link').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.dataset.bcidx);
+        qdDocFolderStack = qdDocFolderStack.slice(0, idx + 1);
+        qdLoadFolders(qdDocFolderStack[qdDocFolderStack.length - 1].id);
+      });
+    });
+  }
+
+  async function qdLoadFolders(folderId) {
+    const list = document.getElementById('qdFolderList');
+    if (!list) return;
+    list.innerHTML = '<div style="text-align:center;color:#5a7a84;font-size:.82rem;padding:14px"><i class="fas fa-spinner fa-spin"></i></div>';
+    qdRenderFolderBc();
+    const url = folderId ? `/api/documentos/files/${encodeURIComponent(folderId)}` : '/api/documentos/files';
+    try {
+      const res  = await fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } });
+      const data = await res.json();
+      if (!folderId && data.folderId && qdDocFolderStack.length === 1) {
+        qdDocFolderStack[0] = { id: data.folderId, name: data.folderName || 'Documentos' };
+        qdRenderFolderBc();
+      }
+      const folders = (data.data || []).filter(f => f.mimeType === 'application/vnd.google-apps.folder');
+      if (!folders.length) {
+        list.innerHTML = '<div style="text-align:center;color:#5a7a84;font-size:.82rem;padding:14px">No hay subcarpetas aquí.</div>';
+        return;
+      }
+      list.innerHTML = folders.map(f =>
+        `<div class="qa-drive-item" data-id="${escHtml(f.id)}" data-name="${escHtml(f.name||'')}">
+          <i class="fas fa-folder" style="color:#f59e0b;width:16px;flex-shrink:0"></i>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(f.name||'Sin nombre')}</span>
+          <i class="fas fa-chevron-right" style="color:#9ab0b8;font-size:.7rem"></i>
+        </div>`
+      ).join('');
+      list.onclick = (e) => {
+        const item = e.target.closest('.qa-drive-item');
+        if (!item) return;
+        qdDocFolderStack.push({ id: item.dataset.id, name: item.dataset.name });
+        qdLoadFolders(item.dataset.id);
+      };
+    } catch (_) {
+      list.innerHTML = '<div style="text-align:center;color:#c0392b;font-size:.82rem;padding:14px"><i class="fas fa-exclamation-triangle"></i> Error al cargar carpetas.</div>';
+    }
+  }
+
+  function qdInitFolderPicker() {
+    qdDocFolderStack = [{ id: null, name: 'Documentos' }];
+    qdLoadFolders(null);
+    const fi        = document.getElementById('qdFileInput');
+    const preview   = document.getElementById('qdFilePreview');
+    const nameSpan  = document.getElementById('qdFileName');
+    const removeBtn = document.getElementById('qdFileRemove');
+    if (fi) fi.onchange = () => {
+      const f = fi.files[0];
+      if (f) { if (nameSpan) nameSpan.textContent = f.name; if (preview) preview.style.display = ''; }
+      else   { if (preview) preview.style.display = 'none'; }
+    };
+    if (removeBtn) removeBtn.onclick = () => {
+      if (fi) fi.value = '';
+      if (preview) preview.style.display = 'none';
+    };
+  }
+
   async function cargarJudicantesPorAsignar() {
     try {
       const res = await fetch('/tasks/judicantes', { headers: { Authorization: `Bearer ${getToken()}` } });
@@ -800,6 +891,8 @@ if (helpBtn) {
       if (actionKey === 'asignar-tarea') {
         cargarJudicantesPorAsignar();
         setTimeout(qaInitDocSection, 0);
+      } else if (actionKey === 'agregar-documento') {
+        setTimeout(qdInitFolderPicker, 0);
       }
     } else {
       quickActionLink.style.display    = '';
@@ -888,6 +981,22 @@ if (helpBtn) {
         if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.mensaje || e?.error || 'Error al crear el evento'); }
         closeQuickAction();
         alert('Evento agendado correctamente.');
+
+      } else if (actionKey === 'agregar-documento') {
+        const fi = document.getElementById('qdFileInput');
+        if (!fi?.files?.[0]) { alert('Selecciona un archivo primero'); return; }
+        const folderId = qdDocFolderStack[qdDocFolderStack.length - 1]?.id || null;
+        const fd = new FormData();
+        fd.append('file', fi.files[0]);
+        if (folderId) fd.append('folderId', folderId);
+        const res = await fetch('/api/documentos/upload', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${getToken()}` },
+          body: fd
+        });
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error || 'Error al subir el archivo'); }
+        closeQuickAction();
+        alert('Documento subido correctamente.');
       }
     } catch (err) {
       alert(err.message || 'Error inesperado');
