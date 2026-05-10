@@ -96,10 +96,13 @@ const listarContenido = async (req, res) => {
       }
     }
 
-    const items = await driveService.listarContenidoCarpeta(folderId);
+    const [items, meta] = await Promise.all([
+      driveService.listarContenidoCarpeta(folderId),
+      driveService.obtenerMetadata(folderId).catch(() => null)
+    ]);
 
     console.log(`[Folders] Listado de carpeta ${folderId}: ${items.length} items`);
-    res.json({ data: items, folderId });
+    res.json({ data: items, folderId, folderName: meta?.name || null });
   } catch (err) {
     console.error('[Folders] Error al listar contenido:', err.message);
     res.status(500).json({ error: 'Error al listar la carpeta', detalle: err.message });
