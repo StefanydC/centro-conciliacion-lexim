@@ -356,11 +356,23 @@
 
       <div class="panel">
         <div class="panel-head"><span class="panel-head-title">Accesos Rápidos</span></div>
-        <div class="quick-wrap">
-          <div class="quick-row">
-            <button class="quick-btn-solid teal" data-quick="subir-documento" type="button"><i class="fas fa-upload"></i> Subir Documento</button>
-            <a class="quick-btn-solid green" href="conciliaciones.html"><i class="fas fa-handshake"></i> Conciliaciones</a>
-          </div>
+        <div class="qcard-grid">
+          <button class="qcard" data-quick="subir-documento" type="button">
+            <div class="qcard-icon teal"><i class="fas fa-file-upload"></i></div>
+            <div class="qcard-text">
+              <div class="qcard-title">Subir Documento</div>
+              <div class="qcard-desc">Cargar archivo a tu carpeta</div>
+            </div>
+            <i class="fas fa-chevron-right qcard-arr"></i>
+          </button>
+          <a class="qcard" href="conciliaciones.html">
+            <div class="qcard-icon green"><i class="fas fa-handshake"></i></div>
+            <div class="qcard-text">
+              <div class="qcard-title">Conciliaciones</div>
+              <div class="qcard-desc">Ver mis procesos</div>
+            </div>
+            <i class="fas fa-chevron-right qcard-arr"></i>
+          </a>
         </div>
       </div>
 
@@ -677,12 +689,28 @@ if (helpBtn) {
       </div>`
     },
     'subir-documento': {
-      type: 'link',
+      type: 'form',
       title: 'Subir Documento',
-      subtitle: 'Carga de archivo para revisión.',
-      body: '<ul style="padding-left:18px;color:#334e55;line-height:1.9;margin:0"><li>Selecciona documento del caso.</li><li>Agrega una nota breve.</li><li>Envía a revisión del administrador.</li></ul>',
-      ctaLabel: 'Ir a Documentos',
-      ctaHref: '/api/documentos.html'
+      subtitle: 'Carga un archivo a tu carpeta de judicante.',
+      body: `<div class="qa-form">
+        <div class="qa-field">
+          <label class="qa-label">Archivo *</label>
+          <input id="qdFileInput" type="file" class="qa-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.zip"/>
+          <div id="qdFilePreview" style="display:none" class="qa-doc-preview">
+            <i class="fas fa-file-alt" style="flex-shrink:0"></i>
+            <span id="qdFileName" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1"></span>
+            <button class="qa-doc-remove" type="button" id="qdFileRemove" title="Quitar"><i class="fas fa-xmark"></i></button>
+          </div>
+        </div>
+        <div class="qa-field">
+          <label class="qa-label">Guardar en</label>
+          <div class="qa-drive-bc" id="qdFolderBc"></div>
+          <div class="qa-drive-list" id="qdFolderList">
+            <div style="text-align:center;color:#5a7a84;font-size:.82rem;padding:14px"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+          <p style="font-size:.72rem;color:#5a7a84;margin:4px 0 0"><i class="fas fa-info-circle"></i> Navega a la subcarpeta donde deseas guardar el archivo.</p>
+        </div>
+      </div>`
     },
   };
 
@@ -927,7 +955,7 @@ if (helpBtn) {
       if (actionKey === 'asignar-tarea') {
         cargarJudicantesPorAsignar();
         setTimeout(qaInitDocSection, 0);
-      } else if (actionKey === 'agregar-documento') {
+      } else if (actionKey === 'agregar-documento' || actionKey === 'subir-documento') {
         setTimeout(qdInitFolderPicker, 0);
       }
     } else {
@@ -1049,7 +1077,7 @@ if (helpBtn) {
         closeQuickAction();
         alert('Evento agendado correctamente.');
 
-      } else if (actionKey === 'agregar-documento') {
+      } else if (actionKey === 'agregar-documento' || actionKey === 'subir-documento') {
         const fi = document.getElementById('qdFileInput');
         if (!fi?.files?.[0]) { alert('Selecciona un archivo primero'); return; }
         const folderId = qdDocFolderStack[qdDocFolderStack.length - 1]?.id || null;
