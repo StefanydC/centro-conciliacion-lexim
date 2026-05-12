@@ -1,10 +1,10 @@
 :root {
   --cb-primary: #234c58;
-  --cb-primary-dark: #30626d;
-  --cb-secondary:  #488796;
+  --cb-primary-dark: #163743;
+  --cb-secondary: #5dc6bc;
   --cb-bg-gradient-start: #ffffff;
-  --cb-bg-gradient-mid: #e2f7f5;
-  --cb-bg-gradient-end: #b8ede9;
+  --cb-bg-gradient-mid: #ffffff;
+  --cb-bg-gradient-end: #ffffff;
   --cb-bubble-bot: #ffffff;
   --cb-bubble-user: #234c58;
   --cb-input-bg: rgba(255,255,255,0.92);
