@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../assets/styles/inicio.css" />
   <link rel="stylesheet" href="../assets/styles/servicios.css" />
   <link rel="stylesheet" href="../assets/styles/contacto.css" />
+  <link rel="stylesheet" href="../assets/styles/chatbot.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
@@ -67,6 +68,9 @@
               target="_blank">
                 <i class="fas fa-envelope"></i> Radicar solicitud
             </a>
+            <div class="footer-privacidad">
+              <a href="politica-privacidad.html" target="_blank">Política de Privacidad</a>
+            </div>
 
             <div class="mini-metrics">
               <div class="metric">
@@ -89,35 +93,88 @@
           </div>
 
           <!-- Derecha: Chatbot -->
-          <div class="panel chatbox animated-reveal">
+          <div class="chatbox">
             <div class="chat-head">
-              <div class="title">Asistente IA (Orientación general)</div>
-              <div class="hint">FAQ + requisitos</div>
-            </div>
-
-            <div class="chat-body" id="chatBodyB">
-              <div class="msg bot">Estoy listo para ayudarte con dudas comunes antes de radicar tu solicitud.</div>
-              <div class="chat-suggestions">
-                <button class="suggest" type="button">¿Qué asuntos se pueden conciliar?</button>
-                <button class="suggest" type="button">¿Qué pasa si la otra parte no asiste?</button>
-                <button class="suggest" type="button">¿Cuánto demora?</button>
+              <div class="avatar-wrap">
+                <div class="avatar">
+                  <img src="../assets/images/chatbot-avatar.png" alt="Bot Lexim" />
+                </div>
+                <div class="online-dot"></div>
+              </div>
+              <div class="bot-info">
+                <div class="bot-name">Chatbot LEXI</div>
+                <div class="bot-status">
+                  <div class="dot"></div>
+                  <span>Online</span>
+                </div>
               </div>
             </div>
-
-            <div class="chat-input">
-              <input id="chatInputB" type="text" placeholder="Escribe tu pregunta..." />
-              <button id="chatSendB" type="button">Enviar</button>
+            <div class="chat-body" id="chatBodyB">
+              <div class="msg-row">
+                <div class="msg bot">¡Hola, soy Lexi! 👋 ¿Cómo puedo ayudarte hoy?</div>
+              </div>
+              <div class="chat-suggestions">
+                <button class="suggest">¿Qué asuntos se pueden conciliar?</button>
+                <button class="suggest">¿Qué pasa si la otra parte no asiste?</button>
+                <button class="suggest">¿Cuánto demora?</button>
+              </div>
             </div>
-
+            <div class="chat-input">
+              <div class="chat-input-row">
+                <input id="chatInputB" type="text" placeholder="Escribe un mensaje..." />
+                <button id="chatSendB" type="button"><i class="fas fa-paper-plane"></i></button>
+              </div>
+            </div>
             <p class="legal-note">
-              Para casos complejos o urgentes, se recomienda contacto directo con el Centro.
+              Este chat es solo orientativo. Consulta siempre con un profesional.
             </p>
-          </div>
+            </div>
         </div>
+        
+        <!-- Sección Ubicación -->
+        <div class="contacto-ubicacion-wrap">
+            <div class="contacto-info">
+              <div class="info-item">
+                <span class="info-label"><i class="fas fa-map-marker-alt"></i> UBICACIÓN EXACTA</span>
+                <div class="info-text">Cra. 21 #15-24, Barrio Cooperativo<br>Acacías, Meta, Colombia</div>
+              </div>
+              <div class="info-item">
+                <span class="info-label"><i class="fas fa-phone-alt"></i> TELÉFONO</span>
+                <div class="info-text">+57 311 800 6270</div>
+              </div>
+              <div class="info-item">
+                <span class="info-label"><i class="fas fa-clock"></i> HORARIO</span>
+                <div class="info-text">
+                  Lun–Vie 7AM–6PM<br>
+                  Sáb 7AM–4PM<br>
+                  Fest 8AM–12M
+                </div>
+              </div>
+              <a
+                class="btn btn-primary"
+                href="https://www.google.com/maps?q=Cra+21+%2315-24,+Acacías,+Meta,+Colombia"
+                target="_blank"
+              >
+                <i class="fas fa-location-arrow"></i> Abrir en Google Maps
+              </a>
+            </div>
+            <div class="contacto-mapa">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d995.0437102152287!2d-73.7659814303801!3d3.984423237612805!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3e3952c4d79ab1%3A0xa5c713e4431944d!2zTm90YXLDrWEgw5puaWNhIGRlbCBDw61yY3VsbyBkZSBBY2Fjw61hcw!5e0!3m2!1ses!2sco!4v1778528656281!5m2!1ses!2sco"
+                width="100%"
+                height="350"
+                style="border:0; border-radius: 16px;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+          </div>
       </div>
     </section>
   </main>
 
+<!-- Sección Footer -->
   <footer class="main-footer">
     <div class="container">
       <div class="footer-content">
