@@ -907,6 +907,17 @@ function abrirItem(item) {
   }
 }
 
+async function obtenerBlobArchivo(item) {
+  const resp = await fetch(`/api/documentos/file/${item.id}?download=true`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    throw new Error(data.error || 'No se pudo abrir el archivo');
+  }
+  return resp.blob();
+}
+
 // ── MENÚ CONTEXTUAL ───────────────────────────────────────────────────
 function abrirCtxMenu(e, item) {
   ctxTarget = item;
@@ -938,7 +949,21 @@ function abrirPreview(item) {
   document.getElementById('btnPrint').onclick         = () => imprimirArchivo(item);
   document.getElementById('btnRename').onclick        = () => { cerrarOverlay('modalPreview'); abrirRenombrar(item); };
   document.getElementById('btnDeleteFromPreview').onclick = () => { cerrarOverlay('modalPreview'); abrirEliminar(item); };
-  document.getElementById('btnOpenExternal').onclick  = () => window.open(item.webViewLink, '_blank');
+  document.getElementById('btnOpenExternal').onclick  = async () => {
+    try {
+      const blob = await obtenerBlobArchivo(item);
+      const url = URL.createObjectURL(blob);
+      const win = window.open(url, '_blank');
+      if (!win) {
+        URL.revokeObjectURL(url);
+        toast('Permite ventanas emergentes para abrir el archivo', 'error');
+        return;
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      toast('Error al abrir: ' + err.message, 'error');
+    }
+  };
 
   document.getElementById('previewFooter').innerHTML = `
     <span class="preview-meta-item"><i class="fas fa-file"></i> <strong>${item.name}</strong></span>
@@ -949,17 +974,41 @@ function abrirPreview(item) {
   const noSupport = document.getElementById('previewNoSupport');
   iframe.style.display    = 'block';
   noSupport.style.display = 'none';
-  iframe.src = `https://drive.google.com/file/d/${item.id}/preview`;
-  iframe.onerror = () => { iframe.style.display = 'none'; noSupport.style.display = 'flex'; };
+
+  // Cargar desde API autenticada para evitar el prompt de permisos de Google Drive.
+  iframe.src = 'about:blank';
+  obtenerBlobArchivo(item)
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      iframe.dataset.objectUrl = url;
+      iframe.src = url;
+    })
+    .catch(err => {
+      iframe.style.display = 'none';
+      noSupport.style.display = 'flex';
+      toast('Vista previa no disponible: ' + err.message, 'error');
+    });
+
+  iframe.onerror = () => {
+    iframe.style.display = 'none';
+    noSupport.style.display = 'flex';
+  };
 
   abrirOverlay('modalPreview');
 }
 
-function descargarArchivo(item) {
-  const url = item.webContentLink || item.webViewLink;
-  if (!url) { toast('Enlace de descarga no disponible', 'error'); return; }
-  const a = document.createElement('a');
-  a.href = url; a.target = '_blank'; a.download = item.name; a.click();
+async function descargarArchivo(item) {
+  try {
+    const blob = await obtenerBlobArchivo(item);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = item.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  } catch (err) {
+    toast('Error al descargar: ' + err.message, 'error');
+  }
 }
 
 async function imprimirArchivo(item) {
@@ -988,8 +1037,14 @@ async function imprimirArchivo(item) {
 }
 
 document.getElementById('closePreview').addEventListener('click', () => {
+  const iframe = document.getElementById('previewIframe');
+  const objectUrl = iframe.dataset.objectUrl;
+  if (objectUrl) {
+    URL.revokeObjectURL(objectUrl);
+    delete iframe.dataset.objectUrl;
+  }
   cerrarOverlay('modalPreview');
-  document.getElementById('previewIframe').src = 'about:blank';
+  iframe.src = 'about:blank';
 });
 
 // ── MOVER ARCHIVO ─────────────────────────────────────────────────────
