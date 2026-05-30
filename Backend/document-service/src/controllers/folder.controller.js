@@ -8,6 +8,44 @@ function esJudicante(req) {
   return roles.includes('judicante');
 }
 
+function responderErrorDrive(res, err, mensajeBase) {
+  const msg = String(err?.message || '');
+  const status = Number(err?.status || err?.code || err?.response?.status || 0);
+
+  if (
+    err?.code === 'ENOENT' ||
+    /credenciales no encontradas|no such file|enoent|google_credentials_json/i.test(msg)
+  ) {
+    return res.status(503).json({
+      error: `${mensajeBase}: credenciales de Google Drive no configuradas`,
+      detalle: msg,
+    });
+  }
+
+  if (status === 401 || /invalid_grant|login required|unauthenticated/i.test(msg)) {
+    return res.status(503).json({
+      error: `${mensajeBase}: autenticacion de Google Drive invalida`,
+      detalle: msg,
+    });
+  }
+
+  if (status === 403 || /insufficient permissions|permission denied/i.test(msg)) {
+    return res.status(503).json({
+      error: `${mensajeBase}: permisos insuficientes en Google Drive`,
+      detalle: msg,
+    });
+  }
+
+  if (status === 404 || /file not found/i.test(msg)) {
+    return res.status(503).json({
+      error: `${mensajeBase}: carpeta de Drive no encontrada`,
+      detalle: msg,
+    });
+  }
+
+  return res.status(500).json({ error: mensajeBase, detalle: msg || 'Error desconocido' });
+}
+
 function carpetaJudicantes() {
   return env.FOLDER_ID_JUDICANTES || env.JUDICANTE_FOLDER_ID || '';
 }
@@ -105,7 +143,7 @@ const listarContenido = async (req, res) => {
     res.json({ data: items, folderId, folderName: meta?.name || null });
   } catch (err) {
     console.error('[Folders] Error al listar contenido:', err.message);
-    res.status(500).json({ error: 'Error al listar la carpeta', detalle: err.message });
+    return responderErrorDrive(res, err, 'Error al listar la carpeta');
   }
 };
 

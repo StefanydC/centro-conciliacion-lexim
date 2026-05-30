@@ -11,6 +11,18 @@ const { resolveService }                 = require('./src/utils/consulDiscovery'
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
+// Confiar en proxy (para que req.protocol / req.secure reflejen X-Forwarded-Proto)
+app.set('trust proxy', true);
+
+// Forzar redirección a HTTPS en producción o si se activa explícitamente
+if (process.env.FORCE_HTTPS === 'true' || process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    const proto = String(req.get('x-forwarded-proto') || req.protocol || '').toLowerCase();
+    if (proto === 'https' || req.secure) return next();
+    return res.redirect(301, 'https://' + req.get('host') + req.originalUrl);
+  });
+}
+
 // ─── URLs de microservicios (fallback si Consul no responde) ──────────────────
 const USER_AUTH_SERVICE_URL    = process.env.USER_AUTH_SERVICE_URL    || 'http://user-auth-service:3001';
 const CONCILIACION_SERVICE_URL = process.env.CONCILIACION_SERVICE_URL || 'http://conciliacion-service:3002';
