@@ -976,7 +976,21 @@ function abrirPreview(item) {
   noSupport.style.display = 'none';
 
   // Cargar desde API autenticada para evitar el prompt de permisos de Google Drive.
-  iframe.src = 'about:blank';
+iframe.src = 'about:blank';
+
+const OFFICE_MIMES = [
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/msword',
+  'application/vnd.ms-excel',
+];
+
+if (OFFICE_MIMES.includes(item.mimeType)) {
+  // Word y Excel: visor embebido de Google Drive (no descarga, no rompe conexión)
+  iframe.src = `https://drive.google.com/file/d/${item.id}/preview`;
+} else {
+  // PDF e imágenes: blob autenticado como antes
   obtenerBlobArchivo(item)
     .then(blob => {
       const url = URL.createObjectURL(blob);
@@ -988,6 +1002,7 @@ function abrirPreview(item) {
       noSupport.style.display = 'flex';
       toast('Vista previa no disponible: ' + err.message, 'error');
     });
+}
 
   iframe.onerror = () => {
     iframe.style.display = 'none';
