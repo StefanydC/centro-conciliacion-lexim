@@ -7,8 +7,10 @@
 const path = require('path');
 
 // Usa las dependencias del document-service (ya instaladas)
-const SERVICE_DIR = path.join(__dirname, '..', 'backend', 'document-service');
-require(path.join(SERVICE_DIR, 'node_modules', 'dotenv')).config();
+const SERVICE_DIR = path.join(__dirname, '..', 'document-service');
+require(path.join(SERVICE_DIR, 'node_modules', 'dotenv')).config({
+  path: path.join(__dirname, '..', '..', '.env')
+});
 const { google } = require(path.join(SERVICE_DIR, 'node_modules', 'googleapis'));
 const http  = require('http');
 const { URL } = require('url');
