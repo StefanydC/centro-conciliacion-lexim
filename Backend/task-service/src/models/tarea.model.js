@@ -77,4 +77,45 @@ const tareaSchema = new mongoose.Schema(
 tareaSchema.index({ estado: 1, creadoPor: 1 });
 tareaSchema.index({ prioridad: 1, asignadoA: 1 });
 
+// ═══════════════════════════════════════════════════════════════════════
+// MIGRACIÓN AUTOMÁTICA: CORRECCIÓN DE TAREAS VIEJAS (EVITA CASTERROR)
+// ═══════════════════════════════════════════════════════════════════════
+mongoose.connection.once("open", async () => {
+  try {
+    const TareaModel = mongoose.models.Tarea || mongoose.model("Tarea", tareaSchema, "tareas_v2");
+    
+    // Buscamos tareas donde los documentos NO sean arreglos todavía
+    const tareasViejas = await TareaModel.find({
+      $or: [
+        { documento_admin: { $not: { $type: "array" } } },
+        { documento_judicante: { $not: { $type: "array" } } }
+      ]
+    });
+
+    if (tareasViejas.length > 0) {
+      console.log(`[Migración] Se encontraron ${tareasViejas.length} tareas viejas para corregir.`);
+      
+      for (const tarea of tareasViejas) {
+        // Guardamos los valores viejos si existían como objetos
+        const docAdminViejo = tarea.documento_admin;
+        const docJudicanteViejo = tarea.documento_judicante;
+
+        // Si era un objeto con datos, lo metemos dentro de un arreglo; si no, dejamos arreglo vacío
+        tarea.documento_admin = (docAdminViejo && docAdminViejo.documento_id) ? [docAdminViejo] : [];
+        tarea.documento_judicante = (docJudicanteViejo && docJudicanteViejo.documento_id) ? [docJudicanteViejo] : [];
+        
+        // Desactivamos temporalmente la validación estricta para guardar el cambio estructural
+        tarea.markModified('documento_admin');
+        tarea.markModified('documento_judicante');
+        await tarea.save({ validateBeforeSave: false });
+      }
+      console.log("[Migración] ¡Todas las tareas viejas fueron actualizadas a arreglos con éxito!");
+    }
+  } catch (error) {
+    console.error("[Migración Error] No se pudieron migrar las tareas viejas:", error);
+  }
+});
+
+
+
 module.exports = mongoose.models.Tarea || mongoose.model("Tarea", tareaSchema, "tareas_v2");
