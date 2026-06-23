@@ -42,7 +42,7 @@ const tareaSchema = new mongoose.Schema(
     fechaVencimiento: {
       type: Date
     },
-    // Ley 1581 Art. 4 — retención: tareas operativas 5 años
+// Ley 1581 Art. 4 — retención: tareas operativas 5 años
     fecha_retencion_hasta: {
       type: Date,
       default: () => {
@@ -50,7 +50,23 @@ const tareaSchema = new mongoose.Schema(
         d.setFullYear(d.getFullYear() + 5);
         return d;
       }
-    }
+    },
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // NUEVOS CAMPOS: DECLARADOS COMO ARREGLOS PARA ADMITIR MÚLTIPLES ARCHIVOS
+    // ═══════════════════════════════════════════════════════════════════════
+    documento_admin: [{
+      documento_id: { type: String },
+      nombre: { type: String },
+      mimeType: { type: String },
+      fecha: { type: Date, default: Date.now }
+    }],
+    documento_judicante: [{
+      documento_id: { type: String },
+      nombre: { type: String },
+      mimeType: { type: String },
+      fecha: { type: Date, default: Date.now }
+    }]
   },
   {
     timestamps: true,

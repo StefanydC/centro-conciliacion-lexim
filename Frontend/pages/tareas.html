@@ -276,7 +276,8 @@
       <div id="panelLocal" style="display:none;margin-top:14px">
         <div class="form-group">
           <label>Archivo</label>
-          <input type="file" id="fileInput" style="border:1px solid rgba(35,76,88,.2);border-radius:10px;padding:8px 12px;font-family:var(--font-main);font-size:.82rem;background:#fafcfd;width:100%">
+          // se agrega para archivos multiples
+          <input type="file" id="fileInput" style="border:1px solid rgba(35,76,88,.2);border-radius:10px;padding:8px 12px;font-family:var(--font-main);font-size:.82rem;background:#fafcfd;width:100%" multiple>
         </div>
         <div class="upload-progress" id="uploadProgress" style="display:none">
           <div class="upload-bar-bg"><div class="upload-bar-fill" id="uploadBarFill" style="width:0%"></div></div>
@@ -1273,18 +1274,43 @@ document.getElementById('fileInput').addEventListener('change', () => {
 // ═══════════════════════════════════════════════════════════════════════
 //  CONFIRMAR UPLOAD
 // ═══════════════════════════════════════════════════════════════════════
+
 document.getElementById('btnConfirmUpload').addEventListener('click', async () => {
   if (uploadModoCrear) {
     // Modo crear tarea: guardar selección y volver al modal de creación
     if (uploadOpcion === 'local') {
-      createLocalFile  = document.getElementById('fileInput').files[0];
-      createDocPending = null;
-      mostrarDocEnCreateModal(createLocalFile.name, formatBytes(createLocalFile.size));
+      const filesList = document.getElementById('fileInput').files;
+      if (!filesList || filesList.length === 0) return;
+      
+      // Creamos un arreglo global temporal si no existe para acumular las cargas locales
+      if (!window.createLocalFilesStack) window.createLocalFilesStack = [];
+      
+      // Acumulamos todos los archivos seleccionados sin borrar los anteriores
+      for (let i = 0; i < filesList.length; i++) {
+        window.createLocalFilesStack.push(filesList[i]);
+      }
+      
+      // Juntamos los nombres para mostrarlos todos en la vista previa del modal
+      const nombresMultiples = window.createLocalFilesStack.map(f => f.name).join(', ');
+      // Sumamos los tamaños de todos los archivos acumulados
+      const tamañoTotal = window.createLocalFilesStack.reduce((acc, cur) => acc + cur.size, 0);
+      
+      mostrarDocEnCreateModal(nombresMultiples, formatBytes(tamañoTotal));
+      
     } else if (driveItemSelected) {
-      createDocPending = { driveFileId: driveItemSelected.id, nombre: driveItemSelected.name, mimeType: driveItemSelected.mime };
-      createLocalFile  = null;
-      mostrarDocEnCreateModal(driveItemSelected.name, formatBytes(driveItemSelected.size));
+      // Para Google Drive acumulamos las referencias en un arreglo pendiente
+      if (!window.createDriveFilesStack) window.createDriveFilesStack = [];
+      
+      window.createDriveFilesStack.push({
+        driveFileId: driveItemSelected.id,
+        nombre: driveItemSelected.name,
+        mimeType: driveItemSelected.mime
+      });
+      
+      const nombresDrive = window.createDriveFilesStack.map(f => f.nombre).join(', ');
+      mostrarDocEnCreateModal(nombresDrive, 'Google Drive');
     }
+    
     document.getElementById('uploadOverlay').classList.remove('active');
     return;
   }
@@ -1295,46 +1321,65 @@ document.getElementById('btnConfirmUpload').addEventListener('click', async () =
 });
 
 async function subirArchivoLocal() {
-  const file = document.getElementById('fileInput').files[0];
-  if (!file) return;
+  const filesList = document.getElementById('fileInput').files;
+  if (!filesList || filesList.length === 0) return;
+
   const progressDiv = document.getElementById('uploadProgress');
   const barFill     = document.getElementById('uploadBarFill');
   const statusText  = document.getElementById('uploadStatusText');
+
   progressDiv.style.display = 'block';
-  barFill.style.width = '20%';
-  statusText.textContent = 'Subiendo archivo a Drive...';
   document.getElementById('btnConfirmUpload').disabled = true;
 
-  try {
-    const form = new FormData();
-    form.append('file', file);
-    const res  = await fetch('/api/documentos/upload', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
-      body: form
-    });
-    const body = await res.json();
-    if (!res.ok) throw new Error(body.error || 'Error al subir');
+  // 1. Recorremos todos los archivos seleccionados uno por uno
+  for (let i = 0; i < filesList.length; i++) {
+    const file = filesList[i]; // Archivo individual actual
 
-    const driveId = body.data?.drive?.id || body.data?.metadata?.driveFileId;
-    const nombre  = file.name;
-    const mimeType= file.type;
+    // Actualizamos el estado visual para indicar cuál se está subiendo
+    statusText.textContent = `Subiendo (${i + 1}/${filesList.length}): ${file.name}...`;
+    let porcentajeProgreso = Math.round((i / filesList.length) * 100) + 10;
+    barFill.style.width = `${porcentajeProgreso}%`;
 
-    barFill.style.width = '70%';
-    statusText.textContent = 'Asociando a la tarea...';
+    try {
+      const form = new FormData();
+      form.append('file', file);
 
-    await _asociarDocumentoATarea(driveId, nombre, mimeType, currentUploadTipo);
-    barFill.style.width = '100%';
-    statusText.textContent = '¡Listo!';
-    setTimeout(() => {
-      document.getElementById('uploadOverlay').classList.remove('active');
-      verDetalle(tareaActiva._id);
-    }, 600);
-  } catch(err) {
-    statusText.textContent = 'Error: ' + err.message;
-    barFill.style.width = '0%';
-    document.getElementById('btnConfirmUpload').disabled = false;
+      // Enviamos el archivo a tu servicio de almacenamiento en Drive
+      const res = await fetch('/api/documentos/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: form
+      });
+      
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Error al subir');
+
+      // Extraemos las credenciales devueltas por Google Drive
+      const driveId = body.data?.drive?.id || body.data?.metadata?.driveFileId;
+      const nombre  = file.name;
+      const mimeType= file.type;
+
+      statusText.textContent = `Asociando (${i + 1}/${filesList.length}): ${nombre}...`;
+
+      // 2. Asociamos de forma secuencial llamando a tu PATCH del backend
+      await _asociarDocumentoATarea(driveId, nombre, mimeType, currentUploadTipo);
+
+    } catch(err) {
+      statusText.textContent = `Error en '${file.name}': ` + err.message;
+      barFill.style.width = '0%';
+      document.getElementById('btnConfirmUpload').disabled = false;
+      return; // Frenamos la operación si hay un error para proteger los datos
+    }
   }
+
+  // 3. Al finalizar con éxito todo el ciclo de archivos
+  barFill.style.width = '100%';
+  statusText.textContent = '¡Todos los archivos se subieron y asociaron con éxito!';
+  
+  setTimeout(() => {
+    document.getElementById('uploadOverlay').classList.remove('active');
+    verDetalle(tareaActiva._id);
+  }, 800);
 }
 
 async function asociarDriveExistente() {
@@ -1363,7 +1408,6 @@ async function _asociarDocumentoATarea(driveFileId, nombre, mimeType, tipo) {
   actualizarStats();
   renderTareas();
 }
-
 // ═══════════════════════════════════════════════════════════════════════
 //  DOC EN MODAL CREAR
 // ═══════════════════════════════════════════════════════════════════════

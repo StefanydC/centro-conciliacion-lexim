@@ -106,7 +106,34 @@ const actualizar = async (req, res, next) => {
     if (!esAdmin && !esPropietario) {
       throw new ApiError("No tienes permiso para modificar esta tarea", 403);
     }
+    // ═══════════════════════════════════════════════════════════════════════
+    // NUEVA LÓGICA: DETECTAR SI LO QUE LLEGA ES UN DOCUMENTO ADJUNTO
+    // ═══════════════════════════════════════════════════════════════════════
+    if (req.body.documento_id && req.body.tipo) {
+      const { documento_id, tipo, nombre, mimeType } = req.body;
+      
+      const nuevoDocumento = { documento_id, nombre, mimeType, fecha: new Date() };
+      
+      // Mapeamos si va para la lista del admin o del judicante
+      const campoUpdate = tipo === 'admin' ? 'documento_admin' : 'documento_judicante';
 
+      // Usamos $push para añadirlo al arreglo existente en MongoDB sin borrar los anteriores
+      const actualizadaConDoc = await Tarea.findByIdAndUpdate(
+        req.params.id,
+        { $push: { [campoUpdate]: nuevoDocumento } },
+        { new: true }
+      );
+
+      return res.status(200).json({
+        mensaje: "Documento asociado correctamente",
+        data: actualizadaConDoc
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // LÓGICA ORIGINAL: ACTUALIZACIÓN NORMAL DE TEXTOS DE LA TAREA
+    // ═══════════════════════════════════════════════════════════════════════
+    
     const camposPermitidos = ["titulo", "descripcion", "estado", "prioridad", "asignadoA", "fechaVencimiento"];
     const actualizacion = {};
     for (const campo of camposPermitidos) {
