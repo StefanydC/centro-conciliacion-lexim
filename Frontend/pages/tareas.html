@@ -271,7 +271,7 @@
       <div id="panelLocal" style="display:none;margin-top:14px">
         <div class="form-group">
           <label>Archivo</label>
-          // se agrega para archivos multiples
+          <!--se agrega para archivos multiples-->
           <input type="file" id="fileInput" style="border:1px solid rgba(35,76,88,.2);border-radius:10px;padding:8px 12px;font-family:var(--font-main);font-size:.82rem;background:#fafcfd;width:100%" multiple>
         </div>
         <div class="upload-progress" id="uploadProgress" style="display:none">
@@ -731,12 +731,26 @@ function renderTareas() {
 }
 
 function docIndicador(t) {
-  const a = t.documento_admin?.driveFileId;
-  const j = t.documento_judicante?.driveFileId;
-  if (!a && !j) return `<span style="color:#ddd;font-size:.82rem"><i class="fas fa-paperclip"></i></span>`;
-  let html = '';
-  if (a) html += `<span title="Doc. admin" style="color:#2980b9;font-size:.82rem"><i class="fas fa-paperclip"></i></span>`;
-  if (j) html += `<span title="Doc. judicante" style="color:#e67e22;font-size:.82rem;margin-left:3px"><i class="fas fa-paperclip"></i></span>`;
+  const docsAdmin = Array.isArray(t.documento_admin) ? t.documento_admin : [];
+  const docsJudic = Array.isArray(t.documento_judicante) ? t.documento_judicante : [];
+  const countAdmin = docsAdmin.length;
+  const countJudic = docsJudic.length;
+  const total = countAdmin + countJudic;
+
+  if (total === 0) {
+    return `<span style="color:#ddd;font-size:.82rem"><i class="fas fa-paperclip"></i></span>`;
+  }
+
+  let html = `<span title="Total documentos: ${total}" style="font-size:.78rem;color:var(--color-secondary);margin-right:6px">${total}</span>`;
+
+  if (countAdmin > 0) {
+    html += `<span title="Docs admin: ${countAdmin}" style="color:#2980b9;font-size:.82rem;margin-right:4px"><i class="fas fa-paperclip"></i></span>`;
+  }
+
+  if (countJudic > 0) {
+    html += `<span title="Docs judicante: ${countJudic}" style="color:#e67e22;font-size:.82rem"><i class="fas fa-paperclip"></i></span>`;
+  }
+
   return html;
 }
 
@@ -789,7 +803,7 @@ function renderKanban(tareas) {
       <div class="kanban-card" onclick="verDetalle('${t._id}')">
         <div class="kanban-card-title">${t.descripcion}</div>
         <div class="kanban-card-foot">${badgePrio(t.prioridad)}<span class="kanban-date">${formatFecha(t.fecha_limite)}</span></div>
-        ${(t.documento_admin?.driveFileId || t.documento_judicante?.driveFileId)
+        ${((Array.isArray(t.documento_admin) && t.documento_admin.length > 0) || (Array.isArray(t.documento_judicante) && t.documento_judicante.length > 0))
           ? `<div style="margin-top:5px;font-size:.7rem;color:var(--color-primary)"><i class="fas fa-paperclip"></i> Doc adjunto</div>` : ''}
       </div>`).join('') || `<div style="padding:12px;font-size:.75rem;color:var(--color-secondary);text-align:center">Sin tareas</div>`;
   });
@@ -913,7 +927,9 @@ function buildDetalleActions(t) {
           <i class="fas fa-play"></i> Recibir tarea
         </button>`;
     } else if (t.estado === 'en_proceso') {
-      const puedeEnviar = !!(t.documento_judicante?.driveFileId || getObsJudicante(t));
+      const tieneDocJudicante = Array.isArray(t.documento_judicante) && t.documento_judicante.length > 0;
+      const puedeEnviar = !!(tieneDocJudicante || getObsJudicante(t));
+
       actDiv.innerHTML = `
         <button class="btn-primary" onclick="abrirSubirDoc('${t._id}','judicante')">
           <i class="fas fa-upload"></i> Subir documento
@@ -937,7 +953,7 @@ function buildDetalleActions(t) {
     if (t.estado === 'pendiente' || t.estado === 'en_proceso') {
       actDiv.innerHTML += `
         <button class="btn-primary" onclick="abrirSubirDoc('${t._id}','admin')" title="Adjuntar o cambiar doc de referencia">
-          <i class="fas fa-paperclip"></i> ${t.documento_admin?.driveFileId ? 'Cambiar doc.' : 'Adjuntar doc.'}
+          <i class="fas fa-paperclip"></i> ${(Array.isArray(t.documento_admin) && t.documento_admin.length > 0) ? 'Agregar/Cambiar docs.' : 'Adjuntar doc.'}
         </button>`;
     }
     if (t.estado === 'revision') {
@@ -1280,15 +1296,15 @@ function seleccionarDriveItem(id, name, mime, size) {
   document.getElementById('btnConfirmUpload').disabled = false;
 }
 
-document.getElementById('fileInput').addEventListener('change', (e) => { // <-- Agregamos la "e" aquí
-  // Ahora e.target.files sí existe y no dará error
-  createLocalFiles = Array.from(e.target.files); 
-  
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const files = Array.from(e.target.files || []);
+  createLocalFiles = files.map(f => ({
+    source: 'local',
+    file: f,
+    nombre: f.name,
+    mimeType: f.type
+  }));
   document.getElementById('btnConfirmUpload').disabled = createLocalFiles.length === 0;
-  console.log(`Archivos listos para subir: ${createLocalFiles.length}`);
-  
-  // AQUÍ ES DONDE DEBES LLAMAR A LA FUNCIÓN QUE DIBUJA LA LISTA
-  mostrarListaDeArchivosSeleccionados(); 
 });
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1297,45 +1313,48 @@ document.getElementById('fileInput').addEventListener('change', (e) => { // <-- 
 
 document.getElementById('btnConfirmUpload').addEventListener('click', async () => {
   if (uploadModoCrear) {
-    // Modo crear tarea: guardar selección y volver al modal de creación
+    if (!window.createLocalFilesStack) window.createLocalFilesStack = [];
+    if (!window.createDriveFilesStack) window.createDriveFilesStack = [];
+
     if (uploadOpcion === 'local') {
       const filesList = document.getElementById('fileInput').files;
       if (!filesList || filesList.length === 0) return;
-      
-      // Creamos un arreglo global temporal si no existe para acumular las cargas locales
-      if (!window.createLocalFilesStack) window.createLocalFilesStack = [];
-      
-      // Acumulamos todos los archivos seleccionados sin borrar los anteriores
-      for (let i = 0; i < filesList.length; i++) {
-        window.createLocalFilesStack.push(filesList[i]);
+
+      for (const f of Array.from(filesList)) {
+        window.createLocalFilesStack.push(f);
       }
-      
-      // Juntamos los nombres para mostrarlos todos en la vista previa del modal
-      const nombresMultiples = window.createLocalFilesStack.map(f => f.name).join(', ');
-      // Sumamos los tamaños de todos los archivos acumulados
-      const tamañoTotal = window.createLocalFilesStack.reduce((acc, cur) => acc + cur.size, 0);
-      
-      mostrarDocEnCreateModal(nombresMultiples, formatBytes(tamañoTotal));
-      
-    } else if (driveItemSelected) {
-      // Para Google Drive acumulamos las referencias en un arreglo pendiente
-      if (!window.createDriveFilesStack) window.createDriveFilesStack = [];
-      
+    } else if (uploadOpcion === 'drive') {
+      if (!driveItemSelected) return;
+
       window.createDriveFilesStack.push({
         driveFileId: driveItemSelected.id,
         nombre: driveItemSelected.name,
         mimeType: driveItemSelected.mime
       });
-      
-      const nombresDrive = window.createDriveFilesStack.map(f => f.nombre).join(', ');
-      mostrarDocEnCreateModal(nombresDrive, 'Google Drive');
     }
-    
+
+    // Fuente única consolidada para el guardado
+    createLocalFiles = [
+      ...window.createLocalFilesStack.map(f => ({
+        source: 'local',
+        file: f,
+        nombre: f.name,
+        mimeType: f.type
+      })),
+      ...window.createDriveFilesStack.map(d => ({
+        source: 'drive',
+        driveFileId: d.driveFileId,
+        nombre: d.nombre,
+        mimeType: d.mimeType
+      }))
+    ];
+
+    mostrarListaDeArchivosSeleccionados();
     document.getElementById('uploadOverlay').classList.remove('active');
     return;
   }
 
-  // Modo adjuntar a tarea existente
+  // Modo tarea existente (se mantiene)
   if (uploadOpcion === 'local') await subirArchivoLocal();
   else if (uploadOpcion === 'drive') await asociarDriveExistente();
 });
@@ -1351,77 +1370,109 @@ async function subirArchivoLocal() {
   progressDiv.style.display = 'block';
   document.getElementById('btnConfirmUpload').disabled = true;
 
-  // 1. Recorremos todos los archivos seleccionados uno por uno
   for (let i = 0; i < filesList.length; i++) {
-    const file = filesList[i]; // Archivo individual actual
+    const file = filesList[i];
 
-    // Actualizamos el estado visual para indicar cuál se está subiendo
     statusText.textContent = `Subiendo (${i + 1}/${filesList.length}): ${file.name}...`;
-    let porcentajeProgreso = Math.round((i / filesList.length) * 100) + 10;
+    const porcentajeProgreso = Math.round(((i + 1) / filesList.length) * 100);
     barFill.style.width = `${porcentajeProgreso}%`;
 
     try {
       const form = new FormData();
-      form.append('files', file);
+      form.append('file', file); // <- CLAVE
 
-      // Enviamos el archivo a tu servicio de almacenamiento en Drive
       const res = await fetch('/api/documentos/upload', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: form
       });
-      
+
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || 'Error al subir');
 
-      // Extraemos las credenciales devueltas por Google Drive
-      const driveId = body.data?.drive?.id || body.data?.metadata?.driveFileId;
-      const nombre  = file.name;
-      const mimeType= file.type;
+      const driveId  = body.data?.drive?.id || body.data?.metadata?.driveFileId;
+      const nombre   = file.name;
+      const mimeType = file.type;
+
+      if (!driveId) throw new Error('No llegó driveFileId en la respuesta');
 
       statusText.textContent = `Asociando (${i + 1}/${filesList.length}): ${nombre}...`;
 
-      // 2. Asociamos de forma secuencial llamando a tu PATCH del backend
       await _asociarDocumentoATarea(driveId, nombre, mimeType, currentUploadTipo);
 
-    } catch(err) {
-      statusText.textContent = `Error en '${file.name}': ` + err.message;
+    } catch (err) {
+      statusText.textContent = `Error en '${file.name}': ${err.message}`;
       barFill.style.width = '0%';
       document.getElementById('btnConfirmUpload').disabled = false;
-      return; // Frenamos la operación si hay un error para proteger los datos
+      return;
     }
   }
 
-  // 3. Al finalizar con éxito todo el ciclo de archivos
   barFill.style.width = '100%';
   statusText.textContent = '¡Todos los archivos se subieron y asociaron con éxito!';
-  
+
   setTimeout(() => {
     document.getElementById('uploadOverlay').classList.remove('active');
     verDetalle(tareaActiva._id);
-  }, 800);
+  }, 700);
 }
 
 function mostrarListaDeArchivosSeleccionados() {
   const container = document.getElementById('listaDeArchivosContenedor');
-  
-  const htmlList = createLocalFiles.map((file, index) => `
-    <div class="doc-block" style="margin-bottom:8px; border: 1px solid #dcdcdc; padding: 10px; border-radius: 8px;">
-      <div class="doc-block-icon"><i class="fas fa-file"></i></div>
-      <div class="doc-block-info">
-        <div class="doc-block-name">${file.name}</div>
-        <div class="doc-block-meta">${(file.size / 1024).toFixed(1)} KB</div>
+  if (!container) return;
+
+  const lista = Array.isArray(createLocalFiles) ? createLocalFiles : [];
+
+  if (lista.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const htmlList = lista.map((item, index) => {
+    const esLocal = item?.source === 'local';
+    const esDrive = item?.source === 'drive';
+
+    const nombre = item?.nombre || item?.file?.name || 'Documento';
+    const meta = esLocal
+      ? formatBytes(item?.file?.size || 0)
+      : (esDrive ? 'Google Drive' : '');
+
+    const icon = esDrive ? 'fa-google-drive' : 'fa-file';
+
+    return `
+      <div class="doc-block" style="margin-bottom:8px; border:1px solid #dcdcdc; padding:10px; border-radius:8px;">
+        <div class="doc-block-icon"><i class="${esDrive ? 'fab fa-google-drive' : 'fas fa-file'}"></i></div>
+        <div class="doc-block-info">
+          <div class="doc-block-name">${nombre}</div>
+          <div class="doc-block-meta">${meta}</div>
+        </div>
+        <button type="button" class="doc-btn danger" onclick="removerArchivoLocal(${index})">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      <button type="button" class="doc-btn danger" onclick="removerArchivoLocal(${index})">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   container.innerHTML = htmlList;
 }
 
 function removerArchivoLocal(index) {
+  if (!Array.isArray(createLocalFiles)) createLocalFiles = [];
+  if (index < 0 || index >= createLocalFiles.length) return;
+
+  const item = createLocalFiles[index];
+
+  // Mantener sincronizadas las pilas por compatibilidad
+  if (item?.source === 'local' && window.createLocalFilesStack) {
+    const i = window.createLocalFilesStack.findIndex(f => f?.name === item?.nombre);
+    if (i !== -1) window.createLocalFilesStack.splice(i, 1);
+  }
+
+  if (item?.source === 'drive' && window.createDriveFilesStack) {
+    const i = window.createDriveFilesStack.findIndex(d => d?.driveFileId === item?.driveFileId);
+    if (i !== -1) window.createDriveFilesStack.splice(i, 1);
+  }
+
   createLocalFiles.splice(index, 1);
   mostrarListaDeArchivosSeleccionados();
 }
@@ -1462,13 +1513,13 @@ function mostrarDocEnCreateModal(nombre, meta) {
   mostrarListaDeArchivosSeleccionados();
 }
 function quitarDocCreate() {
-  createLocalFiles = []; // Vaciamos el arreglo global
+  createLocalFiles = [];
+  createDocPending = null; // por compatibilidad con lógica anterior
+  window.createLocalFilesStack = [];
+  window.createDriveFilesStack = [];
+
   const container = document.getElementById('listaDeArchivosContenedor');
-  if (container) {
-    container.innerHTML = ''; // Limpiamos la vista
-  }
-  // Si tenías código viejo aquí (ej: ocultar un div), 
-  // puedes dejarlo o quitarlo si ya no existe el ID en el HTML.
+  if (container) container.innerHTML = '';
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1540,64 +1591,91 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
   try {
-    let docAdmin = createDocPending;
+    const docsFinales = [];
 
-    // Si tiene archivo local pendiente, subirlo primero
-if (!docAdmin && createLocalFiles.length > 0) { // Verifica si hay archivos
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo documento...';
-  
-  const form = new FormData();
-  // AQUÍ ESTÁ EL CAMBIO: Enviamos solo el primer archivo del arreglo [0]
-  form.append('file', createLocalFiles[0]); 
+    // 1) Subir locales y recopilar drive IDs
+    for (const item of (createLocalFiles || [])) {
+      if (item?.source === 'local' && item?.file) {
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Subiendo ${item.nombre || item.file.name}...`;
 
-  const res = await fetch('/api/documentos/upload', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token}` },
-    body: form
-  });
+        const form = new FormData();
+        form.append('file', item.file); // IMPORTANTE: 'file'
 
-  const upBody = await res.json();
-  if (!res.ok) throw new Error(upBody.error || 'Error al subir documento');
+        const resUp = await fetch('/api/documentos/upload', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: form
+        });
 
-  const driveId = upBody.data.drive?.id || upBody.data.driveFileId;
-  
-  // AQUÍ EL OTRO CAMBIO: Usamos createLocalFiles[0] para obtener la info
-  docAdmin = { 
-    driveFileId: driveId, 
-    nombre: createLocalFiles[0].name, 
-    mimeType: createLocalFiles[0].type 
-  };
-  
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando tarea...';
-}
+        const upBody = await resUp.json();
+        if (!resUp.ok) throw new Error(upBody.error || 'Error al subir documento');
 
+        const driveId = upBody.data?.metadata?.driveFileId || upBody.data?.drive?.id;
+        if (!driveId) throw new Error('No se recibió driveFileId del backend');
+
+        docsFinales.push({
+          driveFileId: driveId,
+          nombre: item.nombre || item.file.name,
+          mimeType: item.mimeType || item.file.type
+        });
+      }
+
+      // 2) Drive existente (no subir)
+      if (item?.source === 'drive' && item?.driveFileId) {
+        docsFinales.push({
+          driveFileId: item.driveFileId,
+          nombre: item.nombre,
+          mimeType: item.mimeType
+        });
+      }
+    }
+
+    // 3) Crear tarea (sin documento_admin inline)
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando tarea...';
     const body = {
-      descripcion:    desc,
-      prioridad:      document.getElementById('fPrio').value,
-      fecha_limite:   document.getElementById('fFecha').value || undefined,
-      observaciones:  document.getElementById('fObs').value.trim() || undefined,
-      asignado_a:     document.getElementById('fAsignado').value || undefined,
-      ...(docAdmin ? { documento_admin: docAdmin } : {})
+      descripcion:   desc,
+      prioridad:     document.getElementById('fPrio').value,
+      fecha_limite:  document.getElementById('fFecha').value || undefined,
+      observaciones: document.getElementById('fObs').value.trim() || undefined,
+      asignado_a:    document.getElementById('fAsignado').value || undefined
     };
 
-    const res  = await apiFetch('/tasks', {
+    const resCreate = await apiFetch('/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.mensaje || 'Error al guardar');
 
-    allTasks.unshift(data.data);
-    actualizarStats();
-    renderTareas();
+    const createData = await resCreate.json();
+    if (!resCreate.ok) throw new Error(createData.mensaje || 'Error al crear tarea');
+
+    const tareaNuevaId = createData.data._id;
+
+    // 4) Asociar todos los documentos uno por uno
+    for (const d of docsFinales) {
+      const resAssoc = await apiFetch(`/tasks/${tareaNuevaId}/documento`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documento_id: d.driveFileId,
+          tipo: 'admin',
+          nombre: d.nombre,
+          mimeType: d.mimeType
+        })
+      });
+
+      const assocBody = await resAssoc.json();
+      if (!resAssoc.ok) throw new Error(assocBody.mensaje || 'Error al asociar documento');
+    }
+
+    await cargarTareas();
     document.getElementById('modalOverlay').classList.remove('active');
-    // limpiar form
     ['fDesc','fObs','fFecha'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('fAsignado').value = '';
     document.getElementById('fPrio').value = 'media';
     quitarDocCreate();
-  } catch(err) {
+
+  } catch (err) {
     alert(err.message || 'Error al guardar la tarea');
   } finally {
     btn.disabled = false;
