@@ -611,7 +611,7 @@ let driveStack = [{ id: null, name: 'Mi Drive' }];
 
 // Create modal pending doc
 let createDocPending   = null;  // { driveFileId, nombre, mimeType } | null
-let createLocalFile    = [];  // File object | null
+let createLocalFiles    = [];  // File object | null
 
 // ═══════════════════════════════════════════════════════════════════════
 //  HELPERS
@@ -1543,21 +1543,33 @@ document.getElementById('btnGuardar').addEventListener('click', async () => {
     let docAdmin = createDocPending;
 
     // Si tiene archivo local pendiente, subirlo primero
-    if (!docAdmin && createLocalFile) {
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo documento...';
-      const form = new FormData();
-      form.append('file', createLocalFile);
-      const res  = await fetch('/api/documentos/upload', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: form
-      });
-      const upBody = await res.json();
-      if (!res.ok) throw new Error(upBody.error || 'Error al subir documento');
-      const driveId = upBody.data?.drive?.id || upBody.data?.metadata?.driveFileId;
-      docAdmin = { driveFileId: driveId, nombre: createLocalFile.name, mimeType: createLocalFile.type };
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando tarea...';
-    }
+if (!docAdmin && createLocalFiles.length > 0) { // Verifica si hay archivos
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo documento...';
+  
+  const form = new FormData();
+  // AQUÍ ESTÁ EL CAMBIO: Enviamos solo el primer archivo del arreglo [0]
+  form.append('file', createLocalFiles[0]); 
+
+  const res = await fetch('/api/documentos/upload', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: form
+  });
+
+  const upBody = await res.json();
+  if (!res.ok) throw new Error(upBody.error || 'Error al subir documento');
+
+  const driveId = upBody.data.drive?.id || upBody.data.driveFileId;
+  
+  // AQUÍ EL OTRO CAMBIO: Usamos createLocalFiles[0] para obtener la info
+  docAdmin = { 
+    driveFileId: driveId, 
+    nombre: createLocalFiles[0].name, 
+    mimeType: createLocalFiles[0].type 
+  };
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando tarea...';
+}
 
     const body = {
       descripcion:    desc,
