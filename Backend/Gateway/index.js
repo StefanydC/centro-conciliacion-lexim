@@ -306,8 +306,8 @@ app.use('/documentos', requireJudicante, createProxyMiddleware({
   target:      DOCUMENT_SERVICE_URL,
   router:      () => resolveService('document_service', DOCUMENT_SERVICE_URL),
   changeOrigin: true,
-  proxyTimeout: 60000,
-  limit: '200mb',
+  proxyTimeout: 300000,
+  timeout:      300000,
   pathRewrite: (path) => path.replace(/^\/documentos/, ''),
   on: {
     proxyReq: (proxyReq, req) => {

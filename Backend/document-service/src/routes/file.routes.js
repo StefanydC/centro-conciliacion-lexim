@@ -3,8 +3,12 @@ const multer = require('multer');
 const ctrl = require('../controllers/file.controller');
 const { verifyToken } = require('../middlewares/auth.middleware');
 
-// Almacenamiento en memoria (buffer), sin límite de tamaño
-const upload = multer({ storage: multer.memoryStorage() });
+// Almacenamiento en memoria (buffer), límite de 200MB por archivo
+// (debe coincidir con client_max_body_size de Nginx)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 200 * 1024 * 1024 },
+});
 
 // POST /upload  — subir archivo (admin y judicante)
 router.post('/upload', verifyToken, upload.array('file', 10), ctrl.subirArchivo);
@@ -27,5 +31,12 @@ router.patch('/file/:id', verifyToken, ctrl.renombrarArchivo);
 
 // PUT /file/:id/move  — mover archivo a otra carpeta (admin o judicante en su espacio)
 router.put('/file/:id/move', verifyToken, ctrl.moverArchivo);
+// Manejo específico de errores de Multer (ej. archivo demasiado grande)
+router.use((err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ error: 'El archivo supera el límite de 200MB' });
+  }
+  next(err);
+});
 
 module.exports = router;
