@@ -211,14 +211,9 @@
           Documento de referencia
           <span style="font-size:.7rem;font-weight:400;color:var(--color-secondary)">(opcional)</span>
         </label>
-        <div id="createDocPreview" style="display:none" class="doc-block" style="margin-bottom:8px">
-          <div class="doc-block-icon"><i class="fas fa-file-alt"></i></div>
-          <div class="doc-block-info">
-            <div class="doc-block-name" id="createDocName">—</div>
-            <div class="doc-block-meta" id="createDocMeta"></div>
-          </div>
-          <button class="doc-btn danger" onclick="quitarDocCreate()" style="flex-shrink:0"><i class="fas fa-times"></i></button>
-        </div>
+        
+        <div id="listaDeArchivosContenedor" style="margin-bottom: 10px;"></div>
+
         <div style="display:flex;gap:8px">
           <button type="button" class="doc-btn" id="btnCreateDocPC" onclick="abrirUploadModalParaCrear('local')">
             <i class="fas fa-upload"></i> Desde PC
@@ -1285,12 +1280,15 @@ function seleccionarDriveItem(id, name, mime, size) {
   document.getElementById('btnConfirmUpload').disabled = false;
 }
 
-document.getElementById('fileInput').addEventListener('change', () => {
-  // Convertimos la lista de archivos que seleccionó el usuario a un arreglo real y lo guardamos
-  createLocalFiles = Array.from(e.target.files);
-  // Habilitamos el botón si la cantidad de archivos es mayor a 0
+document.getElementById('fileInput').addEventListener('change', (e) => { // <-- Agregamos la "e" aquí
+  // Ahora e.target.files sí existe y no dará error
+  createLocalFiles = Array.from(e.target.files); 
+  
   document.getElementById('btnConfirmUpload').disabled = createLocalFiles.length === 0;
   console.log(`Archivos listos para subir: ${createLocalFiles.length}`);
+  
+  // AQUÍ ES DONDE DEBES LLAMAR A LA FUNCIÓN QUE DIBUJA LA LISTA
+  mostrarListaDeArchivosSeleccionados(); 
 });
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1404,6 +1402,31 @@ async function subirArchivoLocal() {
   }, 800);
 }
 
+function mostrarListaDeArchivosSeleccionados() {
+  const container = document.getElementById('listaDeArchivosContenedor');
+  
+  const htmlList = createLocalFiles.map((file, index) => `
+    <div class="doc-block" style="margin-bottom:8px; border: 1px solid #dcdcdc; padding: 10px; border-radius: 8px;">
+      <div class="doc-block-icon"><i class="fas fa-file"></i></div>
+      <div class="doc-block-info">
+        <div class="doc-block-name">${file.name}</div>
+        <div class="doc-block-meta">${(file.size / 1024).toFixed(1)} KB</div>
+      </div>
+      <button type="button" class="doc-btn danger" onclick="removerArchivoLocal(${index})">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  `).join('');
+
+  container.innerHTML = htmlList;
+}
+
+function removerArchivoLocal(index) {
+  createLocalFiles.splice(index, 1);
+  mostrarListaDeArchivosSeleccionados();
+}
+
+
 async function asociarDriveExistente() {
   if (!driveItemSelected) return;
   document.getElementById('btnConfirmUpload').disabled = true;
@@ -1434,14 +1457,18 @@ async function _asociarDocumentoATarea(driveFileId, nombre, mimeType, tipo) {
 //  DOC EN MODAL CREAR
 // ═══════════════════════════════════════════════════════════════════════
 function mostrarDocEnCreateModal(nombre, meta) {
-  document.getElementById('createDocPreview').style.display = 'flex';
-  document.getElementById('createDocName').textContent = nombre;
-  document.getElementById('createDocMeta').textContent = meta || '';
+  // Esto hará que cuando alguna función antigua llame a esto,
+  // se actualice la lista completa en pantalla
+  mostrarListaDeArchivosSeleccionados();
 }
 function quitarDocCreate() {
-  createDocPending = null;
-  createLocalFile  = null;
-  document.getElementById('createDocPreview').style.display = 'none';
+  createLocalFiles = []; // Vaciamos el arreglo global
+  const container = document.getElementById('listaDeArchivosContenedor');
+  if (container) {
+    container.innerHTML = ''; // Limpiamos la vista
+  }
+  // Si tenías código viejo aquí (ej: ocultar un div), 
+  // puedes dejarlo o quitarlo si ya no existe el ID en el HTML.
 }
 
 // ═══════════════════════════════════════════════════════════════════════
