@@ -801,10 +801,10 @@ function renderKanban(tareas) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-//  MODAL DETALLE (ACTUALIZADO PARA MÚLTIPLES DOCUMENTOS)
+//  MODAL DETALLE (CORREGIDO PARA MOSTRAR MÚLTIPLES DOCUMENTOS)
 // ═══════════════════════════════════════════════════════════════════════
 function verDetalle(id) {
-  const t = allTasks.find(x=>x._id===id);
+  const t = allTasks.find(x => x._id === id);
   if (!t) return;
   tareaActiva = t;
 
@@ -820,68 +820,61 @@ function verDetalle(id) {
       <div style="font-size:.85rem;color:#c0392b;margin-top:4px">${t.motivo_rechazo}</div>
     </div>` : '';
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // Bloque documento admin (AHORA RECORRE EL ARREGLO)
-  // ═══════════════════════════════════════════════════════════════════════
+// 1. Bloque documentos admin (Recorre el arreglo con scroll)
   let docAdminHtml = '';
-  if (t.documento_admin) {
-    // Convertimos a arreglo por si las tareas viejas vienen como objeto único
-    const docsAdmin = Array.isArray(t.documento_admin) ? t.documento_admin : [t.documento_admin];
-    const docsValidos = docsAdmin.filter(d => d && (d.documento_id || d.driveFileId));
+  if (t.documento_admin && Array.isArray(t.documento_admin)) {
+    const listaHtml = t.documento_admin.map(doc => `
+      <div class="doc-block" style="margin-bottom:8px">
+        <div class="doc-block-icon" style="color:#2980b9"><i class="fas ${mimeIcon(doc.mimeType)}"></i></div>
+        <div class="doc-block-info">
+          <div class="doc-block-name">${doc.nombre || 'Documento de referencia'}</div>
+          <div class="doc-block-meta">Adjunto por el administrador</div>
+        </div>
+        <div class="doc-block-actions">
+          <button class="doc-btn" onclick="verDocumento('${doc.documento_id}','${(doc.nombre||'').replace(/'/g,"\\'")}','${doc.mimeType||''}')"><i class="fas fa-eye"></i> Ver</button>
+          <button class="doc-btn primary" onclick="descargarDocumento('${doc.documento_id}','${(doc.nombre||'').replace(/'/g,"\\'")}',this)"><i class="fas fa-download"></i></button>
+        </div>
+      </div>`).join('');
     
-    if (docsValidos.length > 0) {
+    if (listaHtml) {
       docAdminHtml = `
       <div>
         <div class="detail-label"><i class="fas fa-user-shield" style="color:#2980b9"></i> Documentos de referencia (admin)</div>
-        ${docsValidos.map(doc => `
-          <div class="doc-block" style="margin-bottom:8px">
-            <div class="doc-block-icon" style="color:#2980b9"><i class="fas ${mimeIcon(doc.mimeType)}"></i></div>
-            <div class="doc-block-info">
-              <div class="doc-block-name">${doc.nombre || 'Documento de referencia'}</div>
-              <div class="doc-block-meta">Adjunto por el administrador</div>
-            </div>
-            <div class="doc-block-actions">
-              <button class="doc-btn" onclick="verDocumento('${doc.documento_id || doc.driveFileId}','${(doc.nombre||'').replace(/'/g,"\\'")}','${doc.mimeType||''}')"><i class="fas fa-eye"></i> Ver</button>
-              <button class="doc-btn primary" onclick="descargarDocumento('${doc.documento_id || doc.driveFileId}','${(doc.nombre||'').replace(/'/g,"\\'")}',this)"><i class="fas fa-download"></i></button>
-            </div>
-          </div>
-        `).join('')}
+        <div style="max-height: 200px; overflow-y: auto; padding-right: 5px;">
+          ${listaHtml}
+        </div>
       </div>`;
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // Bloque documento judicante (AHORA RECORRE EL ARREGLO)
-  // ═══════════════════════════════════════════════════════════════════════
+  // 2. Bloque documentos judicante (Recorre el arreglo con scroll)
   let docJudHtml = '';
-  const puedeVerDocJud = esAdmin || String(t.asignado_a?._id||t.asignado_a) === String(userId);
-  
-  if (t.documento_judicante && puedeVerDocJud) {
-    const docsJud = Array.isArray(t.documento_judicante) ? t.documento_judicante : [t.documento_judicante];
-    const docsValidosJ = docsJud.filter(d => d && (d.documento_id || d.driveFileId));
+  const puedeVerDocJud = esAdmin || String(t.asignado_a?._id || t.asignado_a) === String(userId);
+  if (t.documento_judicante && Array.isArray(t.documento_judicante) && puedeVerDocJud) {
+    const listaHtmlJ = t.documento_judicante.map(doc => `
+      <div class="doc-block" style="margin-bottom:8px">
+        <div class="doc-block-icon" style="color:#e67e22"><i class="fas ${mimeIcon(doc.mimeType)}"></i></div>
+        <div class="doc-block-info">
+          <div class="doc-block-name">${doc.nombre || 'Documento de trabajo'}</div>
+          <div class="doc-block-meta">Enviado por el judicante</div>
+        </div>
+        <div class="doc-block-actions">
+          <button class="doc-btn" onclick="verDocumento('${doc.documento_id}','${(doc.nombre||'').replace(/'/g,"\\'")}','${doc.mimeType||''}')"><i class="fas fa-eye"></i> Ver</button>
+          <button class="doc-btn primary" onclick="descargarDocumento('${doc.documento_id}','${(doc.nombre||'').replace(/'/g,"\\'")}',this)"><i class="fas fa-download"></i></button>
+        </div>
+      </div>`).join('');
     
-    if (docsValidosJ.length > 0) {
+    if (listaHtmlJ) {
       docJudHtml = `
       <div>
         <div class="detail-label"><i class="fas fa-user" style="color:#e67e22"></i> Documentos del judicante</div>
-        ${docsValidosJ.map(doc => `
-          <div class="doc-block" style="margin-bottom:8px">
-            <div class="doc-block-icon" style="color:#e67e22"><i class="fas ${mimeIcon(doc.mimeType)}"></i></div>
-            <div class="doc-block-info">
-              <div class="doc-block-name">${doc.nombre || 'Documento de trabajo'}</div>
-              <div class="doc-block-meta">Enviado por el judicante</div>
-            </div>
-            <div class="doc-block-actions">
-              <button class="doc-btn" onclick="verDocumento('${doc.documento_id || doc.driveFileId}','${(doc.nombre||'').replace(/'/g,"\\'")}','${doc.mimeType||''}')"><i class="fas fa-eye"></i> Ver</button>
-              <button class="doc-btn primary" onclick="descargarDocumento('${doc.documento_id || doc.driveFileId}','${(doc.nombre||'').replace(/'/g,"\\'")}',this)"><i class="fas fa-download"></i></button>
-            </div>
-          </div>
-        `).join('')}
+        <div style="max-height: 200px; overflow-y: auto; padding-right: 5px;">
+          ${listaHtmlJ}
+        </div>
       </div>`;
     }
   }
 
-  // Se inyecta todo en el modal
   document.getElementById('detailBody').innerHTML = `
     <div class="detail-grid">
       <div>
@@ -893,7 +886,7 @@ function verDetalle(id) {
         <div><div class="detail-label">Prioridad</div>${badgePrio(t.prioridad)}</div>
       </div>
       <div class="detail-row-2">
-        ${tipoUsuario==='judicante'
+        ${tipoUsuario === 'judicante'
           ? `<div><div class="detail-label">Asignado por</div><div class="detail-value">${getNombreCompleto(crea)}</div></div>`
           : `<div><div class="detail-label">Asignado a</div><div class="detail-value">${getNombreCompleto(asig)}</div></div>
              <div><div class="detail-label">Creado por</div><div class="detail-value">${getNombreCompleto(crea)}</div></div>`
