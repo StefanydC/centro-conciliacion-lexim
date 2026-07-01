@@ -33,7 +33,9 @@ async function validarAccesoJudicante(req, folderId) {
  */
 const subirArchivo = async (req, res) => {
   try {
-    if (!req.file) {
+    // 1. Extraemos el archivo desde el nuevo arreglo que genera Multer
+    const file = req.files && req.files.length > 0 ? req.files[0] : null
+    if (!file) {
       return res.status(400).json({ error: 'No se recibió ningún archivo' });
     }
 
@@ -61,17 +63,17 @@ const subirArchivo = async (req, res) => {
     }
 
     const driveFile = await driveService.subirArchivo(
-      req.file.buffer,
-      req.file.originalname,
-      req.file.mimetype,
+      file.buffer,
+      file.originalname,
+      file.mimetype,
       targetFolder
     );
 
     const metadata = await documentService.guardarMetadata({
-      nombre:      req.file.originalname,
+      nombre:      file.originalname,
       driveFileId: driveFile.id,
-      mimeType:    req.file.mimetype,
-      tamaño:      req.file.size,
+      mimeType:    file.mimetype,
+      tamaño:      file.size,
       folderId:    targetFolder,
       subidoPor:   req.user.sub,
     });

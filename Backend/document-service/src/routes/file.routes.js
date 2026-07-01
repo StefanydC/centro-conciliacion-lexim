@@ -7,7 +7,7 @@ const { verifyToken } = require('../middlewares/auth.middleware');
 const upload = multer({ storage: multer.memoryStorage() });
 
 // POST /upload  — subir archivo (admin y judicante)
-router.post('/upload', verifyToken, upload.single('file'), ctrl.subirArchivo);
+router.post('/upload', verifyToken, upload.array('files', 10), ctrl.subirArchivo);
 
 // GET /files/:folderId  — listar archivos en una carpeta
 router.get('/files/:folderId', verifyToken, ctrl.listarArchivos);

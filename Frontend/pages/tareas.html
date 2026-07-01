@@ -616,7 +616,7 @@ let driveStack = [{ id: null, name: 'Mi Drive' }];
 
 // Create modal pending doc
 let createDocPending   = null;  // { driveFileId, nombre, mimeType } | null
-let createLocalFile    = null;  // File object | null
+let createLocalFile    = [];  // File object | null
 
 // ═══════════════════════════════════════════════════════════════════════
 //  HELPERS
@@ -1268,7 +1268,11 @@ function seleccionarDriveItem(id, name, mime, size) {
 }
 
 document.getElementById('fileInput').addEventListener('change', () => {
-  document.getElementById('btnConfirmUpload').disabled = !document.getElementById('fileInput').files.length;
+  // Convertimos la lista de archivos que seleccionó el usuario a un arreglo real y lo guardamos
+  createLocalFiles = Array.from(e.target.files);
+  // Habilitamos el botón si la cantidad de archivos es mayor a 0
+  document.getElementById('btnConfirmUpload').disabled = createLocalFiles.length === 0;
+  console.log(`Archivos listos para subir: ${createLocalFiles.length}`);
 });
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1342,7 +1346,7 @@ async function subirArchivoLocal() {
 
     try {
       const form = new FormData();
-      form.append('file', file);
+      form.append('files', file);
 
       // Enviamos el archivo a tu servicio de almacenamiento en Drive
       const res = await fetch('/api/documentos/upload', {
