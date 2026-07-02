@@ -58,9 +58,13 @@ const crear = async (req, res, next) => {
     const obsAdmin = observaciones?.trim() || null;
     const creadorNombre = await obtenerNombreUsuario(req.user.sub);
 
-    const docAdmin = documento_admin?.driveFileId
-      ? { driveFileId: documento_admin.driveFileId, nombre: documento_admin.nombre || "Documento", mimeType: documento_admin.mimeType || "" }
-      : undefined;
+    const docAdmin = (documento_admin?.driveFileId || documento_admin?.documento_id)
+      ? [{
+          documento_id: documento_admin.documento_id || documento_admin.driveFileId,
+          nombre:       documento_admin.nombre || "Documento",
+          mimeType:     documento_admin.mimeType || ""
+        }]
+      : [];
 
     const tarea = await Task.create({
       descripcion,
@@ -125,8 +129,7 @@ const actualizarEstado = async (req, res, next) => {
         tarea.observaciones_judicante?.trim() ||
         (!tarea.observaciones_admin && tarea.observaciones?.trim())
       );
-      if (estado === "revision" && !tarea.documento_judicante?.driveFileId && !tieneObsJudicante) {
-        return res.status(400).json({ mensaje: "Debes subir un documento o agregar observaciones antes de enviar a revisión" });
+      if (estado === "revision" && !(tarea.documento_judicante?.length > 0) && !tieneObsJudicante) {        return res.status(400).json({ mensaje: "Debes subir un documento o agregar observaciones antes de enviar a revisión" });
       }
     } else {
       if (!(TRANS_ADMIN[estadoActual] || []).includes(estado)) {
@@ -231,11 +234,11 @@ const asociarDocumento = async (req, res, next) => {
     }
 
     const campo = tipo === "admin" ? "documento_admin" : "documento_judicante";
-    const docData = { driveFileId: documento_id, nombre: nombre || "Documento", mimeType: mimeType || "" };
+    const docData = { documento_id, nombre: nombre || "Documento", mimeType: mimeType || "", fecha: new Date() };
 
     const actualizada = await Task.findByIdAndUpdate(
       req.params.id,
-      { [campo]: docData },
+      { $push: { [campo]: docData } },
       { new: true }
     )
       .populate("creado_por", POPULATE_USER)

@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 
 const docSubSchema = new mongoose.Schema({
-  driveFileId: { type: String, default: null },
-  nombre:      { type: String, default: null },
-  mimeType:    { type: String, default: null }
+  documento_id: { type: String, default: null },
+  nombre:       { type: String, default: null },
+  mimeType:     { type: String, default: null },
+  fecha:        { type: Date, default: Date.now }
 }, { _id: false });
 
 const taskSchema = new mongoose.Schema(
@@ -21,8 +22,8 @@ const taskSchema = new mongoose.Schema(
     observaciones_admin: { type: String, default: null },
     observaciones_judicante: { type: String, default: null },
     motivo_rechazo:      { type: String, default: null },
-    documento_admin:     { type: docSubSchema, default: () => ({}) },
-    documento_judicante: { type: docSubSchema, default: () => ({}) },
+    documento_admin:     { type: [docSubSchema], default: () => [] },
+    documento_judicante: { type: [docSubSchema], default: () => [] },
     documento_id:        { type: String, default: null }  // campo legacy, no usar en flujo nuevo
   },
   { timestamps: true, collection: "tareas" }
