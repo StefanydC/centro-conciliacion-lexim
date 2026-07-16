@@ -625,6 +625,17 @@ body {
 .doc-btn.danger { border-color: #f5b7b1; color: #c0392b; }
 .doc-btn.danger:hover { background: #fdedec; }
 
+/* ── DOCUMENT ROUND GROUPS (separa envío inicial de reenvíos tras rechazo) ── */
+.doc-round-group + .doc-round-group { margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(35,76,88,.18); }
+.doc-round-title {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--color-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+}
+.doc-round-title--cambio {
+  color: #e67e22; background: rgba(230,126,34,.08); border: 1px solid rgba(230,126,34,.25);
+  border-radius: 8px; padding: 5px 10px; width: fit-content;
+}
+
 /* ── UPLOAD OPTIONS ── */
 .upload-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
 .upload-opt {

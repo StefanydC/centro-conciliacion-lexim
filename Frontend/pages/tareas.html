@@ -856,29 +856,57 @@ function verDetalle(id) {
     }
   }
 
-  // 2. Bloque documentos judicante (Recorre el arreglo con scroll)
+  // 2. Bloque documentos judicante (agrupados por ronda, sin mezclar envíos)
+  //    Ronda 1 = envío inicial. Ronda 2+ = reenvío tras un rechazo del admin.
+  //    Los documentos viejos NUNCA se eliminan, solo se separan visualmente.
   let docJudHtml = '';
   const puedeVerDocJud = esAdmin || String(t.asignado_a?._id || t.asignado_a) === String(userId);
   if (t.documento_judicante && Array.isArray(t.documento_judicante) && puedeVerDocJud) {
-    const listaHtmlJ = t.documento_judicante.map(doc => `
+
+    const docBlockHtml = doc => `
       <div class="doc-block" style="margin-bottom:8px">
         <div class="doc-block-icon" style="color:#e67e22"><i class="fas ${mimeIcon(doc.mimeType)}"></i></div>
         <div class="doc-block-info">
           <div class="doc-block-name">${doc.nombre || 'Documento de trabajo'}</div>
-          <div class="doc-block-meta">Enviado por el judicante</div>
+          <div class="doc-block-meta">Enviado por el judicante${doc.fecha ? ' · ' + formatFecha(doc.fecha) : ''}</div>
         </div>
         <div class="doc-block-actions">
           <button class="doc-btn" onclick="verDocumento('${doc.documento_id}','${(doc.nombre||'').replace(/'/g,"\\'")}','${doc.mimeType||''}')"><i class="fas fa-eye"></i> Ver</button>
           <button class="doc-btn primary" onclick="descargarDocumento('${doc.documento_id}','${(doc.nombre||'').replace(/'/g,"\\'")}',this)"><i class="fas fa-download"></i></button>
         </div>
-      </div>`).join('');
-    
-    if (listaHtmlJ) {
+      </div>`;
+
+    // Agrupar por ronda (documentos viejos sin el campo quedan en ronda 1)
+    const rondas = {};
+    t.documento_judicante.forEach(doc => {
+      const r = doc.ronda || 1;
+      (rondas[r] = rondas[r] || []).push(doc);
+    });
+    const numsRonda = Object.keys(rondas).map(Number).sort((a, b) => a - b);
+
+    if (numsRonda.length) {
+      const hayVariasRondas = numsRonda.length > 1;
+
       docJudHtml = `
       <div>
         <div class="detail-label"><i class="fas fa-user" style="color:#e67e22"></i> Documentos del judicante</div>
-        <div style="max-height: 200px; overflow-y: auto; padding-right: 5px;">
-          ${listaHtmlJ}
+        <div style="max-height: 320px; overflow-y: auto; padding-right: 5px;">
+          ${numsRonda.map(r => {
+            const docsRonda = rondas[r];
+            // Sin varias rondas: se ve igual que antes, sin subtítulo extra.
+            if (!hayVariasRondas) return docsRonda.map(docBlockHtml).join('');
+
+            const esInicial = r === numsRonda[0];
+            const tituloGrupo = esInicial
+              ? 'Envío inicial'
+              : `<i class="fas fa-rotate"></i> Cambio judicante · Ronda ${r}`;
+
+            return `
+              <div class="doc-round-group">
+                <div class="doc-round-title${esInicial ? '' : ' doc-round-title--cambio'}">${tituloGrupo}</div>
+                ${docsRonda.map(docBlockHtml).join('')}
+              </div>`;
+          }).join('')}
         </div>
       </div>`;
     }

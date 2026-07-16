@@ -144,9 +144,13 @@ const actualizarEstado = async (req, res, next) => {
     if (estado === "revision")                          update.fecha_revision  = new Date();
     if (estado === "completado")                        update.fecha_completado = new Date();
 
-    // Admin rechaza (revision → en_proceso): guardar motivo
+    // Admin rechaza (revision → en_proceso): guardar motivo y abrir una
+    // nueva ronda. Los documentos que el judicante suba de ahora en
+    // adelante quedarán marcados con esta nueva ronda para poder
+    // diferenciarlos de los ya enviados, sin borrar ninguno.
     if (esAdmin && estadoActual === "revision" && estado === "en_proceso") {
       update.motivo_rechazo = motivo_rechazo?.trim() || null;
+      update.ronda_actual   = (tarea.ronda_actual || 1) + 1;
     }
     // Judicante envía a revisión: limpiar motivo previo
     if (estado === "revision") {
@@ -234,7 +238,10 @@ const asociarDocumento = async (req, res, next) => {
     }
 
     const campo = tipo === "admin" ? "documento_admin" : "documento_judicante";
-    const docData = { documento_id, nombre: nombre || "Documento", mimeType: mimeType || "", fecha: new Date() };
+    // El documento queda marcado con la ronda vigente de la tarea, para que
+    // el frontend pueda separar visualmente los archivos de un reenvío tras
+    // un rechazo de los que ya estaban de rondas anteriores.
+    const docData = { documento_id, nombre: nombre || "Documento", mimeType: mimeType || "", fecha: new Date(), ronda: tarea.ronda_actual || 1 };
 
     const actualizada = await Task.findByIdAndUpdate(
       req.params.id,
