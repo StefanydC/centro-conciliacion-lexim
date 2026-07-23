@@ -813,9 +813,9 @@ function renderKanban(tareas) {
 //  MODAL DETALLE (CORREGIDO PARA MOSTRAR MÚLTIPLES DOCUMENTOS)
 // ═══════════════════════════════════════════════════════════════════════
 function verDetalle(id) {
-  console.log(t.documento_judicante);
   const t = allTasks.find(x => x._id === id);
   if (!t) return;
+  console.log(t.documento_judicante);
   tareaActiva = t;
 
   const asig = t.asignado_a || {};
