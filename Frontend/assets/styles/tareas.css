@@ -364,10 +364,16 @@ body {
 .modal {
   width: min(540px, 100%); background: #fff; border-radius: 16px;
   box-shadow: 0 24px 60px rgba(15,21,22,.25); overflow: hidden;
+  /* Alto máximo fijo: si el contenido crece, el modal ya no se agranda,
+  solo aparece scroll interno en .modal-body (ver abajo). */
+  max-height: min(700px, calc(100vh - 40px));
+  display: flex;
+  flex-direction: column;
 }
 .modal-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 22px; border-bottom: 1px solid rgba(35,76,88,.1);
+  flex-shrink: 0;
 }
 .modal-head h3 { font-size: 1.05rem; font-weight: 700; color: var(--color-primary); }
 .modal-close {
@@ -376,7 +382,14 @@ body {
   display: flex; align-items: center; justify-content: center; transition: all .2s;
 }
 .modal-close:hover { background: #fdedec; color: #c0392b; border-color: #f5b7b1; }
-.modal-body { padding: 22px; display: grid; gap: 16px; min-width: 0; }
+.modal-body {
+  padding: 22px; display: grid; gap: 16px; min-width: 0;
+  /* Scroll interno: el header y el footer (botones) quedan siempre fijos
+     y visibles, sin importar cuánta información tenga la tarea. */
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
 .form-group { display: grid; gap: 6px; }
 .form-group label { font-size: .78rem; font-weight: 700; color: var(--color-secondary); text-transform: uppercase; letter-spacing: .05em; }
 .form-group input,
@@ -395,6 +408,7 @@ body {
 .modal-foot {
   display: flex; gap: 10px; justify-content: flex-end;
   padding: 16px 22px; border-top: 1px solid rgba(35,76,88,.1);
+  flex-shrink: 0;
 }
 .btn-cancel {
   padding: 9px 18px; border-radius: 10px; border: 1px solid rgba(35,76,88,.2);
@@ -594,7 +608,7 @@ body {
 
 /* ── DETAIL MODAL (wider) ── */
 .modal-wide { width: min(780px, calc(100vw - 32px)); }
-.modal-detalle { width: min(820px, 96vw); }
+.modal-detalle { width: min(820px, 96vw); max-height: min(780px, calc(100vh - 40px)); }
 
 /* ── DETAIL INFO GRID ── */
 .detail-grid { display: grid; gap: 14px; }
