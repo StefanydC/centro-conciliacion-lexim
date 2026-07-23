@@ -362,14 +362,18 @@ body {
 }
 .overlay.active { display: flex; }
 .modal {
-  width: min(540px, 100%); background: #fff; border-radius: 16px;
-  box-shadow: 0 24px 60px rgba(15,21,22,.25); overflow: hidden;
-  /* Alto máximo fijo: si el contenido crece, el modal ya no se agranda,
-  solo aparece scroll interno en .modal-body (ver abajo). */
-  max-height: min(700px, calc(100vh - 40px));
+  width: min(540px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(15, 21, 22, 0.25);
+  overflow: hidden;
+
+  /* REEMPLAZAR max-height POR height FIJO: */
+  height: min(700px, calc(100vh - 40px));
   display: flex;
   flex-direction: column;
 }
+
 .modal-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 22px; border-bottom: 1px solid rgba(35,76,88,.1);
@@ -386,7 +390,7 @@ body {
   padding: 22px; display: grid; gap: 16px; min-width: 0;
   /* Scroll interno: el header y el footer (botones) quedan siempre fijos
      y visibles, sin importar cuánta información tenga la tarea. */
-  overflow-y: auto;
+  overflow-y: scroll;
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -608,7 +612,10 @@ body {
 
 /* ── DETAIL MODAL (wider) ── */
 .modal-wide { width: min(780px, calc(100vw - 32px)); }
-.modal-detalle { width: min(820px, 96vw); max-height: min(780px, calc(100vh - 40px)); }
+.modal-detalle { width: min(820px, 96vw);
+  /* REEMPLAZAR max-height POR height FIJO: */
+  height: min(780px, calc(100vh - 40px));
+}
 
 /* ── DETAIL INFO GRID ── */
 .detail-grid { display: grid; gap: 14px; }
@@ -737,6 +744,25 @@ body {
   color: var(--color-secondary);
 }
 .preview-loading i { font-size: 1.4rem; }
+
+/* Estilo personalizado para el scrollbar en Webkit */
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: rgba(35, 76, 88, 0.06);
+  border-radius: 8px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(35, 76, 88, 0.25);
+  border-radius: 8px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
 
 /* ── RESPONSIVE ── */
 @media(max-width:1100px) {
