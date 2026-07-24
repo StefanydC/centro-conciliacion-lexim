@@ -441,15 +441,16 @@ body {
 
 .footer-content {
     display: flex; /* Seccion al lado de la otra */
-    justify-content: center; /* Centra las secciones en el espacio disponible */
-    gap: 80px; /* Espacio entre la sección de contacto y la de redes */
-    margin-bottom: 40px;
-    flex-wrap: wrap; /* Permite que las secciones se pongan una debajo de otra en pantallas pequeñas */
+    justify-content: space-between; /* Centra las secciones en el espacio disponible */
+    align-items:flex-start;
+    gap: 40px; /* Espacio entre la sección de contacto y la de redes */
+    margin-bottom: 40px; /* Permite que las secciones se pongan una debajo de otra en pantallas pequeñas */
 }
 
 
 .footer-section {
-    max-width: 400px; /* Ancho máximo para cada sección */
+    flex:1;
+    min-width:220px; 
     text-align: left; /* Alineamos el texto a la izquierda dentro de cada sección */
 }
 
@@ -472,6 +473,24 @@ body {
     background-color: var(--color-primary);
 }
 
+.footer-vigilancia .vigilancia-content{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+
+.footer-vigilancia img{
+    width:160px;
+    height:auto;
+    flex-shrink:0;
+}
+
+.footer-vigilancia p{
+    margin:0;
+    font-size:.80rem;
+    line-height:1.7;
+    color:#cfd8dc;
+}
 /* Quitamos los puntos de viñeta de AMBAS listas */
 .contact-info ul,
 .social-icons {

@@ -1,0 +1,216 @@
+/* ==========================================================
+   HERO PQRSD
+========================================================== */
+
+.pqrs-hero{
+    background: linear-gradient(135deg, #0d3f54, #2c6f88);
+    color: #fff;
+    text-align: center;
+    padding: 90px 20px 70px;
+}
+
+.pqrs-hero h1{
+    font-size: 2.8rem;
+    margin-bottom: 15px;
+}
+
+.pqrs-hero p{
+    max-width: 760px;
+    margin: auto;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    opacity: .95;
+}
+
+
+/* ==========================================================
+   INFORMACIÓN
+========================================================== */
+
+.pqrs-info{
+    padding: 80px 0;
+}
+
+.pqrs-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:35px;
+}
+
+.pqrs-card{
+    background:#fff;
+    border-radius:14px;
+    padding:35px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+    transition:.3s;
+}
+
+.pqrs-card:hover{
+    transform:translateY(-6px);
+}
+
+.pqrs-card h3{
+    color:var(--color-primary);
+    margin-bottom:20px;
+}
+
+.pqrs-card p{
+    line-height:1.8;
+    color:#555;
+}
+
+.pqrs-card ul{
+    margin-top:15px;
+    padding-left:20px;
+}
+
+.pqrs-card li{
+    margin-bottom:12px;
+    color:#555;
+}
+
+
+/* ==========================================================
+   PASOS
+========================================================== */
+
+.pqrs-pasos{
+    background:#f7f9fb;
+    padding:80px 0;
+}
+
+.section-title{
+    text-align:center;
+    margin-bottom:60px;
+}
+
+.section-title h2{
+    color:var(--color-primary);
+    margin-bottom:10px;
+}
+
+.pasos-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:25px;
+}
+
+.paso{
+    background:#fff;
+    border-radius:15px;
+    padding:35px 25px;
+    text-align:center;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+.paso-numero{
+    width:55px;
+    height:55px;
+    background:var(--color-primary);
+    color:#fff;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:1.4rem;
+    font-weight:bold;
+    margin:auto;
+    margin-bottom:18px;
+}
+
+.paso h4{
+    margin-bottom:12px;
+    color:#1d3557;
+}
+
+
+/* ==========================================================
+   RADICAR
+========================================================== */
+
+.pqrs-radicar{
+    padding:80px 0;
+}
+
+.radicar-box{
+    max-width:900px;
+    margin:auto;
+    background:#fff;
+    border-radius:18px;
+    padding:50px;
+    text-align:center;
+    box-shadow:0 10px 35px rgba(0,0,0,.08);
+}
+
+.radicar-box h2{
+    color:var(--color-primary);
+    margin-bottom:20px;
+}
+
+.radicar-box p{
+    margin-bottom:30px;
+    line-height:1.8;
+    color:#555;
+}
+
+.radicar-box .btn{
+    padding:15px 35px;
+    font-size:1rem;
+}
+
+
+/* ==========================================================
+   TIEMPOS
+========================================================== */
+
+.pqrs-tiempos{
+    background:#f7f9fb;
+    padding:80px 0;
+}
+
+.tabla-pqrs{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:35px;
+    overflow:hidden;
+    border-radius:12px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+.tabla-pqrs th{
+    background:var(--color-primary);
+    color:#fff;
+    padding:18px;
+}
+
+.tabla-pqrs td{
+    background:#fff;
+    padding:18px;
+    border-bottom:1px solid #eee;
+    text-align:center;
+}
+
+.tabla-pqrs tr:last-child td{
+    border-bottom:none;
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media(max-width:768px){
+
+    .pqrs-hero h1{
+        font-size:2rem;
+    }
+
+    .radicar-box{
+        padding:35px 25px;
+    }
+
+    .tabla-pqrs{
+        font-size:.9rem;
+    }
+
+}

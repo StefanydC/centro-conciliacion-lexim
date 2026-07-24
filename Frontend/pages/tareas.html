@@ -830,28 +830,61 @@ function verDetalle(id) {
       <div style="font-size:.85rem;color:#c0392b;margin-top:4px">${t.motivo_rechazo}</div>
     </div>` : '';
 
-// 1. Bloque documentos admin (Recorre el arreglo con scroll)
+  // 1. Bloque documentos admin (Recorre el arreglo con scroll)
+  // 2. Bloque documentos admin (agrupados por ronda, sin mezclar envíos)
+  //    Ronda 1 = envío inicial. Ronda 2+ = reenvío tras un rechazo.
+  //    Los documentos viejos NUNCA se eliminan, solo se separan visualmente.
   let docAdminHtml = '';
-  if (t.documento_admin && Array.isArray(t.documento_admin)) {
-    const listaHtml = t.documento_admin.map(doc => `
+  if (t.documento_admin && Array.isArray(t.documento_admin) && t.documento_admin.length > 0) {
+    const docAdminBlockHtml = doc => `
       <div class="doc-block" style="margin-bottom:8px">
         <div class="doc-block-icon" style="color:#2980b9"><i class="fas ${mimeIcon(doc.mimeType)}"></i></div>
         <div class="doc-block-info">
           <div class="doc-block-name">${doc.nombre || 'Documento de referencia'}</div>
-          <div class="doc-block-meta">Adjunto por el administrador</div>
+          <div class="doc-block-meta">Adjunto por el administrador${doc.fecha ? ' · ' + formatFecha(doc.fecha) : ''}</div>
         </div>
         <div class="doc-block-actions">
           <button class="doc-btn" onclick="verDocumento('${doc.documento_id}','${(doc.nombre||'').replace(/'/g,"\\'")}','${doc.mimeType||''}')"><i class="fas fa-eye"></i> Ver</button>
           <button class="doc-btn primary" onclick="descargarDocumento('${doc.documento_id}','${(doc.nombre||'').replace(/'/g,"\\'")}',this)"><i class="fas fa-download"></i></button>
         </div>
-      </div>`).join('');
+      </div>`;
+      // Agrupar por ronda (documentos viejos sin el campo quedan en ronda 1)
+    const rondasAdmin = {};
+    t.documento_admin.forEach(doc => {
+      const r = doc.ronda || 1;
+      (rondasAdmin[r] = rondasAdmin[r] || []).push(doc);
+    });
+    const numsRondaAdmin = Object.keys(rondasAdmin).map(Number).sort((a, b) => a - b);
     
-    if (listaHtml) {
+    if (numsRondaAdmin.length) {
       docAdminHtml = `
-      <div>
-        <div class="detail-label"><i class="fas fa-user-shield" style="color:#2980b9"></i> Documentos de referencia (admin)</div>
-        <div style="max-height: 200px; overflow-y: auto; padding-right: 5px;">
-          ${listaHtml}
+      <div style="background:#ffffff; border: 1px solid #e2e8f0; border-radius:12px; padding:16px; margin-top:14px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+        <!-- Título Principal de la Sección Admin -->
+        <div style="font-size:0.9rem; font-weight:700; color:#1a202c; display:flex; align-items:center; gap:8px; margin-bottom:14px; text-transform:uppercase; letter-spacing:0.3px;">
+          <i class="fas fa-user-shield" style="color:#2980b9; font-size:1.1rem;"></i> DOCUMENTOS DE REFERENCIA (ADMIN)
+        </div>
+
+        <div style="max-height: 350px; overflow-y: auto; padding-right: 4px;">
+          ${numsRondaAdmin.map((r, index) => {
+            const docsRonda = rondasAdmin[r];
+            const esInicial = (r === 1);
+
+            // Títulos en color azul/administrador
+            const tituloGrupo = esInicial
+              ? 'DOCUMENTOS INICIALES (ADMIN)'
+              : `<i class="fas fa-sync-alt"></i> OBSERVACIONES / SOLICITUD DE CORRECCIÓN · RONDA ${r}`;
+
+            const colorTitulo = esInicial ? '#2980b9' : '#16a085';
+            const separadorSuperior = index > 0 ? 'border-top: 1px dashed #cbd5e0; padding-top: 14px; margin-top: 14px;' : '';
+
+            return `
+              <div style="${separadorSuperior}">
+                <div style="font-size:0.75rem; font-weight:700; color:${colorTitulo}; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                  ${tituloGrupo}
+                </div>
+                ${docsRonda.map(docAdminBlockHtml).join('')}
+              </div>`;
+          }).join('')}
         </div>
       </div>`;
     }
@@ -889,22 +922,30 @@ function verDetalle(id) {
       const hayVariasRondas = numsRonda.length > 1;
 
       docJudHtml = `
-      <div>
-        <div class="detail-label"><i class="fas fa-user" style="color:#e67e22"></i> Documentos del judicante</div>
-        <div style="max-height: 320px; overflow-y: auto; padding-right: 5px;">
-          ${numsRonda.map(r => {
-            const docsRonda = rondas[r];
-            // Sin varias rondas: se ve igual que antes, sin subtítulo extra.
-            if (!hayVariasRondas) return docsRonda.map(docBlockHtml).join('');
+      <div style="background:#ffffff; border: 1px solid #e2e8f0; border-radius:12px; padding:16px; margin-top:14px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+        <!-- Título Principal de la Sección -->
+        <div style="font-size:0.9rem; font-weight:700; color:#1a202c; display:flex; align-items:center; gap:8px; margin-bottom:14px; text-transform:uppercase; letter-spacing:0.3px;">
+          <i class="fas fa-folder-open" style="color:#f39c12; font-size:1.1rem;"></i> DOCUMENTOS DEL JUDICANTE
+        </div>
 
-            const esInicial = r === numsRonda[0];
+        <div style="max-height: 350px; overflow-y: auto; padding-right: 4px;">
+          ${numsRonda.map((r, index) => {
+            const docsRonda = rondas[r];
+            const esInicial = (r === 1);
+
+            // Títulos en color correspondiente
             const tituloGrupo = esInicial
-              ? 'Envío inicial'
-              : `<i class="fas fa-rotate"></i> Cambio judicante · Ronda ${r}`;
+              ? 'ENVÍO INICIAL DEL JUDICANTE'
+              : `<i class="fas fa-undo-alt"></i> CAMBIO JUDICANTE · RONDA ${r}`;
+
+            const colorTitulo = esInicial ? '#234c58' : '#d35400';
+            const separadorSuperior = index > 0 ? 'border-top: 1px dashed #cbd5e0; padding-top: 14px; margin-top: 14px;' : '';
 
             return `
-              <div class="doc-round-group">
-                <div class="doc-round-title${esInicial ? '' : ' doc-round-title--cambio'}">${tituloGrupo}</div>
+              <div style="${separadorSuperior}">
+                <div style="font-size:0.75rem; font-weight:700; color:${colorTitulo}; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                  ${tituloGrupo}
+                </div>
                 ${docsRonda.map(docBlockHtml).join('')}
               </div>`;
           }).join('')}
