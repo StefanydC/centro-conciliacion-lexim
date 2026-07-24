@@ -2,19 +2,19 @@
    HERO PQRSD
 ========================================================== */
 
-.pqrs-hero{
+.pqrs-hero {
     background: linear-gradient(135deg, #0d3f54, #2c6f88);
-    color: #fff;
+    color: #ffffff;
     text-align: center;
     padding: 90px 20px 70px;
 }
 
-.pqrs-hero h1{
-    font-size: 2.8rem;
-    margin-bottom: 15px;
+.pqrs-hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
 }
 
-.pqrs-hero p{
+.pqrs-hero p {
     max-width: 760px;
     margin: auto;
     font-size: 1.1rem;
@@ -24,174 +24,318 @@
 
 
 /* ==========================================================
-   INFORMACIÓN
+   TIPOS DE PQRS (GRID Y TARJETAS)
 ========================================================== */
 
-.pqrs-info{
+.pqrs-section {
     padding: 80px 0;
 }
 
-.pqrs-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-    gap:35px;
+.section-header {
+    text-align: center;
+    margin-bottom: 50px;
 }
 
-.pqrs-card{
-    background:#fff;
-    border-radius:14px;
-    padding:35px;
-    box-shadow:0 10px 30px rgba(0,0,0,.08);
-    transition:.3s;
+.section-header h2 {
+    color: var(--color-primary, #0d3f54);
+    margin-bottom: 10px;
+    font-size: 2rem;
 }
 
-.pqrs-card:hover{
-    transform:translateY(-6px);
+.section-header p {
+    color: #64748b;
+    font-size: 1rem;
 }
 
-.pqrs-card h3{
-    color:var(--color-primary);
-    margin-bottom:20px;
+.pqrs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 30px;
 }
 
-.pqrs-card p{
-    line-height:1.8;
-    color:#555;
+.pqrs-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 35px 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
 }
 
-.pqrs-card ul{
-    margin-top:15px;
-    padding-left:20px;
+.pqrs-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .12);
 }
 
-.pqrs-card li{
-    margin-bottom:12px;
-    color:#555;
+.pqrs-card h3 {
+    color: var(--color-primary, #0d3f54);
+    margin: 15px 0 10px;
+    font-size: 1.3rem;
 }
 
-
-/* ==========================================================
-   PASOS
-========================================================== */
-
-.pqrs-pasos{
-    background:#f7f9fb;
-    padding:80px 0;
+.pqrs-card p {
+    line-height: 1.6;
+    color: #555555;
+    font-size: 0.95rem;
 }
 
-.section-title{
-    text-align:center;
-    margin-bottom:60px;
+/* Íconos de las tarjetas de PQRS */
+.pqrs-icon {
+    width: 60px;
+    height: 60px;
+    background: #e8f4f8;
+    color: #2980b9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto;
 }
 
-.section-title h2{
-    color:var(--color-primary);
-    margin-bottom:10px;
+.pqrs-icon.warning {
+    background: #fef5e7;
+    color: #e67e22;
 }
 
-.pasos-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:25px;
-}
-
-.paso{
-    background:#fff;
-    border-radius:15px;
-    padding:35px 25px;
-    text-align:center;
-    box-shadow:0 8px 25px rgba(0,0,0,.08);
-}
-
-.paso-numero{
-    width:55px;
-    height:55px;
-    background:var(--color-primary);
-    color:#fff;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:1.4rem;
-    font-weight:bold;
-    margin:auto;
-    margin-bottom:18px;
-}
-
-.paso h4{
-    margin-bottom:12px;
-    color:#1d3557;
+.pqrs-icon.light {
+    background: #fefde8;
+    color: #f1c40f;
 }
 
 
 /* ==========================================================
-   RADICAR
+   INFORMACIÓN IMPORTANTE (CARDS ELEGANTES)
 ========================================================== */
 
-.pqrs-radicar{
-    padding:80px 0;
+.pqrs-info-section {
+    background: #f8fafc;
+    padding: 60px 0;
 }
 
-.radicar-box{
-    max-width:900px;
-    margin:auto;
-    background:#fff;
-    border-radius:18px;
-    padding:50px;
-    text-align:center;
-    box-shadow:0 10px 35px rgba(0,0,0,.08);
+.info-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
 }
 
-.radicar-box h2{
-    color:var(--color-primary);
-    margin-bottom:20px;
+.info-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 25px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
 }
 
-.radicar-box p{
-    margin-bottom:30px;
-    line-height:1.8;
-    color:#555;
+.info-card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
 }
 
-.radicar-box .btn{
-    padding:15px 35px;
-    font-size:1rem;
+.info-card-icon.time {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.info-card-icon.shield {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.info-card-content h3 {
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+    color: #0d3f54;
+}
+
+.info-card-content p {
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.5;
 }
 
 
 /* ==========================================================
-   TIEMPOS
+   FORMULARIO DE RADICACIÓN DE PQRS
 ========================================================== */
 
-.pqrs-tiempos{
-    background:#f7f9fb;
-    padding:80px 0;
+.pqrs-contact {
+    padding: 80px 0;
 }
 
-.tabla-pqrs{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:35px;
-    overflow:hidden;
-    border-radius:12px;
-    box-shadow:0 8px 25px rgba(0,0,0,.08);
+.radicar-card {
+    max-width: 850px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
 }
 
-.tabla-pqrs th{
-    background:var(--color-primary);
-    color:#fff;
-    padding:18px;
+.radicar-card h2 {
+    color: #0d3f54;
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 2rem;
 }
 
-.tabla-pqrs td{
-    background:#fff;
-    padding:18px;
-    border-bottom:1px solid #eee;
-    text-align:center;
+.form-subtitle {
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
 }
 
-.tabla-pqrs tr:last-child td{
-    border-bottom:none;
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #1e293b;
+    margin-bottom: 6px;
+}
+
+.form-group label i {
+    color: #2980b9;
+    margin-right: 5px;
+}
+
+.required {
+    color: #e74c3c;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #334155;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #2980b9;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15);
+}
+
+/* Área de Carga de Archivos */
+.file-drop-area {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 25px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    text-align: center;
+    transition: border 0.2s ease;
+}
+
+.file-drop-area:hover {
+    border-color: #2980b9;
+}
+
+.file-icon {
+    font-size: 2rem;
+    color: #2980b9;
+    margin-bottom: 8px;
+}
+
+.file-input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-info-text {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 6px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-group input {
+    width: auto;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-top: 15px;
+    background: #0d3f54;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-submit:hover {
+    background: #1d6a8a;
+}
+
+/* Tarjeta de Radicado Exitoso */
+.pqrs-success-card {
+    text-align: center;
+    padding: 20px 10px;
+}
+
+.success-icon {
+    font-size: 3.5rem;
+    color: #27ae60;
+    margin-bottom: 12px;
+}
+
+.radicado-box {
+    display: inline-block;
+    background: #e8f8f5;
+    border: 2px dashed #27ae60;
+    padding: 12px 25px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e8449;
+    letter-spacing: 1px;
 }
 
 
@@ -199,18 +343,20 @@
    RESPONSIVE
 ========================================================== */
 
-@media(max-width:768px){
-
-    .pqrs-hero h1{
-        font-size:2rem;
+@media (max-width: 768px) {
+    .pqrs-hero h1 {
+        font-size: 2rem;
     }
 
-    .radicar-box{
-        padding:35px 25px;
+    .form-grid {
+        grid-template-columns: 1fr;
     }
 
-    .tabla-pqrs{
-        font-size:.9rem;
+    .full-width {
+        grid-column: span 1;
     }
 
+    .radicar-card {
+        padding: 25px 20px;
+    }
 }

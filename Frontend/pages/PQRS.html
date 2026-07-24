@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Servicios - LEXIM</title>
     <link rel="icon" href="../assets/images/logo.png" type="image/png">
-    <link rel="stylesheet" href="css/inicio.css">
-    <link rel="stylesheet" href="css/PQRS.css">
+    <link rel="stylesheet" href="../assets/styles/inicio.css">
+    <link rel="stylesheet" href="../assets/styles/PQRS.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -24,8 +24,9 @@
                 <ul>
                     <li><a href="index.html">Inicio</a></li>
                     <li><a href="quienes-somos.html">Quiénes Somos</a></li>
-                    <li><a href="servicios.html" class="active">Servicios</a></li>
+                    <li><a href="servicios.html">Servicios</a></li>
                     <li><a href="contacto.html">Contacto</a></li>
+                    <li><a href="PQRS.html" class="active">PQRS</a></li>
                     <li><a href="login.html" class="nav-login-btn" title="Iniciar sesión"><i class="fas fa-user-circle"></i></a></li>
                 </ul>
             </nav>
@@ -43,7 +44,6 @@
             <span class="section-tag">
                 Atención al Ciudadano
             </span>
-
             <h1>
                 Peticiones, Quejas, Reclamos y Sugerencias (PQRS)
             </h1>
@@ -60,185 +60,187 @@
     </section>
 
 
-    <!-- =======================================================
-                        TIPOS DE PQRS
-    ======================================================== -->
-
-    <section class="pqrs-section">
-
-        <div class="container">
-
-            <div class="section-header">
-
-                <h2>
-                    ¿Qué tipo de solicitud desea presentar?
-                </h2>
-
-                <p>
-                    Antes de radicar su solicitud, identifique la categoría que
-                    mejor se ajusta a su caso.
-                </p>
-
-            </div>
-
-
-            <div class="pqrs-grid">
-
-                <article class="pqrs-card">
-
-                    <div class="pqrs-icon">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-
-                    <h3>Petición</h3>
-
-                    <p>
-                        Solicitud respetuosa presentada para obtener información,
-                        documentos o una actuación por parte del Centro de
-                        Conciliación.
-                    </p>
-
-                </article>
-
-
-                <article class="pqrs-card">
-
-                    <div class="pqrs-icon">
-                        <i class="fas fa-comment-alt"></i>
-                    </div>
-
-                    <h3>Queja</h3>
-
-                    <p>
-                        Manifestación de inconformidad respecto a la atención,
-                        conducta o actuación de nuestros colaboradores.
-                    </p>
-
-                </article>
-
-
-                <article class="pqrs-card">
-
-                    <div class="pqrs-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-
-                    <h3>Reclamo</h3>
-
-                    <p>
-                        Solicitud presentada cuando considere que existe un
-                        incumplimiento o una afectación en la prestación del
-                        servicio.
-                    </p>
-
-                </article>
-
-
-                <article class="pqrs-card">
-
-                    <div class="pqrs-icon">
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-
-                    <h3>Sugerencia</h3>
-
-                    <p>
-                        Propuesta orientada a mejorar nuestros procesos,
-                        servicios y la atención brindada a la ciudadanía.
-                    </p>
-
-                </article>
-
-            </div>
-
+<!-- =======================================================
+                    TIPOS DE PQRS (GRID 4 COLUMNAS)
+======================================================== -->
+<section class="pqrs-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>¿Qué tipo de solicitud desea presentar?</h2>
+            <p>Antes de radicar su solicitud, identifique la categoría que mejor se ajusta a su caso.</p>
         </div>
 
-    </section>
+        <!-- Grid optimizado de 4 elementos -->
+        <div class="pqrs-grid">
+            <article class="pqrs-card">
+                <div class="pqrs-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>Petición</h3>
+                <p>Solicitud respetuosa presentada para obtener información, documentos o una actuación por parte del Centro de Conciliación.</p>
+            </article>
 
+            <article class="pqrs-card">
+                <div class="pqrs-icon">
+                    <i class="fas fa-comment-alt"></i>
+                </div>
+                <h3>Queja</h3>
+                <p>Manifestación de inconformidad respecto a la atención, conducta o actuación de nuestros colaboradores.</p>
+            </article>
 
-    <!-- =======================================================
-                    INFORMACIÓN IMPORTANTE
-    ======================================================== -->
+            <article class="pqrs-card">
+                <div class="pqrs-icon warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Reclamo</h3>
+                <p>Solicitud presentada cuando considere que existe un incumplimiento o afectación en la prestación del servicio.</p>
+            </article>
 
-    <section class="pqrs-info-section">
+            <article class="pqrs-card">
+                <div class="pqrs-icon light">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3>Sugerencia</h3>
+                <p>Propuesta orientada a mejorar nuestros procesos, servicios y la atención brindada a la ciudadanía.</p>
+            </article>
+        </div>
+    </div>
+</section>
 
-        <div class="container">
-
-            <div class="info-box">
-
-                <div class="info-icon">
+<!-- =======================================================
+            INFORMACIÓN IMPORTANTE (CARDS ELEGANTES)
+======================================================== -->
+<section class="pqrs-info-section">
+    <div class="container">
+        <div class="info-cards-grid">
+            
+            <div class="info-card">
+                <div class="info-card-icon time">
                     <i class="fas fa-clock"></i>
                 </div>
-
-                <div>
-
-                    <h3>Tiempos de respuesta</h3>
-
-                    <p>
-                        Las solicitudes serán atendidas dentro de los términos
-                        establecidos por la legislación colombiana aplicable a
-                        las Peticiones, Quejas, Reclamos y Sugerencias.
-                    </p>
-
+                <div class="info-card-content">
+                    <h3>Tiempos de Respuesta</h3>
+                    <p>Las solicitudes serán atendidas dentro de los términos legalmente establecidos por la legislación colombiana aplicable a las PQRS.</p>
                 </div>
-
             </div>
 
-
-            <div class="info-box">
-
-                <div class="info-icon">
+            <div class="info-card">
+                <div class="info-card-icon shield">
                     <i class="fas fa-user-shield"></i>
                 </div>
-
-                <div>
-
-                    <h3>Protección de datos</h3>
-
-                    <p>
-                        La información suministrada será tratada conforme a la
-                        Ley 1581 de 2012 y a nuestra Política de Tratamiento de
-                        Datos Personales.
-                    </p>
-
+                <div class="info-card-content">
+                    <h3>Protección de Datos</h3>
+                    <p>La información suministrada será tratada conforme a la Ley 1581 de 2012 y a nuestra Política de Tratamiento de Datos Personales.</p>
                 </div>
-
             </div>
 
         </div>
-
-    </section>
+    </div>
+</section>
 
 
     <!-- =======================================================
-                        RADICAR PQRS
+                        RADICAR PQRS (FORMULARIO INTERACTIVO)
     ======================================================== -->
-
     <section class="pqrs-contact">
-
         <div class="container">
+            <div class="radicar-card">
+                <h2>Radicar Solicitud PQRS</h2>
+                <p class="form-subtitle">
+                    Complete el siguiente formulario. Al finalizar, el sistema procesará su solicitud y generará un número de radicado.
+                </p>
 
-            <h2>Radique su PQRS</h2>
+                <form id="pqrsForm" class="pqrs-form" enctype="multipart/form-data">
+                    
+                    <div class="form-grid">
+                        <!-- Tipo de Solicitud -->
+                        <div class="form-group full-width">
+                            <label for="tipo_solicitud"><i class="fas fa-tag"></i> Tipo de Solicitud <span class="required">*</span></label>
+                            <select id="tipo_solicitud" name="tipo_solicitud" required>
+                                <option value="" disabled selected>Seleccione el tipo de PQRS...</option>
+                                <option value="Petición">Petición</option>
+                                <option value="Queja">Queja</option>
+                                <option value="Reclamo">Reclamo</option>
+                                <option value="Sugerencia">Sugerencia</option>
+                            </select>
+                        </div>
 
-            <p>
-                Para presentar una Petición, Queja, Reclamo o Sugerencia,
-                haga clic en el siguiente botón. Se abrirá un correo dirigido
-                a nuestro correo institucional con una plantilla para facilitar
-                el diligenciamiento de la solicitud.
-            </p>
+                        <!-- Nombre completo -->
+                        <div class="form-group">
+                            <label for="nombre"><i class="fas fa-user"></i> Nombre completo <span class="required">*</span></label>
+                            <input type="text" id="nombre" name="nombre" placeholder="Ej. María Pérez" required>
+                        </div>
 
-            <a class="btn btn-primary"
-                href="https://mail.google.com/mail/?view=cm&to=centrodeconciliacionlexim@gmail.com&su=Radicaci%C3%B3n%20de%20PQRS%20-%20LEXIM&body=Buenos%20d%C3%ADas%2C%0A%0APor%20medio%20del%20presente%20correo%20deseo%20radicar%20una%20Petici%C3%B3n%2C%20Queja%2C%20Reclamo%20o%20Sugerencia.%0A%0ATipo%20de%20solicitud%3A%20%0ANombre%20completo%3A%20%0AN%C3%BAmero%20de%20documento%3A%20%0ATel%C3%A9fono%3A%20%0ACorreo%20electr%C3%B3nico%3A%20%0ADescripci%C3%B3n%20de%20la%20solicitud%3A%20%0A%0AAdjunto%20los%20documentos%20que%20considero%20pertinentes."
-                target="_blank">
-                <i class="fas fa-paper-plane"></i>
-                Radicar PQRS
-            </a>
+                        <!-- Tipo y N° Documento -->
+                        <div class="form-group">
+                            <label for="documento"><i class="fas fa-id-card"></i> Número de Cédula / NIT <span class="required">*</span></label>
+                            <input type="text" id="documento" name="documento" placeholder="Ej. 1012345678" required>
+                        </div>
 
-            <p class="pqrs-note">
-                <i class="fas fa-info-circle"></i>
-                Si su solicitud requiere soportes, podrá adjuntarlos antes de
-                enviar el correo electrónico.
-            </p>
+                        <!-- Correo electrónico -->
+                        <div class="form-group">
+                            <label for="email"><i class="fas fa-envelope"></i> Correo Electrónico <span class="required">*</span></label>
+                            <input type="email" id="email" name="email" placeholder="para recibir la respuesta" required>
+                        </div>
+
+                        <!-- Teléfono -->
+                        <div class="form-group">
+                            <label for="telefono"><i class="fas fa-phone"></i> Teléfono / WhatsApp <span class="required">*</span></label>
+                            <input type="tel" id="telefono" name="telefono" placeholder="Ej. 3001234567" required>
+                        </div>
+
+                        <!-- Asunto -->
+                        <div class="form-group full-width">
+                            <label for="asunto"><i class="fas fa-pen"></i> Asunto <span class="required">*</span></label>
+                            <input type="text" id="asunto" name="asunto" placeholder="Resumen breve de su solicitud" required>
+                        </div>
+
+                        <!-- Mensaje / Descripción -->
+                        <div class="form-group full-width">
+                            <label for="descripcion"><i class="fas fa-align-left"></i> Descripción detallada de los hechos <span class="required">*</span></label>
+                            <textarea id="descripcion" name="descripcion" rows="5" placeholder="Describa claramente su petición, queja o sugerencia..." required></textarea>
+                        </div>
+
+                        <!-- Carga de Archivos Adjuntos -->
+                        <div class="form-group full-width">
+                            <label><i class="fas fa-paperclip"></i> Documentos de Soporte / Anexos (Opcional)</label>
+                            <div class="file-drop-area">
+                                <i class="fas fa-cloud-upload-alt file-icon"></i>
+                                <span class="file-msg">Arrastre sus archivos aquí o <strong style="color:#2980b9; cursor:pointer;">seleccione desde su equipo</strong></span>
+                                <input class="file-input" type="file" id="archivos" name="archivos" multiple accept=".pdf,.doc,.docx,.jpg,.png">
+                                <span class="file-info-text">Formatos permitidos: PDF, Word, JPG, PNG (Máx. 10MB por archivo)</span>
+                            </div>
+                            <div id="fileList" class="file-list"></div>
+                        </div>
+
+                        <!-- Checkbox Habeas Data -->
+                        <div class="form-group full-width checkbox-group">
+                            <input type="checkbox" id="habeasData" required>
+                            <label for="habeasData">
+                                Acepto la <a href="politica-privacidad.html" target="_blank">Política de Tratamiento de Datos Personales</a> Ley 1581 de 2012.
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Botón de Envío -->
+                    <button type="submit" class="btn btn-primary btn-submit" id="btnEnviarPqrs">
+                        <i class="fas fa-paper-plane"></i> Radicar PQRS
+                    </button>
+                </form>
+                
+                <!-- Mensaje de Éxito con Radicado (Oculto por defecto) -->
+                <div id="pqrsSuccessMessage" class="pqrs-success-card" style="display: none;">
+                    <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+                    <h3>¡Solicitud Radicada Exitosamente!</h3>
+                    <p>Se ha generado el número de radicado oficial para su seguimiento:</p>
+                    <div class="radicado-box">
+                        <span id="numeroRadicado">PQRS-2026-0000</span>
+                    </div>
+                    <p class="success-note">Hemos enviado una copia de este comprobante al correo electrónico registrado.</p>
+                    <button onclick="window.location.reload()" class="btn btn-secondary">Radicar otra solicitud</button>
+                </div>
+
+            </div>
         </div>
     </section>
 </main>
@@ -313,5 +315,6 @@
         </div>
     </footer>
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/pqrs.js"></script>
     </body>
 </html>
