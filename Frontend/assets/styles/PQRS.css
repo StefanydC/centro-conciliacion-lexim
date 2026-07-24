@@ -337,6 +337,33 @@
     color: #1e8449;
     letter-spacing: 1px;
 }
+/* Estilo para el botón de volver a radicar */
+.pqrs-success-card .btn-secondary {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 22px;
+    background: #e2e8f0;
+    color: #1e293b;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.pqrs-success-card .btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+/* Animación de entrada suave para la tarjeta de éxito */
+.pqrs-success-card {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 
 /* ==========================================================

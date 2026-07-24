@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('archivos');
     const fileListContainer = document.getElementById('fileList');
     const pqrsForm = document.getElementById('pqrsForm');
+    
+    // Elementos para el mensaje de éxito elegante que ya tienes en tu HTML
+    const successMessageCard = document.getElementById('pqrsSuccessMessage');
+    const numeroRadicadoSpan = document.getElementById('numeroRadicado');
 
     // Muestra los nombres de los archivos seleccionados por el usuario
     if (fileInput) {
@@ -27,31 +31,43 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando Radicado...';
 
-            // Empacamos el formulario con sus inputs y archivos
-            const formData = new FormData(this);
+            // Empacamos el formulario usando la referencia correcta a pqrsForm
+            const formData = new FormData(pqrsForm);
 
             try {
-                // Petición a la API del servidor Backend
-                const response = await fetch('/api/pqrs/radicar', {
+                const response = await fetch('/pqrs/radicar', {
                     method: 'POST',
-                    body: formData
+                    body: formData // Envía los campos de texto y los archivos seleccionados
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Ocultar formulario y mostrar mensaje de éxito con el radicado generado
+                    // 1. Ocultamos el formulario
                     pqrsForm.style.display = 'none';
-                    document.getElementById('numeroRadicado').textContent = data.radicado;
-                    document.getElementById('pqrsSuccessMessage').style.display = 'block';
+
+                    // 2. Colocamos el número de radicado devuelto por el backend
+                    if (numeroRadicadoSpan && data.radicado) {
+                        numeroRadicadoSpan.textContent = data.radicado;
+                    }
+
+                    // 3. Mostramos la tarjeta/ventana elegante de éxito
+                    if (successMessageCard) {
+                        successMessageCard.style.display = 'block';
+                        // Hacemos un scroll suave hacia el mensaje de éxito
+                        successMessageCard.scrollIntoView({ behavior: 'smooth' });
+                    }
                 } else {
-                    alert('Ocurrió un error al radicar: ' + (data.mensaje || 'Intente nuevamente'));
+                    alert(`Error: ${data.error || 'No se pudo radicar la solicitud.'}`);
+                    // Restauramos el botón si hubo un error
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Radicar PQRS';
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('No se pudo conectar con el servidor de radicación. Intente más tarde.');
+                console.error('Error enviando la PQRS:', error);
+                alert('No se pudo conectar con el servidor. Intente nuevamente.');
+                
+                // Restauramos el botón
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane"></i> Radicar PQRS';
             }
