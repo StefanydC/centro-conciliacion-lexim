@@ -4,8 +4,6 @@ const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const morgan  = require('morgan');
 const cors    = require('cors');
-const multer = require('multer');
-const nodemailer = require('nodemailer');
 
 const { requireJudicante, requireAdmin } = require('./middleware/auth');
 const { resolveService }                 = require('./src/utils/consulDiscovery');
@@ -181,7 +179,6 @@ app.post('/ai/chat', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 //  RUTAS PÚBLICAS — no requieren JWT
 // ─────────────────────────────────────────────────────────────────────────────
-
 app.use('/auth', createProxyMiddleware({
   target:      USER_AUTH_SERVICE_URL,
   router:      () => resolveService('user_auth_service', USER_AUTH_SERVICE_URL),
@@ -199,112 +196,8 @@ app.use('/auth', createProxyMiddleware({
 }));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PQRS — ruta pública para radicar PQRS y enviar correo por Nodemailer
-// ─────────────────────────────────────────────────────────────────────────────
-
-// 1. Configuración de Multer para recibir archivos en memoria RAM antes de enviar por correo
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // Límite de 10MB por archivo
-});
-
-// 2. Configurar el transportador de correo (Nodemailer)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER, // Notificaciones PQRS
-    pass: process.env.EMAIL_PASS  // Clave de aplicación de 16 caracteres
-  }
-});
-
-app.post('/pqrs/radicar', upload.array('archivos', 5), async (req, res) => {
-  try {
-    // Mapeo con los nombres exactos que vienen del atributo 'name' en tu HTML
-    const { 
-      nombre, 
-      documento: cedula, 
-      email: correo, 
-      tipo_solicitud: tipo_pqrs, 
-      asunto, 
-      descripcion: mensaje 
-    } = req.body;
-
-    if (!nombre || !correo || !mensaje) {
-      return res.status(400).json({ error: 'Campos obligatorios faltantes' });
-    }
-
-    // Generar número de radicado único
-    const anio = new Date().getFullYear();
-    const aleatorio = Math.floor(1000 + Math.random() * 9000);
-    const numRadicado = `PQRS-${anio}-${aleatorio}`;
-
-    // Preparar adjuntos para Nodemailer
-    const attachments = (req.files || []).map(file => ({
-      filename: file.originalname,
-      content: file.buffer
-    }));
-
-    // Correo para la empresa / Centro de Conciliación
-    const mailOptionsEmpresa = {
-      from: `"Sistema PQRS LEXIM" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_DESTINO || process.env.EMAIL_USER,
-      subject: `[NUEVA PQRS] ${numRadicado} - ${tipo_pqrs || 'Solicitud'}: ${asunto || 'Sin asunto'}`,
-      html: `
-        <h2>Nueva PQRS Radicada</h2>
-        <p><strong>Radicado:</strong> ${numRadicado}</p>
-        <p><strong>Nombre:</strong> ${nombre}</p>
-        <p><strong>Cédula / NIT:</strong> ${cedula || 'No especificada'}</p>
-        <p><strong>Correo del ciudadano:</strong> ${correo}</p>
-        <p><strong>Tipo de PQRS:</strong> ${tipo_pqrs}</p>
-        <p><strong>Asunto:</strong> ${asunto}</p>
-        <hr/>
-        <h3>Descripción / Mensaje:</h3>
-        <p>${mensaje}</p>
-      `,
-      attachments: attachments
-    };
-
-    // Correo de confirmación para el ciudadano
-    const mailOptionsCiudadano = {
-      from: `"Centro de Conciliación LEXIM" <${process.env.EMAIL_USER}>`,
-      to: correo,
-      subject: `Confirmación de Radicado ${numRadicado} - LEXIM`,
-      html: `
-        <h2>Hemos recibido tu solicitud</h2>
-        <p>Estimado(a) <strong>${nombre}</strong>,</p>
-        <p>Tu PQRS ha sido registrada exitosamente en nuestro sistema.</p>
-        <p><strong>Número de Radicado:</strong> <code>${numRadicado}</code></p>
-        <p>Le daremos respuesta dentro de los términos legales fijados por la ley.</p>
-        <br/>
-        <p>Atentamente,<br/><strong>Centro de Conciliación LEXIM</strong></p>
-      `
-    };
-
-    // Enviar ambos correos de forma concurrente
-    await Promise.all([
-      transporter.sendMail(mailOptionsEmpresa),
-      transporter.sendMail(mailOptionsCiudadano)
-    ]);
-
-    // Responder al Frontend
-    res.json({
-      ok: true,
-      radicado: numRadicado,
-      mensaje: 'PQRS radicada con éxito'
-    });
-
-  } catch (error) {
-    console.error('[PQRS Error]:', error);
-    res.status(500).json({ error: 'Error al procesar el radicado' });
-  }
-});
-
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  RUTAS PROTEGIDAS — requieren JWT válido
 // ─────────────────────────────────────────────────────────────────────────────
-
 app.use('/tasks', requireJudicante, createProxyMiddleware({
   target:      USER_AUTH_SERVICE_URL,
   router:      () => resolveService('user_auth_service', USER_AUTH_SERVICE_URL),
@@ -511,3 +404,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`JWT_SECRET configurado: ${process.env.JWT_SECRET ? 'si' : 'NO - verificar .env'}`);
   console.log(`Consul: ${process.env.CONSUL_HOST || 'consul'}:${process.env.CONSUL_PORT || '8500'}`);
 });
+
+
