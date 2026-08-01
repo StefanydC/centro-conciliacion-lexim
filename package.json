@@ -12,11 +12,18 @@
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f"
   },
-  "keywords": ["conciliacion", "lexim", "microservicios"],
+  "keywords": [
+    "conciliacion",
+    "lexim",
+    "microservicios"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/StefanydC/centro-conciliacion-lexim/issues"
   },
-  "homepage": "https://github.com/StefanydC/centro-conciliacion-lexim#readme"
+  "homepage": "https://github.com/StefanydC/centro-conciliacion-lexim#readme",
+  "dependencies": {
+    "nodemailer": "^9.0.3"
+  }
 }

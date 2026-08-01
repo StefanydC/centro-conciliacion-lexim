@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(pqrsForm);
 
             try {
-                const response = await fetch('/pqrs/radicar', {
+                const response = await fetch('/api/pqrs/enviar', {
                     method: 'POST',
                     body: formData // Envía los campos de texto y los archivos seleccionados
                 });

@@ -48,8 +48,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware inteligente: si es multipart (archivos), deja pasar la petición limpia
+app.use((req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.includes('multipart/form-data')) {
+    return next(); // Pasa directo a Multer sin tocar express.json
+  }
+  express.json()(req, res, (err) => {
+    if (err) return next(err);
+    express.urlencoded({ extended: true })(req, res, next);
+  });
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function proxyError(serviceName, errorCode, _req, res, err) {
@@ -391,13 +400,14 @@ app.get('/health', (_req, res) => {
       tasks2:       TASK_SERVICE_URL
     },
     rutas: {
-      publicas:   ['/auth', '/health'],
+      publicas:   ['/auth', '/health','/api/pqrs'],
       protegidas: ['/tasks', '/tasks2', '/notifications', '/finanzas', '/finance', '/conciliacion', '/documentos', '/agenda'],
       soloAdmin:  ['/usuarios', '/admin']
     }
   });
 });
-
+const pqrsRouter = require('./pqrs.controller');
+app.use('/api/pqrs', pqrsRouter);
 // ─────────────────────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Gateway corriendo en puerto ${PORT}`);
