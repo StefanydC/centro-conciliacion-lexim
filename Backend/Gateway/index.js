@@ -19,7 +19,8 @@ if (process.env.FORCE_HTTPS === 'true' || process.env.NODE_ENV === 'production')
   app.use((req, res, next) => {
     const proto = String(req.get('x-forwarded-proto') || req.protocol || '').toLowerCase();
     if (proto === 'https' || req.secure) return next();
-    return res.redirect(301, 'https://' + req.get('host') + req.originalUrl);
+    // Cambiamos el 301 por 307 para mantener el método POST al redirigir
+    return res.redirect(307, 'https://' + req.get('host') + req.originalUrl);
   });
 }
 
