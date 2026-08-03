@@ -34,9 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Empacamos el formulario usando la referencia correcta a pqrsForm
             const formData = new FormData(pqrsForm);
             try {
-                const response = await fetch('https://centro-conciliacion-lexim-production.up.railway.app/api/pqrs/enviar', {
+                const response = await fetch('https://centro-conciliacion-lexim.up.railway.app/api/pqrs/enviar', {
                     method: 'POST',
-                    body: formData // Envía los campos de texto y los archivos seleccionados
+                    body: formData
                 });
 
                 const data = await response.json();
