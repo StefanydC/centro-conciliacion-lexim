@@ -230,19 +230,27 @@
                 
                 <!-- Mensaje de Éxito con Radicado (Oculto por defecto) -->
                 <div id="pqrsSuccessMessage" class="pqrs-success-card" style="display: none;">
-                    <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
                     <h3>¡Solicitud Radicada Exitosamente!</h3>
                     <p>Guarde su número oficial de radicado para realizar el seguimiento de su caso:</p>
+                    
                     <div class="radicado-box">
                         <span id="numeroRadicado">PQRS-2026-0000</span>
                     </div>
+
                     <p class="success-note">
                         Si necesita consultar el estado de su trámite o aportar información adicional, comuníquese a nuestro correo oficial de atención: 
                         <br>
-                        <strong><a href="mailto:notificacionespqrslexim@gmail.com" style="color: #1e3a8a; text-decoration: underline;">notificacionespqrslexim@gmail.com</a></strong>
+                        <strong><a href="mailto:notificacionespqrslexim@gmail.com" style="color: #0d3f54; text-decoration: underline;">notificacionespqrslexim@gmail.com</a></strong>
                     </p>
-                    <button onclick="window.location.reload()" class="btn btn-secondary" style="margin-top: 15px;">Radicar otra solicitud</button>
-                </div>
+
+                    <!-- Botón con las mismas clases y estilos del botón de radicar -->
+                    <button onclick="window.location.reload()" class="btn btn-submit btn-reload">
+                        <i class="fas fa-redo-alt"></i> Radicar otra solicitud
+                    </button>
+</div>
 
             </div>
         </div>
