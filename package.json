@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/StefanydC/centro-conciliacion-lexim#readme",
   "dependencies": {
-    "nodemailer": "^9.0.3"
+    "nodemailer": "^9.0.3",
+    "resend": "^6.18.1"
   }
 }

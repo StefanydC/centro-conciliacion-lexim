@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// 1. Configuración de Multer para recibir archivos en memoria
+// 1. Inicializar Resend con tu API KEY de Railway
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// 2. Configuración de Multer para recibir archivos en memoria
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
@@ -25,21 +28,6 @@ const upload = multer({
     storage: storage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB por archivo
     fileFilter: fileFilter
-});
-
-// Configuración de Nodemailer usando tus variables del .env
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    port: 587,
-    secure: false,
-    family: 4,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS  
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
 });
 
 // 3. Ruta POST para recibir y enviar la PQRS
@@ -66,17 +54,16 @@ router.post('/enviar', upload.array('archivos'), async (req, res) => {
 
         const radicado = `PQRS-${yy}${mm}${dd}-${random}`;
 
-        // Mapear archivos para Nodemailer
+        // Mapear archivos para Resend
         const attachments = archivos.map(file => ({
             filename: file.originalname,
-            content: file.buffer,
-            contentType: file.mimetype
+            content: file.buffer
         }));
 
-        // A) Correo interno para LEXIM
+        // Correo interno para LEXIM (Admin)
         const mailToAdmin = {
-            from: `"Sistema PQRS LEXIM" <${process.env.EMAIL_USER}>`,
-            to: process.env.EMAIL_DESTINO || process.env.EMAIL_USER,
+            from: 'Sistema PQRS LEXIM <onboarding@resend.dev>',
+            to: [process.env.EMAIL_DESTINO || 'notificacionespqrslexim@gmail.com'],
             subject: `[Nueva ${tipo_solicitud}] Radicado: ${radicado} - ${asunto}`,
             html: `
                 <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px;">
@@ -110,44 +97,20 @@ router.post('/enviar', upload.array('archivos'), async (req, res) => {
             attachments: attachments
         };
 
-        // B) Correo de confirmación para el ciudadano
-        const mailToUser = {
-            from: `"LEXIM Centro de Conciliación" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: `Confirmación de Radicación: ${radicado}`,
-            html: `
-                <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px;">
-                    <h2 style="color: #1e3a8a;">Estimado(a) ${nombre},</h2>
-                    <p>Hemos recibido exitosamente su <strong>${tipo_solicitud}</strong> a través de nuestro portal web.</p>
-                    
-                    <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 6px; text-align: center; margin: 20px 0;">
-                        <span style="font-size: 0.9rem; color: #64748b; display: block;">Número Oficial de Radicado:</span>
-                        <strong style="font-size: 1.4rem; color: #1e3a8a;">${radicado}</strong>
-                    </div>
-
-                    <p>Nuestro equipo revisará la información suministrada y le dará respuesta oportunamente dentro de los términos legalmente establecidos.</p>
-                    <br>
-                    <p style="margin-bottom: 0;">Atentamente,</p>
-                    <p style="font-weight: bold; color: #1e3a8a; margin-top: 4px;">Centro de Conciliación LEXIM</p>
-                </div>
-            `
-        };
-
-        // Enviamos ambos correos
-        await transporter.sendMail(mailToAdmin);
-        await transporter.sendMail(mailToUser);
+        // Enviamos ÚNICAMENTE el correo al destino oficial de LEXIM
+        await resend.emails.send(mailToAdmin);
 
         return res.status(200).json({ 
             exito: true, 
             radicado: radicado,
-            mensaje: 'PQRS radicado y enviado correctamente por correo' 
+            mensaje: 'PQRS radicado y enviado correctamente' 
         });
 
     } catch (error) {
-        console.error("Error al procesar/enviar el PQRS:", error);
+        console.error("Error al procesar/enviar el PQRS con Resend:", error);
         return res.status(500).json({ 
             exito: false, 
-            error: 'Ocurrió un error al enviar la PQRS por correo. Por favor intente más tarde.' 
+            error: 'Ocurrió un error al enviar la PQRS. Por favor intente más tarde.' 
         });
     }
 });
