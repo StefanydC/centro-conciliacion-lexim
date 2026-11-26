@@ -1,6 +1,50 @@
 // ===== REEMPLAZA TODO EL CONTENIDO DE main.js CON ESTE CÓDIGO =====
 
 document.addEventListener("DOMContentLoaded", function() {
+    // --- Navegación adaptable para tabletas y móviles ---
+    const navToggle = document.querySelector(".nav-toggle");
+    const mainNav = document.querySelector(".main-nav");
+
+    if (navToggle && mainNav) {
+        const closeMenu = () => {
+            navToggle.setAttribute("aria-expanded", "false");
+            navToggle.setAttribute("aria-label", "Abrir menú");
+            navToggle.innerHTML = '<i class="fas fa-bars" aria-hidden="true"></i>';
+            mainNav.classList.remove("is-open");
+        };
+
+        navToggle.addEventListener("click", () => {
+            const isOpen = navToggle.getAttribute("aria-expanded") === "true";
+
+            if (isOpen) {
+                closeMenu();
+            } else {
+                navToggle.setAttribute("aria-expanded", "true");
+                navToggle.setAttribute("aria-label", "Cerrar menú");
+                navToggle.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i>';
+                mainNav.classList.add("is-open");
+            }
+        });
+
+        mainNav.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", closeMenu);
+        });
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") closeMenu();
+        });
+
+        document.addEventListener("click", event => {
+            if (!mainNav.contains(event.target) && !navToggle.contains(event.target)) {
+                closeMenu();
+            }
+        });
+
+        window.addEventListener("resize", () => {
+            if (window.innerWidth > 820) closeMenu();
+        });
+    }
+
 
     // --- Lógica para la animación de revelado por palabras del título ---
     const headline = document.getElementById("typing-headline");
