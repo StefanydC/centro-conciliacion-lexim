@@ -1,3 +1,8 @@
+/* El control solo aparece cuando la navegación pasa a formato móvil. */
+.nav-toggle {
+  display: none;
+}
+
 /* =========================================================
    LEXIM — Adaptación responsive
    Mantiene el diseño actual y reorganiza los componentes
