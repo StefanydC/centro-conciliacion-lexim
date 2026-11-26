@@ -1,0 +1,452 @@
+/* =========================================================
+   LEXIM — Adaptación responsive
+   Mantiene el diseño actual y reorganiza los componentes
+   para tabletas y móviles.
+========================================================= */
+
+@media (max-width: 1024px) {
+  .main-header .container {
+    gap: 16px;
+  }
+
+  .logo-container {
+    gap: 10px;
+  }
+
+  .logo {
+    height: 58px;
+  }
+
+  .logo-text {
+    font-size: 10px;
+  }
+
+  .main-nav ul li a {
+    padding: 9px 10px;
+    font-size: 0.92rem;
+  }
+
+  .footer-content {
+    gap: 24px;
+  }
+
+  .footer-section {
+    min-width: 0;
+  }
+
+  .footer-vigilancia img {
+    width: 125px;
+  }
+
+  .service-layout {
+    gap: 36px;
+  }
+}
+
+/* Menú compacto y distribución de tableta */
+@media (max-width: 820px) {
+  .main-header {
+    padding: 10px 0;
+  }
+
+  .main-header .container {
+    width: calc(100% - 36px);
+    padding: 0;
+    position: relative;
+    justify-content: space-between;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border: 1px solid rgba(35, 76, 88, 0.18);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--color-primary);
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+
+  .nav-toggle:focus-visible,
+  .main-nav a:focus-visible {
+    outline: 3px solid rgba(35, 76, 88, 0.35);
+    outline-offset: 3px;
+  }
+
+  .main-nav {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    z-index: 110;
+    padding: 8px;
+    border: 1px solid rgba(35, 76, 88, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 14px 32px rgba(15, 21, 22, 0.14);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  }
+
+  .main-nav.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .main-nav ul {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+
+  .main-nav ul li a,
+  .main-nav ul li a.nav-login-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-size: 0.96rem;
+  }
+
+  .main-nav ul li a:hover,
+  .main-nav ul li a.active,
+  .main-nav ul li a.nav-login-btn:hover {
+    background: rgba(35, 76, 88, 0.08);
+  }
+
+  .hero {
+    padding: 86px 0;
+  }
+
+  .hero-content h1 {
+    font-size: clamp(2.1rem, 5.5vw, 2.8rem);
+    line-height: 1.18;
+  }
+
+  .hero-content p {
+    font-size: 1.05rem;
+  }
+
+  .features .container {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .feature-item {
+    flex: 1 1 250px;
+  }
+
+  .team-section,
+  .values-section {
+    padding: 72px 0;
+  }
+
+  .footer-content {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+  }
+
+  .footer-section {
+    min-width: 0;
+  }
+
+  .footer-vigilancia {
+    grid-column: 1 / -1;
+  }
+
+  .footer-vigilancia .vigilancia-content {
+    align-items: flex-start;
+  }
+
+  .footer-vigilancia img {
+    width: 135px;
+  }
+
+  .contact-info li .phones span {
+    white-space: normal;
+  }
+
+  .service-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+    gap: 28px;
+  }
+
+  .container {
+    width: calc(100% - 40px);
+    padding-left: 0;
+  }
+}
+
+/* Celulares */
+@media (max-width: 600px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .container {
+    width: calc(100% - 32px);
+    padding-left: 0;
+  }
+
+  .main-header .container {
+    width: calc(100% - 28px);
+    gap: 10px;
+  }
+
+  .logo-container {
+    gap: 9px;
+    min-width: 0;
+  }
+
+  .logo {
+    height: 49px;
+    max-width: 58px;
+    object-fit: contain;
+  }
+
+  .logo-text {
+    max-width: 205px;
+    font-size: 9px;
+    line-height: 1.25;
+  }
+
+  .logo-text strong {
+    font-size: 10px;
+  }
+
+  .nav-toggle {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .hero {
+    padding: 68px 0;
+  }
+
+  .hero-content h1 {
+    font-size: clamp(1.9rem, 8vw, 2.35rem);
+    line-height: 1.18;
+    overflow-wrap: break-word;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .hero .btn {
+    margin: 6px 5px 0 0;
+    padding: 11px 16px;
+    font-size: 0.92rem;
+  }
+
+  .features {
+    padding: 54px 0;
+  }
+
+  .features .container {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .feature-item {
+    width: 100%;
+    padding: 24px 20px;
+  }
+
+  .team-section,
+  .values-section {
+    padding: 58px 0;
+  }
+
+  .section-title {
+    font-size: clamp(1.8rem, 7vw, 2.25rem);
+  }
+
+  .section-subtitle {
+    margin-bottom: 34px;
+    padding: 0 4px;
+    font-size: 1rem;
+  }
+
+  .team-grid,
+  .values-section .container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .team-card {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  .team-card:hover {
+    transform: translateY(-4px) !important;
+  }
+
+  .about-hero {
+    padding: 64px 0;
+  }
+
+  .about-hero-content {
+    padding: 26px 20px;
+    border-radius: 15px;
+  }
+
+  .service-section {
+    padding: 48px 0;
+  }
+
+  #conciliacion.service-section {
+    padding-top: 42px;
+  }
+
+  .service-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .service-image {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .service-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .contact-section,
+  .pqrs-section {
+    padding: 52px 0;
+  }
+
+  .contact-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .panel {
+    padding: 19px;
+  }
+
+  .contact-head h2 {
+    font-size: 2rem;
+  }
+
+  .pqrs-hero {
+    padding: 64px 16px 52px;
+  }
+
+  .pqrs-hero h1 {
+    font-size: clamp(1.8rem, 7vw, 2.25rem);
+    line-height: 1.2;
+  }
+
+  .pqrs-hero p {
+    font-size: 1rem;
+  }
+
+  .pqrs-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .pqrs-card {
+    padding: 27px 21px;
+  }
+
+  .section-header {
+    margin-bottom: 32px;
+  }
+
+  .section-header h2 {
+    font-size: 1.65rem;
+  }
+
+  .main-footer {
+    padding: 44px 0 18px;
+  }
+
+  .footer-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    margin-bottom: 30px;
+  }
+
+  .footer-vigilancia {
+    grid-column: auto;
+  }
+
+  .footer-section h4 {
+    margin-bottom: 14px;
+  }
+
+  .footer-vigilancia .vigilancia-content {
+    gap: 14px;
+    align-items: center;
+  }
+
+  .footer-vigilancia img {
+    width: 105px;
+    max-width: 35%;
+  }
+
+  .footer-vigilancia p {
+    font-size: 0.78rem;
+  }
+
+  .social-icons {
+    flex-wrap: wrap;
+  }
+
+  .footer-bottom {
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  /* Área privada: evita que la tarjeta de acceso se corte en móviles */
+  body:has(.login-card) {
+    min-height: 100svh;
+    overflow-y: auto;
+    align-items: flex-start;
+    padding: 22px 0;
+  }
+
+  .login-card {
+    width: calc(100% - 32px);
+    max-width: 440px;
+    margin: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-nav,
+  .btn,
+  .feature-item,
+  .team-card {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
